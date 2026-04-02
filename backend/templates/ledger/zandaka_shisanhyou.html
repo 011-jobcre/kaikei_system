@@ -1,0 +1,100 @@
+{% extends "layout_main.html" %}
+{% block title %}
+    残高試算表 | 会計システム
+{% endblock title %}
+{% block page_title %}
+    残高試算表 (Trial Balance)
+{% endblock page_title %}
+{% block content %}
+    <div class="space-y-4">
+        <div class="flex items-center justify-between bg-base-100 p-4 rounded-box shadow-sm">
+            <form method="get" class="flex items-center gap-3">
+                <span class="text-sm font-medium w-36 whitespace-nowrap">集計基準日:</span>
+                <input type="date"
+                       name="date_to"
+                       value="{{ date_to }}"
+                       class="input input-bordered input-sm" />
+                <button type="submit" class="btn btn-primary btn-sm">集計</button>
+                <a href="{% url 'ledger:zandaka' %}" class="btn btn-ghost btn-sm">リセット</a>
+            </form>
+            <button onclick="window.print()" class="btn btn-outline btn-sm gap-2">
+                <i class="fa-solid fa-print"></i>
+                印刷
+            </button>
+        </div>
+        <div class="bg-base-100 rounded-box shadow-sm overflow-hidden mt-4 print:shadow-none">
+            <div class="p-4 border-b border-base-200 text-center">
+                <h2 class="text-lg font-bold">合計残高試算表</h2>
+                <p class="text-xs text-base-content/60">
+                    対象:
+                    {% if date_to %}
+                        期首 〜 {{ date_to|date:"Y年m月d日" }}
+                    {% else %}
+                        全期間
+                    {% endif %}
+                </p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="table table-sm table-accounting w-full print:text-xs">
+                    <thead>
+                        <tr>
+                            <th class="w-32 text-right text-primary">借方 残高</th>
+                            <th class="w-32 text-right border-r border-base-200 text-info">借方 発生</th>
+                            <th class="text-center font-bold font-lg">勘定科目</th>
+                            <th class="w-32 text-right border-l border-base-200 text-warning">貸方 発生</th>
+                            <th class="w-32 text-right text-primary">貸方 残高</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        {% for row in rows %}
+                            <tr class="hover:bg-base-200/30 group">
+                                <td class="text-right font-mono font-bold text-primary">
+                                    {% if row.kamoku.is_kari_zandaka and row.zandaka > 0 %}{{ row.zandaka|floatformat:0 }}{% endif %}
+                                </td>
+                                <td class="text-right font-mono border-r border-base-200 text-base-content/70 group-hover:text-info">
+                                    {% if row.kari_hassei > 0 %}{{ row.kari_hassei|floatformat:0 }}{% endif %}
+                                </td>
+                                <td class="text-center font-medium">
+                                    <a href="{% url 'ledger:sokanjo' %}?kamoku_id={{ row.kamoku.pk }}&date_to={{ date_to }}"
+                                       class="hover:underline hover:text-primary transition-colors">
+                                        {{ row.kamoku.name }}
+                                    </a>
+                                </td>
+                                <td class="text-right font-mono border-l border-base-200 text-base-content/70 group-hover:text-warning">
+                                    {% if row.kashi_hassei > 0 %}{{ row.kashi_hassei|floatformat:0 }}{% endif %}
+                                </td>
+                                <td class="text-right font-mono font-bold text-primary">
+                                    {% if not row.kamoku.is_kari_zandaka and row.zandaka > 0 %}{{ row.zandaka|floatformat:0 }}{% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-primary/5 text-primary">
+                        <tr class="font-bold text-base">
+                            <td class="text-right border-t-2 border-primary">-</td>
+                            <td class="text-right font-mono border-r border-base-200 border-t-2 border-primary">{{ total_kari|floatformat:0 }}</td>
+                            <td class="text-center border-t-2 border-primary">合 計</td>
+                            <td class="text-right font-mono border-l border-base-200 border-t-2 border-primary">
+                                {{ total_kashi|floatformat:0 }}
+                            </td>
+                            <td class="text-right border-t-2 border-primary">-</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="p-4 bg-base-200 text-center border-t border-base-300">
+                {% if balanced %}
+                    <div class="text-success font-bold text-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-2xl"></i>
+                        貸借一致を確認しました
+                    </div>
+                {% else %}
+                    <div class="text-error font-bold text-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+                        貸借が不一致です（システムエラーの可能性があります）
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}

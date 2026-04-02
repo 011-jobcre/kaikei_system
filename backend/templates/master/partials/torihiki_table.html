@@ -1,0 +1,60 @@
+<div class="bg-base-100 rounded-box shadow-sm overflow-hidden"
+     hx-get="{% url 'master:torihiki-list' %}"
+     hx-trigger="refreshList from:body"
+     hx-swap="outerHTML">
+    <div class="overflow-x-auto">
+        <table class="table table-accounting table-md w-full">
+            <thead>
+                <tr class="bg-base-200/50">
+                    <th class="w-24">コード</th>
+                    <th class="w-auto">取引先名</th>
+                    <th class="w-40">電話番号</th>
+                    <th class="w-48">メールアドレス</th>
+                    <th class="w-24 text-center">ステータス</th>
+                    <th class="w-24 text-center">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in torihiki_list %}
+                    <tr class="hover:bg-base-200/50 transition-colors">
+                        <td class="font-mono text-sm opacity-70">{{ obj.code }}</td>
+                        <td class="font-bold whitespace-nowrap">{{ obj.name }}</td>
+                        <td class="text-sm whitespace-nowrap">{{ obj.phone|default:"-" }}</td>
+                        <td class="text-sm whitespace-nowrap">{{ obj.email|default:"-" }}</td>
+                        <td class="text-center">
+                            {% if obj.is_active %}
+                                <span class="badge badge-success badge-outline badge-md font-bold px-2 w-20">有効</span>
+                            {% else %}
+                                <span class="badge badge-error badge-outline badge-md font-bold px-2 w-20">無効</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="flex justify-center gap-1">
+                                <button hx-get="{% url 'master:torihiki-update' obj.pk %}"
+                                        hx-target="body"
+                                        hx-swap="beforeend"
+                                        class="btn btn-square btn-ghost btn-md text-info hover:bg-info/10"
+                                        title="編集">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button hx-get="{% url 'master:torihiki-delete' obj.pk %}"
+                                        hx-target="body"
+                                        hx-swap="beforeend"
+                                        class="btn btn-square btn-ghost btn-md text-error hover:bg-error/10"
+                                        title="削除">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-base-content/50">データがありません。</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- ページネーション -->
+    {% include "master/partials/pagination.html" %}
+</div>

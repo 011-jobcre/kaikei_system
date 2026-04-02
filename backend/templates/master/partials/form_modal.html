@@ -1,0 +1,47 @@
+<!-- 汎用HTMXモーダル — #modal-container に差し込まれる -->
+<dialog id="htmx-modal" class="modal modal-open">
+    <div class="modal-box w-11/12 max-w-2xl relative">
+        <!-- 閉じるボタン -->
+        <button onclick="document.getElementById('htmx-modal').remove()"
+                class="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">✕</button>
+        <h3 class="font-bold text-lg mb-4">{{ title }}</h3>
+        <form method="post"
+              action="{{ action_url }}"
+              hx-post="{{ action_url }}"
+              hx-swap="none">
+            {% csrf_token %}
+            <div class="space-y-4">
+                {% for field in form %}
+                    <div class="form-control">
+                        <label class="label pb-1">
+                            <span class="label-text font-medium">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-error ml-1">*</span>{% endif %}
+                            </span>
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="label">
+                                <span class="label-text-alt text-error">{{ field.errors|join:", " }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            {% if form.non_field_errors %}
+                <div class="alert alert-error mt-4">
+                    <span>{{ form.non_field_errors|join:", " }}</span>
+                </div>
+            {% endif %}
+            <div class="modal-action mt-6">
+                <button type="button"
+                        onclick="document.getElementById('htmx-modal').remove()"
+                        class="btn-ghost-cancel">キャンセル</button>
+                <button type="submit" class="btn btn-info">保存</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button onclick="document.getElementById('htmx-modal').remove()">閉じる</button>
+    </form>
+</dialog>

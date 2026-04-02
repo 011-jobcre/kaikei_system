@@ -1,0 +1,68 @@
+services:
+  # --- DỊCH VỤ DATABASE ---
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      # Lấy thông tin từ file .env để tạo DB
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      # Lưu dữ liệu DB vào volume riêng để khi tắt container không bị mất dữ liệu
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Máy thật (5432) : Container (5432)
+      - "5432:5432"
+    healthcheck:
+      # Lệnh kiểm tra xem DB đã thực sự sẵn sàng nhận kết nối chưa
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 5s   # Cứ 5 giây kiểm tra 1 lần
+      timeout: 5s    # Quá 5 giây không phản hồi là fail
+      retries: 5     # Thử lại 5 lần nếu fail
+
+  # --- DỊCH VỤ DJANGO WEB ---
+  web:
+    build:
+      context: .                   # Thư mục gốc để tìm code
+      dockerfile: docker/Dockerfile # Đường dẫn file Dockerfile đã sửa ở trên
+    
+    # Quan trọng: Ở Dev ta dùng runserver để có Hot-reload
+    # Lệnh này sẽ ghi đè (override) lệnh CMD/ENTRYPOINT nếu cần
+    command: python manage.py runserver 0.0.0.0:8000
+
+    volumes:
+      # Mount code từ máy thật vào container để sửa code là web tự cập nhật
+      - ./backend:/app/backend
+      # Dòng dưới đây RẤT QUAN TRỌNG:
+      # Ta "giấu" node_modules của máy thật đi để nó không đè lên node_modules 
+      # sạch trong stage 1 của Docker khi build
+      - /app/backend/node_modules
+    
+    ports:
+      - "8000:8000"
+    environment:
+      # Chuyển biến môi trường từ .env vào container
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_DB=${POSTGRES_DB} # Tên DB phải khớp với tên DB trong service db
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      # Thêm biến này để entrypoint.sh biết là đang ở mode DB nào
+      - DATABASE=postgres
+    depends_on:
+      db:
+        # Chỉ khởi động "web" sau khi "db" đã vượt qua bài healthcheck ở trên
+        condition: service_healthy
+    env_file:
+      - .env
+    # Giữ cho terminal luôn mở để bạn có thể xem log hoặc tương tác
+    tty: true
+    stdin_open: true
+
+# Khai báo các volume dùng chung
+volumes:
+  postgres_data:

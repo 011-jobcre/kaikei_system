@@ -1,0 +1,20 @@
+<div class="flex items-center justify-between text-sm mt-1">
+  <div class="flex gap-4">
+    <div>借方合計: <span class="font-mono font-bold">{{ kari_total|floatformat:0 }}</span> 円</div>
+    <div>貸方合計: <span class="font-mono font-bold">{{ kashi_total|floatformat:0 }}</span> 円</div>
+  </div>
+  
+  {% if balanced and kari_total > 0 %}
+    <div class="text-success font-bold flex items-center gap-1.5">
+      <i class="fa-solid fa-circle-check"></i>
+      貸借一致
+    </div>
+  {% elif diff != 0 %}
+    <div class="text-error font-bold flex items-center gap-1.5">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      差額: {{ diff|floatformat:0 }} 円
+    </div>
+  {% else %}
+    <div class="text-base-content/40 font-medium">明細を入力してください</div>
+  {% endif %}
+</div>

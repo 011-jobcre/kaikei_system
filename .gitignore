@@ -1,0 +1,56 @@
+# python
+# byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+*$py.class
+.Python
+
+# virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# environment variables
+.env
+.envrc
+.autoenv
+
+# database (if using SQLite locally)
+*.log
+*.sqlite3
+
+# static files directory (including output.css)
+# Note: Only keep input.css on Git, output.css will be built during deployment
+staticfiles/
+output.css
+
+# media files (user uploaded images)
+media/
+
+# tailwind / node
+node_modules/
+package-lock.json
+package.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# migrations (optional - usually NOT ignored)
+# */migrations/*
+# !*/migrations/__init__.py
+seed.py
+seed copy.py
+features.md

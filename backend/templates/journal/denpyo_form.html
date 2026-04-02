@@ -1,0 +1,207 @@
+{% extends "layout_main.html" %}
+{% block title %}
+    振替伝票入力 | 会計システム
+{% endblock title %}
+{% block page_header %}
+    {{ title }}
+{% endblock page_header %}
+{% block extra_head %}
+    <!-- TomSelect初期化用 -->
+    <style>.ts-control { border-radius: 0.5rem; min-height: 2rem !important; }</style>
+{% endblock extra_head %}
+{% block content %}
+    <div class="max-w-6xl mx-auto space-y-4" x-data="denpyoForm()">
+        {% if form.errors or formset.errors %}<div class="alert alert-error text-sm">エラーがあります。赤字の項目を確認してください。</div>{% endif %}
+        <form method="post" id="denpyo-form">
+            {% csrf_token %}
+            <!-- 伝票ヘッダー -->
+            <div class="bg-base-100 p-4 rounded-box shadow-sm mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                    <div class="form-control">
+                        <label class="label pb-1">
+                            <span class="label-text font-medium">日付 <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.date }}
+                        {% if form.date.errors %}<span class="text-error text-xs">{{ form.date.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="form-control md:col-span-3">
+                        <label class="label pb-1">
+                            <span class="label-text font-medium">摘要 (全体)</span>
+                        </label>
+                        {{ form.memo }}
+                    </div>
+                </div>
+            </div>
+            <!-- リアルタイム貸借バランス -->
+            <div id="balance-container"
+                 class="sticky top-14 z-20 mb-4 bg-base-100/90 backdrop-blur rounded-box shadow-sm p-3 border border-base-200">
+                <div class="text-sm font-medium text-base-content/70">借貸バランス（自動計算）</div>
+                <!-- HTMXがここに残高バーを描画 -->
+                <div id="balance-bar"
+                     hx-get="{% url 'journal:balance-check' %}"
+                     hx-trigger="updateBalance from:body"
+                     x-init="$watch('triggerCalc', () => htmx.trigger('#balance-bar', 'updateBalance'))">
+                    <div class="text-xs text-base-content/50 mt-1">金額を入力すると自動計算されます</div>
+                </div>
+                <!-- x-data state to pass to HTMX -->
+                <input type="hidden" name="kari" :value="kariTotal" form="dummy" />
+                <input type="hidden" name="kashi" :value="kashiTotal" form="dummy" />
+            </div>
+            <!-- 明細行フォームセット -->
+            <div class="bg-base-100 rounded-box shadow-sm overflow-hidden">
+                {{ formset.management_form }}
+                {% if formset.non_form_errors %}
+                    <div class="bg-error text-error-content p-3 text-sm font-bold">{{ formset.non_form_errors.0 }}</div>
+                {% endif %}
+                <div class="overflow-x-auto">
+                    <table class="table table-sm w-full" id="meisai-table">
+                        <thead class="bg-base-200">
+                            <tr>
+                                <th class="w-16 md:w-24 text-center">借/貸</th>
+                                <th class="min-w-[160px] md:w-64">
+                                    勘定科目 <span class="text-error">*</span>
+                                </th>
+                                <th class="min-w-[120px] md:w-40">部門</th>
+                                <th class="min-w-[100px] md:w-32 text-right">
+                                    金額 <span class="text-error">*</span>
+                                </th>
+                                <th class="min-w-[140px] md:w-40">税区分</th>
+                                <th class="min-w-[200px]">摘要</th>
+                                <th class="w-8"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="meisai-rows">
+                            <!-- 既存の行ループ -->
+                            {% for row_form in formset %}
+                                {% include "journal/partials/meisai_row.html" with form=row_form form_index=forloop.counter0 %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- 行追加ボタン (HTMX) -->
+                <div class="p-3 border-t border-base-200 bg-base-50 flex justify-between items-center">
+                    <button type="button"
+                            class="btn btn-sm btn-outline btn-secondary"
+                            hx-get="{% url 'journal:add-row' %}"
+                            hx-vals="js:{form_index: getNextFormIndex()}"
+                            hx-target="#meisai-rows"
+                            hx-swap="beforeend"
+                            hx-on::after-request="incrementFormIndex(); initTomSelects(); calcBalance();">
+                        + 行を追加
+                    </button>
+                </div>
+            </div>
+            <!-- 保存アクション -->
+            <div class="mt-6 flex items-center justify-between">
+                {% if not is_new %}
+                    <button type="button"
+                            hx-get="{% url 'journal:denpyo-delete' denpyo.pk %}"
+                            hx-target="body"
+                            hx-swap="beforeend"
+                            class="btn btn-error btn-sm btn-outline">伝票を削除</button>
+                {% else %}
+                    <!-- Spacer for desktop, hidden on mobile to avoid layout gaps -->
+                    <div class="hidden sm:block min-w-1">&nbsp;</div>
+                {% endif %}
+                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <a href="{% url 'journal:denpyo-list' %}"
+                       class="btn btn-ghost order-2 sm:order-1">キャンセル</a>
+                    <button type="submit"
+                            class="btn btn-primary min-w-[120px] order-1 sm:order-2"
+                            :disabled="!isBalanced()">保存する</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    {% block extra_scripts %}
+        <script>
+  // Alpine.js Component for frontend calculation tracking
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('denpyoForm', () => ({
+      kariTotal: 0,
+      kashiTotal: 0,
+      triggerCalc: 0,
+      
+      init() {
+        this.calcBalance();
+      },
+
+      calcBalance() {
+        let kari = 0;
+        let kashi = 0;
+        
+        // Find all rows (excluding deleted ones in formset)
+        const rows = document.querySelectorAll('#meisai-rows tr:not([style*="display: none"])');
+        
+        rows.forEach(row => {
+          const select = row.querySelector('select[name$="-kari_kashi"]');
+          const input = row.querySelector('input[name$="-kingaku"]');
+          const del = row.querySelector('input[name$="-DELETE"]');
+          
+          if (!del || !del.checked) {
+            const val = parseFloat(input?.value) || 0;
+            if (select?.value === 'KA') kari += val;
+            if (select?.value === 'SHI') kashi += val;
+          }
+        });
+        
+        this.kariTotal = kari;
+        this.kashiTotal = kashi;
+        
+        // Update inputs for HTMX payload
+        document.querySelectorAll('#balance-container input[name="kari"]').forEach(el => el.value = kari);
+        document.querySelectorAll('#balance-container input[name="kashi"]').forEach(el => el.value = kashi);
+        
+        // Trigger HTMX request to render balance bar UI
+        htmx.trigger('#balance-bar', 'updateBalance');
+      },
+      
+      isBalanced() {
+        return this.kariTotal > 0 && this.kariTotal === this.kashiTotal;
+      }
+    }));
+  });
+
+  // Helper variables for dynamic formset logic
+  let TOTAL_FORMS = parseInt(document.getElementById('id_meisai-TOTAL_FORMS').value);
+  
+  function getNextFormIndex() {
+    return TOTAL_FORMS;
+  }
+  
+  function incrementFormIndex() {
+    TOTAL_FORMS++;
+    document.getElementById('id_meisai-TOTAL_FORMS').value = TOTAL_FORMS;
+  }
+
+  // TomSelect Initialization wrapper
+  function initTomSelects() {
+    document.querySelectorAll('select.tomselect:not(.tomselected)').forEach(el => {
+      new TomSelect(el, {
+        create: false,
+        sortField: { field: "text", direction: "asc" },
+        placeholder: "科目を選択..."
+      });
+    });
+  }
+
+  // Init on load
+  document.addEventListener("DOMContentLoaded", () => {
+    initTomSelects();
+  });
+  
+  // Row deletion helper
+  function removeRow(btn) {
+    const row = btn.closest('tr');
+    const delInput = row.querySelector('input[name$="-DELETE"]');
+    if (delInput) {
+      delInput.checked = true; // Mark for deletion if it's an existing row
+      row.style.display = 'none';
+    } else {
+      row.remove(); // Remove immediately if it's a new unsaved row
+    }
+    document.querySelector('[x-data]').__x.$data.calcBalance();
+  }
+        </script>
+    {% endblock extra_scripts %}
+{% endblock content %}

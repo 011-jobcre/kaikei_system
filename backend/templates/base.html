@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="mytheme">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            {% block title %}
+                会計システム
+            {% endblock title %}
+        </title>
+        <meta name="description" content="社内用会計システム — 日本の会計基準に準拠した複式簿記システム" />
+        <meta name="keywords" content="会計システム, 複式簿記, 勘定科目, 財務諸表, 日本基準" />
+        <!-- Tailwind / DaisyUI (ビルド済みCSS) -->
+        <link rel="stylesheet"
+              href="{% load static %}{% static 'css/output.css' %}" />
+        <!-- Tom Select (科目検索用ドロップダウン) -->
+        <link rel="stylesheet"
+              href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.min.css" />
+        <!-- Google Fonts: Inter & Noto Sans JP -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+JP:wght@100..900&display=swap"
+              rel="stylesheet">
+        <!-- Font Awesome 6 (Free) -->
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+        {% block extra_head %}
+        {% endblock extra_head %}
+    </head>
+    <body class="min-h-screen bg-base-100">
+        <!-- モーダルコンテナ (HTMX ターゲット) -->
+        <div id="modal-container"></div>
+        {% block body %}
+        {% endblock body %}
+        <!-- HTMX -->
+        <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+        <!-- Alpine.js (インタラクティブUI用) -->
+        <script defer
+                src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        <!-- Tom Select -->
+        <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+        <!-- Django CSRF for HTMX -->
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const csrfToken = document.cookie.split(';')
+                    .find(c => c.trim().startsWith('csrftoken='))
+                    ?.split('=')[1];
+                if (csrfToken) {
+                    document.body.setAttribute('hx-headers', JSON.stringify({'X-CSRFToken': csrfToken}));
+                }
+
+                // HTMX modal handling
+                document.addEventListener('htmx:afterRequest', (evt) => {
+                    // Close modal on successful form submission with HX-Trigger
+                    if (evt.detail.xhr.status === 200) {
+                        const hxTrigger = evt.detail.xhr.getResponseHeader('HX-Trigger');
+                        if (hxTrigger && hxTrigger.includes('refreshList')) {
+                            const modal = document.getElementById('htmx-modal');
+                            if (modal) {
+                                modal.remove();
+                            }
+                            // update flash/toast messages
+                            try { updateMessages(); } catch (e) { console.warn('updateMessages failed', e); }
+                        }
+                    }
+                });
+
+                // Also listen for HTMX trigger events
+                function updateMessages() {
+                    // Fetch inline HTML to update #flash-messages if present
+                    fetch('/_messages/?format=inline')
+                        .then((r) => r.text())
+                        .then((html) => {
+                            const flash = document.getElementById('flash-messages');
+                            if (flash) {
+                                flash.innerHTML = html;
+                            }
+                        })
+                        .catch((e) => console.warn('Failed to fetch inline messages partial', e));
+
+                    // Fetch toast HTML and append to body so transient toasts show
+                    fetch('/_messages/?format=toast')
+                        .then((r) => r.text())
+                        .then((html) => {
+                            if (html && html.trim()) {
+                                document.body.insertAdjacentHTML('beforeend', html);
+                            }
+                        })
+                        .catch((e) => console.warn('Failed to fetch toast messages partial', e));
+                }
+
+                document.addEventListener('refreshList', () => {
+                    const modal = document.getElementById('htmx-modal');
+                    if (modal) {
+                        modal.remove();
+                    }
+                    updateMessages();
+                });
+                // Handle missing swap target errors (prevent modal hang)
+                document.addEventListener('htmx:targetError', (evt) => {
+                    console.warn('HTMX targetError:', evt.detail);
+                    // If modal exists, remove it to recover UI
+                    const modal = document.getElementById('htmx-modal');
+                    if (modal) modal.remove();
+                    // Ensure modal container exists for future swaps
+                    if (!document.getElementById('modal-container')) {
+                        const container = document.createElement('div');
+                        container.id = 'modal-container';
+                        document.body.insertBefore(container, document.body.firstChild);
+                    }
+                });
+                // Debug: log swap details to diagnose target errors
+                document.addEventListener('htmx:beforeSwap', (evt) => {
+                    try {
+                        console.debug('htmx:beforeSwap', {
+                            target: evt.detail.targetSelector || evt.detail.target, 
+                            swapSpecification: evt.detail.swapSpecification,
+                            xhrStatus: evt.detail.xhr && evt.detail.xhr.status,
+                        });
+                    } catch (e) {
+                        console.debug('htmx:beforeSwap - unable to read details', e);
+                    }
+                });
+                document.addEventListener('htmx:beforeOnLoad', (evt) => {
+                    console.debug('htmx:beforeOnLoad - response snippet length', evt.detail && evt.detail.xhr && evt.detail.xhr.responseText ? evt.detail.xhr.responseText.length : 0);
+                });
+            });
+        </script>
+        {% block extra_scripts %}
+        {% endblock extra_scripts %}
+    </body>
+</html>

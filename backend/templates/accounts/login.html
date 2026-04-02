@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}
+    ログイン | 会計システム
+{% endblock title %}
+{% block body %}
+    <div class="min-h-screen bg-base-200 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8 bg-base-100 p-8 rounded-xl shadow-xl">
+            <div class="text-center">
+                <div class="mx-auto w-20 h-20 bg-primary text-primary-content rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-primary/20">
+                    <i class="fa-solid fa-calculator text-4xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold tracking-tight text-base-content">社内会計システム</h2>
+            </div>
+            <form class="mt-8 space-y-6" method="post">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error text-sm p-3">
+                        <span>{{ form.non_field_errors|join:", " }}</span>
+                    </div>
+                {% endif %}
+                <div class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text mb-1.5">ユーザー名</span>
+                        </label>
+                        <input type="text"
+                               name="username"
+                               required
+                               class="input input-bordered w-full"
+                               autofocus />
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text mb-1.5">パスワード</span>
+                        </label>
+                        <input type="password"
+                               name="password"
+                               required
+                               class="input input-bordered w-full" />
+                    </div>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary w-full text-lg">ログイン</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock body %}

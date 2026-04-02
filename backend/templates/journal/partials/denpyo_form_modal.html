@@ -1,0 +1,193 @@
+<!-- 伝票フォームモーダル (HTMX) -->
+<dialog id="htmx-modal" class="modal modal-open">
+    <div class="modal-box w-11/12 max-w-5xl relative max-h-[90vh] overflow-y-auto">
+        <!-- 閉じるボタン -->
+        <button onclick="document.getElementById('htmx-modal').remove()"
+                class="btn btn-ghost btn-sm btn-circle absolute right-3 top-3 z-10">✕</button>
+        <h3 class="font-bold text-lg mb-4">{{ title }}</h3>
+        <form method="post" action="." hx-post="." hx-swap="none">
+            {% csrf_token %}
+            <div class="space-y-6">
+                <!-- 伝票ヘッダー -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-base-200/50 rounded-box">
+                    <div class="form-control">
+                        <label class="label pb-1">
+                            <span class="label-text font-medium">日付 <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                            <div class="label">
+                                <span class="label-text-alt text-error">{{ form.date.errors|join:", " }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label pb-1">
+                            <span class="label-text font-medium">伝票番号 <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.denpyo_no }}
+                        {% if form.denpyo_no.errors %}
+                            <div class="label">
+                                <span class="label-text-alt text-error">{{ form.denpyo_no.errors|join:", " }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label pb-1">
+                            <span class="label-text font-medium">摘要</span>
+                        </label>
+                        {{ form.memo }}
+                        {% if form.memo.errors %}
+                            <div class="label">
+                                <span class="label-text-alt text-error">{{ form.memo.errors|join:", " }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- 仕訳明細 -->
+                <div class="space-y-4">
+                    <h4 class="font-semibold text-base flex items-center gap-2">
+                        <i class="fa-solid fa-list text-primary"></i>
+                        仕訳明細
+                    </h4>
+                    <div id="meisai-container" class="space-y-3">
+                        {{ formset.management_form }}
+                        {% for form in formset %}
+                            <div class="meisai-row p-4 border border-base-300 rounded-box bg-base-100">
+                                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                                    <!-- 借方/貸方 -->
+                                    <div class="form-control md:col-span-2">
+                                        <label class="label pb-1">
+                                            <span class="label-text font-medium">区分 <span class="text-error">*</span></span>
+                                        </label>
+                                        {{ form.kari_kashi }}
+                                        {% if form.kari_kashi.errors %}
+                                            <div class="label">
+                                                <span class="label-text-alt text-error">{{ form.kari_kashi.errors|join:", " }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <!-- 科目 -->
+                                    <div class="form-control md:col-span-3">
+                                        <label class="label pb-1">
+                                            <span class="label-text font-medium">科目 <span class="text-error">*</span></span>
+                                        </label>
+                                        {{ form.kamoku }}
+                                        {% if form.kamoku.errors %}
+                                            <div class="label">
+                                                <span class="label-text-alt text-error">{{ form.kamoku.errors|join:", " }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <!-- 金額 -->
+                                    <div class="form-control md:col-span-2">
+                                        <label class="label pb-1">
+                                            <span class="label-text font-medium">金額 <span class="text-error">*</span></span>
+                                        </label>
+                                        {{ form.kingaku }}
+                                        {% if form.kingaku.errors %}
+                                            <div class="label">
+                                                <span class="label-text-alt text-error">{{ form.kingaku.errors|join:", " }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <!-- 摘要 -->
+                                    <div class="form-control md:col-span-4">
+                                        <label class="label pb-1">
+                                            <span class="label-text font-medium">摘要</span>
+                                        </label>
+                                        {{ form.tekyou }}
+                                        {% if form.tekyou.errors %}
+                                            <div class="label">
+                                                <span class="label-text-alt text-error">{{ form.tekyou.errors|join:", " }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <!-- 削除ボタン -->
+                                    <div class="form-control md:col-span-1">
+                                        <button type="button"
+                                                onclick="this.closest('.meisai-row').remove()"
+                                                class="btn btn-xs btn-ghost btn-square text-error hover:bg-error/10 w-full">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <!-- 行追加ボタン -->
+                    <button type="button"
+                            onclick="addMeisaiRow()"
+                            class="btn btn-outline btn-sm gap-2">
+                        <i class="fa-solid fa-plus"></i>
+                        明細行を追加
+                    </button>
+                </div>
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error">
+                        <span>{{ form.non_field_errors|join:", " }}</span>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-action mt-6">
+                <button type="button"
+                        onclick="document.getElementById('htmx-modal').remove()"
+                        class="btn btn-ghost">キャンセル</button>
+                <button type="submit" class="btn btn-primary">
+                    <span class="htmx-indicator"></span>
+                    保存
+                </button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button onclick="document.getElementById('htmx-modal').remove()">閉じる</button>
+    </form>
+</dialog>
+<script>
+// 明細行追加関数 (簡易版)
+function addMeisaiRow() {
+    const container = document.getElementById('meisai-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'meisai-row p-4 border border-base-300 rounded-box bg-base-100';
+    newRow.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+            <div class="form-control md:col-span-2">
+                <label class="label pb-1">
+                    <span class="label-text font-medium">区分 <span class="text-error">*</span></span>
+                </label>
+                <select name="meisai-TOTAL_FORMS" class="select select-bordered select-sm">
+                    <option value="KA">借方</option>
+                    <option value="KA">貸方</option>
+                </select>
+            </div>
+            <div class="form-control md:col-span-3">
+                <label class="label pb-1">
+                    <span class="label-text font-medium">科目 <span class="text-error">*</span></span>
+                </label>
+                <select name="kamoku" class="select select-bordered select-sm">
+                    <!-- 科目オプションは動的に追加する必要あり -->
+                </select>
+            </div>
+            <div class="form-control md:col-span-2">
+                <label class="label pb-1">
+                    <span class="label-text font-medium">金額 <span class="text-error">*</span></span>
+                </label>
+                <input type="number" name="kingaku" class="input input-bordered input-sm" step="0.01">
+            </div>
+            <div class="form-control md:col-span-4">
+                <label class="label pb-1">
+                    <span class="label-text font-medium">摘要</span>
+                </label>
+                <input type="text" name="tekyou" class="input input-bordered input-sm">
+            </div>
+            <div class="form-control md:col-span-1">
+                <button type="button" onclick="this.closest('.meisai-row').remove()" class="btn btn-xs btn-ghost btn-square text-error hover:bg-error/10 w-full">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    container.appendChild(newRow);
+}
+</script>

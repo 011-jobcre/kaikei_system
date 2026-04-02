@@ -1,0 +1,120 @@
+{% load static %}
+<aside class="w-64 bg-base-200 min-h-screen flex flex-col shadow-xl border-r border-base-300">
+    <!-- ロゴ / ブランド -->
+    <div class="p-5 border-b border-base-300 bg-base-100/50">
+        <a href="{% url 'account:dashboard' %}"
+           class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+                <i class="fa-solid fa-calculator text-primary-content text-xl"></i>
+            </div>
+            <div class="flex flex-col">
+                <p class="font-bold text-lg leading-none tracking-tight">会計システム</p>
+                <p class="text-[10px] uppercase font-bold text-base-content/40 mt-1">Kaikei System v1.0</p>
+            </div>
+        </a>
+    </div>
+    <!-- ナビゲーション -->
+    <nav class="flex-1 p-3 space-y-1 overflow-y-auto flex flex-col">
+        <!-- ダッシュボード -->
+        <div class="pb-2">
+            <a href="{% url 'account:dashboard' %}"
+               class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-gauge-high"></i>
+                <span>ダッシュボード</span>
+            </a>
+        </div>
+        <!-- マスタ管理 -->
+        <div class="py-2 flex flex-col">
+            <p class="px-4 text-xs font-bold text-base-content/40 tracking-widest mb-2">マスタ管理</p>
+            <div class="space-y-1 flex flex-col">
+                <a href="{% url 'master:kanjo-list' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'kanjo-list' %}active{% endif %}">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>勘定科目設定</span>
+                </a>
+                <a href="{% url 'master:bumon-list' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'bumon-list' %}active{% endif %}">
+                    <i class="fa-solid fa-sitemap"></i>
+                    <span>部門管理</span>
+                </a>
+                <a href="{% url 'master:zei-list' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'zei-list' %}active{% endif %}">
+                    <i class="fa-solid fa-percent"></i>
+                    <span>消費税率設定</span>
+                </a>
+                <a href="{% url 'master:torihiki-list' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'torihiki-list' %}active{% endif %}">
+                    <i class="fa-solid fa-handshake"></i>
+                    <span>取引先管理</span>
+                </a>
+            </div>
+        </div>
+        <!-- 仕訳・伝票 -->
+        <div class="py-2 flex flex-col">
+            <p class="px-4 text-xs font-bold text-base-content/40 tracking-widest mb-2">仕訳・伝票</p>
+            <div class="space-y-1 flex flex-col">
+                <a href="{% url 'journal:denpyo-list' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'denpyo-list' %}active{% endif %}">
+                    <i class="fa-solid fa-book"></i>
+                    <span>仕訳日記帳</span>
+                </a>
+                <a href="{% url 'journal:denpyo-create' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'denpyo-create' %}active{% endif %}">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>振替伝票入力</span>
+                </a>
+            </div>
+        </div>
+        <!-- 帳簿・レポート -->
+        <div class="py-2 flex flex-col">
+            <p class="px-4 text-xs font-bold text-base-content/40 tracking-widest mb-2">帳簿・レポート</p>
+            <div class="space-y-1 flex flex-col">
+                <a href="{% url 'ledger:sokanjo' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'sokanjo' %}active{% endif %}">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>総勘定元帳</span>
+                </a>
+                <a href="{% url 'ledger:zandaka' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'zandaka' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>残高試算表</span>
+                </a>
+                <div class="divider opacity-30"></div>
+                <a href="{% url 'report:balance-sheet' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'balance-sheet' %}active{% endif %}">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                    <span>貸借対照表 (B/S)</span>
+                </a>
+                <a href="{% url 'report:income-statement' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'income-statement' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>損益計算書 (P/L)</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <!-- ユーザー情報 / ログアウト -->
+    <div class="p-4 border-t border-base-300 bg-base-100/30">
+        <div class="flex items-center gap-3 px-2 py-1">
+            <div class="avatar">
+                <div class="bg-primary text-primary-content text-center rounded-full w-12">
+                    <img src="{{ request.user.profile_image.url }}"
+                         alt="{{ request.user.username }}"
+                         class="w-full h-full object-cover rounded-full">
+                </div>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold truncate">{{ request.user.username }}</p>
+                <p class="text-[11px] text-base-content/50 truncate font-mono">{{ request.user.email }}</p>
+            </div>
+            <form action="{% url 'account:logout' %}" method="post" class="flex-none">
+                {% csrf_token %}
+                <button type="submit"
+                        class="btn btn-ghost btn-circle btn-sm text-primary hover:text-primary-content hover:bg-primary"
+                        title="ログアウト">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-xl"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>

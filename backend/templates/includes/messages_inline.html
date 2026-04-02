@@ -1,0 +1,17 @@
+{% if messages %}
+    {% for message in messages %}
+        <div role="alert"
+             x-data="{}"
+             x-init="setTimeout(() => $el.remove(), 4000)"
+             class="alert {{ message.tags }} flex items-center mb-4 gap-2 shadow-sm">
+            {% if message.tags == 'alert-success' %}
+                <i class="fa-solid fa-circle-check text-lg shrink-0"></i>
+            {% elif message.tags == 'alert-error' %}
+                <i class="fa-solid fa-circle-xmark text-lg shrink-0"></i>
+            {% else %}
+                <i class="fa-solid fa-circle-info text-lg shrink-0"></i>
+            {% endif %}
+            <span>{{ message }}</span>
+        </div>
+    {% endfor %}
+{% endif %}

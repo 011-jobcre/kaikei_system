@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+{% block body %}
+    <!-- DaisyUI Drawer (モバイル: Off-canvas / デスクトップ: 固定サイドバー) -->
+    <div class="drawer lg:drawer-open">
+        <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+        <!-- メインコンテンツ -->
+        <div class="drawer-content flex flex-col min-h-screen">
+            <!-- トップバー (インライン化してブロック利用可能に) -->
+            <header class="navbar bg-base-100 border-b border-base-300 sticky top-0 z-10 h-16 min-h-16 px-6 shadow-sm">
+                <!-- モバイル: ハンバーガーメニュー -->
+                <div class="flex-none lg:hidden">
+                    <label for="drawer-toggle" class="btn btn-square btn-ghost btn-sm">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </label>
+                </div>
+                <!-- ページタイトル / パンくず -->
+                <div class="flex-1 px-4 text-base-content text-lg md:text-2xl font-bold tracking-tight truncate overflow-hidden">
+                    {% block page_header %}
+                    {% endblock page_header %}
+                </div>
+                <!-- 右側: アクション & ユーザー -->
+                <div class="flex-none flex items-center gap-4">
+                    <a href="{% url 'journal:denpyo-create' %}"
+                       class="btn btn-primary btn-md gap-2 hidden md:flex">
+                        <i class="fa-solid fa-plus text-md"></i>
+                        伝票入力
+                    </a>
+                    <!-- ローディングインジケータ -->
+                    <span class="htmx-indicator loading loading-spinner loading-md text-primary"></span>
+                    <!-- ユーザーアバター (モバイル/タブレット用 — サイドバーに詳細あり) -->
+                    <div class="avatar placeholder md:hidden border-2 border-primary/20 rounded-full">
+                        <div class="bg-primary text-primary-content rounded-full w-10">
+                            <img src="{{ request.user.profile.avatar.url }}"
+                                 alt="{{ request.user.username }}"
+                                 class="w-full h-full object-cover" />
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+                <!-- フラッシュメッセージ -->
+                <div class="space-y-2" id="flash-messages">{% include "includes/messages_inline.html" %}</div>
+                {% block content %}
+                {% endblock content %}
+            </main>
+            <footer class="footer footer-center p-3 bg-base-200 text-base-content/50 text-xs">
+                <span>© 2026 社内会計システム — 全ての権利を保有します</span>
+            </footer>
+        </div>
+        <!-- サイドバー -->
+        <div class="drawer-side z-20">
+            <label for="drawer-toggle" aria-label="閉じる" class="drawer-overlay"></label>
+            {% include "includes/sidebar.html" %}
+        </div>
+    </div>
+{% endblock body %}

@@ -1,0 +1,45 @@
+# exclude .git
+.git
+.gitignore
+
+# exclude local virtual environment (because Docker has its own)
+.venv
+venv
+env
+ENV
+
+# exclude node_modules
+node_modules
+package-lock.json
+package.json
+
+# exclude Python log and temp files
+__pycache__
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+*$py.class
+.Python
+
+*.sqlite3
+*.log
+
+# exclude Docker build folder if any
+staticfiles
+media
+
+# exclude Docker config files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# exclude label files (if any)
+.vscode
+.idea
+*.md
+
+# local env
+.env
+.envrc
+.autoenv

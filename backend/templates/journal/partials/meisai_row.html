@@ -1,0 +1,29 @@
+<tr class="hover:bg-base-200/30">
+    <td class="hidden">
+        {{ form.id }}
+        {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+    </td>
+    <td>
+        {{ form.kari_kashi }}
+        {% if form.kari_kashi.errors %}
+            <div class="text-error text-[10px] mt-1">{{ form.kari_kashi.errors.0 }}</div>
+        {% endif %}
+    </td>
+    <td>
+        {{ form.kamoku }}
+        {% if form.kamoku.errors %}<div class="text-error text-[10px] mt-1">{{ form.kamoku.errors.0 }}</div>{% endif %}
+    </td>
+    <td>{{ form.bumon }}</td>
+    <td>
+        {{ form.kingaku }}
+        {% if form.kingaku.errors %}<div class="text-error text-[10px] mt-1">{{ form.kingaku.errors.0 }}</div>{% endif %}
+    </td>
+    <td>{{ form.zei_kubun }}</td>
+    <td>{{ form.tekyou }}</td>
+    <td class="text-center align-middle">
+        <button type="button"
+                class="btn btn-ghost btn-xs text-error"
+                onclick="removeRow(this)"
+                tabindex="-1">✕</button>
+    </td>
+</tr>

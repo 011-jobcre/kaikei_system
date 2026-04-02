@@ -1,0 +1,68 @@
+{% extends "layout_main.html" %}
+
+{% block title %}ダッシュボード | 会計システム{% endblock title %}
+{% block page_title %}ダッシュボード{% endblock page_title %}
+
+{% block content %}
+<div class="space-y-6">
+  
+  <div class="flex items-center justify-between">
+    <h2 class="text-xl font-bold">{{ current_month }} の統計概要</h2>
+    <span class="text-sm text-base-content/60">最終更新: いま</span>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- 今月の伝票数 -->
+    <div class="stat bg-base-100 rounded-box shadow py-6">
+      <div class="stat-figure text-primary opacity-80">
+        <i class="fa-solid fa-file-invoice text-4xl"></i>
+      </div>
+      <div class="stat-title font-bold text-xs uppercase tracking-wider">今月の伝票数</div>
+      <div class="stat-value text-primary font-black">{{ denpyo_count }}</div>
+    </div>
+    
+    <!-- ロック済み伝票数 -->
+    <div class="stat bg-base-100 rounded-box shadow py-6">
+      <div class="stat-figure text-secondary opacity-80">
+        <i class="fa-solid fa-lock text-4xl"></i>
+      </div>
+      <div class="stat-title font-bold text-xs uppercase tracking-wider">ロック済伝票 (全期間)</div>
+      <div class="stat-value text-secondary font-black">{{ locked_count }}</div>
+    </div>
+    
+    <!-- 登録科目数 -->
+    <div class="stat bg-base-100 rounded-box shadow py-6">
+      <div class="stat-figure text-accent opacity-80">
+        <i class="fa-solid fa-list-ol text-4xl"></i>
+      </div>
+      <div class="stat-title font-bold text-xs uppercase tracking-wider">登録勘定科目</div>
+      <div class="stat-value font-black">{{ kamoku_count }}</div>
+    </div>
+
+    <!-- 登録取引先数 -->
+    <div class="stat bg-base-100 rounded-box shadow py-6">
+      <div class="stat-figure text-info opacity-80">
+        <i class="fa-solid fa-users text-4xl"></i>
+      </div>
+      <div class="stat-title font-bold text-xs uppercase tracking-wider">登録取引先</div>
+      <div class="stat-value font-black">{{ torihiki_count }}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <!-- クイックアクション -->
+    <div class="card bg-base-100 shadow">
+      <div class="card-body">
+        <h2 class="card-title text-base">クイックアクセス</h2>
+        <div class="divider mt-0 mb-2"></div>
+        <div class="flex flex-wrap gap-2">
+          <a href="{% url 'journal:denpyo-create' %}" class="btn btn-primary btn-sm">振替伝票を入力する</a>
+          <a href="{% url 'journal:denpyo-list' %}" class="btn btn-outline btn-sm">仕訳日記帳を見る</a>
+          <a href="{% url 'ledger:zandaka' %}" class="btn btn-outline btn-sm">残高試算表を確認</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock content %}
