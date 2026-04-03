@@ -1,36 +1,40 @@
-<div class="bg-base-100 rounded-xl shadow-md border border-base-300 overflow-hidden"
+<!-- Kanjo (Chart of Accounts) data table partial.
+     Reloaded automatically via HTMX when the 'refreshList' event fires
+     (e.g. after a modal create/edit/delete succeeds).                    -->
+<div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden"
      hx-get="{% url 'master:kanjo-list' %}"
      hx-trigger="refreshList from:body"
      hx-swap="outerHTML">
     <div class="overflow-x-auto">
-        <table class="table table-accounting table-md w-full">
+        <table class="table table-accounting">
             <thead>
-                <tr class="bg-base-200/50">
-                    <th class="w-32 pl-4 sm:pl-6">コード</th>
-                    <th class="min-w-[150px]">科目名</th>
-                    <th class="w-24 text-center">レベル</th>
+                <tr>
+                    <th class="w-28">コード</th>
+                    <th class="min-w-44">科目名</th>
+                    <th class="w-28 text-center">レベル</th>
                     <th class="w-40 text-center">貸借区分</th>
                     <th class="w-28 text-center">有効</th>
-                    <th class="w-24 text-center pr-4 sm:pr-6">操作</th>
+                    <th class="w-28 text-center">操作</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-base-200">
+            <tbody>
                 {% for obj in kamoku_list %}
-                    <tr class="hover:bg-primary/5 transition-colors group">
-                        <td class="pl-4 sm:pl-6 font-mono font-medium text-base-content/70">{{ obj.code }}</td>
+                    <tr>
+                        <td class="font-mono text-sm">{{ obj.code }}</td>
                         <td>
                             {% if obj.level == 1 %}
-                                <span class="font-bold text-base text-base-content whitespace-nowrap">{{ obj.name }}</span>
+                                <span class="font-semibold">{{ obj.name }}</span>
                             {% elif obj.level == 2 %}
-                                <span class="font-semibold pl-6 text-sm text-base-content/90 whitespace-nowrap">{{ obj.name }}</span>
+                                <span class="pl-5 text-sm">{{ obj.name }}</span>
                             {% elif obj.level == 3 %}
-                                <span class="font-semibold pl-10 text-sm text-base-content/80 whitespace-nowrap">{{ obj.name }}</span>
+                                <span class="pl-10 text-sm">{{ obj.name }}</span>
                             {% else %}
-                                <span class="pl-14 text-base text-primary/80 whitespace-nowrap">{{ obj.name }}</span>
+                                <span class="pl-14 text-sm">{{ obj.name }}</span>
                             {% endif %}
                         </td>
+                        <!-- Hierarchy level badge -->
                         <td class="text-center">
-                            <span class="badge badge-secondary badge-outline font-bold shadow-sm px-2 w-20">
+                            <span class="badge badge-info badge-outline font-semibold w-20">
                                 {% if obj.level == 1 %}
                                     大分類
                                 {% elif obj.level == 2 %}
@@ -42,31 +46,34 @@
                                 {% endif %}
                             </span>
                         </td>
+                        <!-- Debit/credit classification badge (color keyed to account type) -->
                         <td class="text-center">
-                            <span class="badge badge-{{ obj.kubun_theme_key }} badge-outline font-bold shadow-sm px-2 w-20">
+                            <span class="badge badge-outline badge-{{ obj.kubun_theme_key }} font-semibold w-20">
                                 {{ obj.get_taisha_kubun_display }}
                             </span>
                         </td>
+                        <!-- Active / Inactive status badge -->
                         <td class="text-center">
                             {% if obj.is_active %}
-                                <div class="badge badge-success badge-outline badge-md font-bold px-2 w-20">有効</div>
+                                <span class="badge badge-success badge-outline font-semibold w-16">有効</span>
                             {% else %}
-                                <div class="badge badge-error badge-outline badge-md font-bold px-2 w-20 opacity-50">無効</div>
+                                <span class="badge badge-error badge-outline font-semibold w-16 opacity-60">無効</span>
                             {% endif %}
                         </td>
+                        <!-- Row action buttons: Edit and Delete via HTMX modal -->
                         <td class="text-center">
-                            <div class="flex justify-center gap-2">
+                            <div class="flex justify-center gap-1">
                                 <button hx-get="{% url 'master:kanjo-update' obj.pk %}"
                                         hx-target="body"
                                         hx-swap="beforeend"
-                                        class="btn btn-square btn-ghost btn-md text-info hover:bg-info/10"
+                                        class="btn btn-square btn-ghost btn-sm text-info hover:bg-info/10"
                                         title="編集">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
                                 <button hx-get="{% url 'master:kanjo-delete' obj.pk %}"
                                         hx-target="body"
                                         hx-swap="beforeend"
-                                        class="btn btn-square btn-ghost btn-md text-error hover:bg-error/10"
+                                        class="btn btn-square btn-ghost btn-sm text-error hover:bg-error/10"
                                         title="削除">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
@@ -75,12 +82,14 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center py-8 text-base-content/50">データがありません。</td>
+                        <td colspan="6" class="text-center">
+                            <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
+                            データがありません。
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <!-- ページネーション -->
     {% include "master/partials/pagination.html" %}
 </div>

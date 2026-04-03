@@ -16,7 +16,7 @@ class SokanjoMotochoView(LoginRequiredMixin, View):
     template_name = "ledger/sokanjo_motocho.html"
 
     def get(self, request):
-        # Level4の有効科目のみ選択可能
+        # Only level-4 active accounts are selectable
         kamoku_list = KanjoKamokuMaster.objects.filter(
             level=4, is_active=True
         ).order_by("code")
@@ -34,17 +34,17 @@ class SokanjoMotochoView(LoginRequiredMixin, View):
         if kamoku_id:
             try:
                 selected_kamoku = KanjoKamokuMaster.objects.get(pk=kamoku_id, level=4)
-                qs = ShiwakeMeisai.objects.filter(
-                    kamoku=selected_kamoku
-                ).select_related("denpyo", "bumon", "zei_kubun").order_by(
-                    "denpyo__hiduke", "denpyo__denpyo_no"
+                qs = (
+                    ShiwakeMeisai.objects.filter(kamoku=selected_kamoku)
+                    .select_related("denpyo", "bumon", "zei_kubun")
+                    .order_by("denpyo__hiduke", "denpyo__denpyo_no")
                 )
                 if date_from:
                     qs = qs.filter(denpyo__hiduke__gte=date_from)
                 if date_to:
                     qs = qs.filter(denpyo__hiduke__lte=date_to)
 
-                # 残高の累計計算
+                # Running balance calculation
                 running = Decimal("0")
                 for m in qs:
                     if m.kari_kashi == "KA":
@@ -59,25 +59,31 @@ class SokanjoMotochoView(LoginRequiredMixin, View):
                             running -= m.kingaku
                         else:
                             running += m.kingaku
-                    meisai_list.append({
-                        "meisai": m,
-                        "running_balance": running,
-                    })
+                    meisai_list.append(
+                        {
+                            "meisai": m,
+                            "running_balance": running,
+                        }
+                    )
                 zandaka = running
             except KanjoKamokuMaster.DoesNotExist:
                 pass
 
-        return render(request, self.template_name, {
-            "kamoku_list": kamoku_list,
-            "selected_kamoku": selected_kamoku,
-            "selected_kamoku_id": kamoku_id,
-            "meisai_list": meisai_list,
-            "kari_total": kari_total,
-            "kashi_total": kashi_total,
-            "zandaka": zandaka,
-            "date_from": date_from,
-            "date_to": date_to,
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                "kamoku_list": kamoku_list,
+                "selected_kamoku": selected_kamoku,
+                "selected_kamoku_id": kamoku_id,
+                "meisai_list": meisai_list,
+                "kari_total": kari_total,
+                "kashi_total": kashi_total,
+                "zandaka": zandaka,
+                "date_from": date_from,
+                "date_to": date_to,
+            },
+        )
 
 
 class ZandakaShisanhyouView(LoginRequiredMixin, View):
@@ -108,26 +114,32 @@ class ZandakaShisanhyouView(LoginRequiredMixin, View):
             kashi = agg["kashi"] or Decimal("0")
 
             if kari == 0 and kashi == 0:
-                continue  # 発生なし科目はスキップ
+                continue  # Skip accounts with no activity
 
             if kamoku.is_kari_zandaka:
                 zandaka = kari - kashi
             else:
                 zandaka = kashi - kari
 
-            rows.append({
-                "kamoku": kamoku,
-                "kari_hassei": kari,
-                "kashi_hassei": kashi,
-                "zandaka": zandaka,
-            })
+            rows.append(
+                {
+                    "kamoku": kamoku,
+                    "kari_hassei": kari,
+                    "kashi_hassei": kashi,
+                    "zandaka": zandaka,
+                }
+            )
             total_kari += kari
             total_kashi += kashi
 
-        return render(request, self.template_name, {
-            "rows": rows,
-            "total_kari": total_kari,
-            "total_kashi": total_kashi,
-            "date_to": date_to,
-            "balanced": total_kari == total_kashi,
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                "rows": rows,
+                "total_kari": total_kari,
+                "total_kashi": total_kashi,
+                "date_to": date_to,
+                "balanced": total_kari == total_kashi,
+            },
+        )

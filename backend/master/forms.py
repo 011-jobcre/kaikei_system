@@ -1,23 +1,28 @@
 from django import forms
 
 from .models import BumonMaster, KanjoKamokuMaster, TorihikiSakiMaster, ZeiMaster
-
-# --- 共通ウィジェットクラス ---
-INPUT_CLASS = "input input-bordered input-sm w-full"
-SELECT_CLASS = "select select-bordered select-sm w-full"
-TEXTAREA_CLASS = "textarea textarea-bordered textarea-sm w-full"
-CHECKBOX_CLASS = "checkbox checkbox-sm checkbox-primary"
+from common.forms_widgets import (
+    INPUT_CLASS,
+    SELECT_CLASS,
+    TEXTAREA_CLASS,
+    CHECKBOX_CLASS,
+)
 
 
 class KanjoKamokuForm(forms.ModelForm):
+    """
+    Form for creating / editing a Chart-of-Accounts entry (勘定科目).
+
+    'level' and 'taisha_kubun' are intentionally excluded — they are computed
+    automatically in KanjoKamokuMaster.save() from the parent account hierarchy.
+    """
+
     class Meta:
         model = KanjoKamokuMaster
         fields = [
             "code",
             "name",
-            # "level",
             "parent",
-            # "taisha_kubun",
             "is_active",
         ]
         widgets = {
@@ -27,17 +32,14 @@ class KanjoKamokuForm(forms.ModelForm):
             "name": forms.TextInput(
                 attrs={"class": INPUT_CLASS, "placeholder": "例: 現金"}
             ),
-            # "level": forms.NumberInput(
-            #     attrs={"class": INPUT_CLASS, "min": 1, "max": 4}
-            # ),
             "parent": forms.Select(attrs={"class": SELECT_CLASS}),
-            # "taisha_kubun": forms.Select(attrs={"class": SELECT_CLASS}),
             "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # 親科目はLevel 4未満のみ選択可
+        # Restrict parent choices to levels 1–3 so leaf accounts (level 4)
+        # cannot become parents, which would break the 4-level hierarchy.
         self.fields["parent"].queryset = KanjoKamokuMaster.objects.filter(
             level__lt=4
         ).order_by("code")
@@ -45,6 +47,8 @@ class KanjoKamokuForm(forms.ModelForm):
 
 
 class BumonForm(forms.ModelForm):
+    """Form for creating / editing a department (部門) record."""
+
     class Meta:
         model = BumonMaster
         fields = [
@@ -72,10 +76,11 @@ class BumonForm(forms.ModelForm):
 
 
 class ZeiForm(forms.ModelForm):
+    """Form for creating / editing a tax rate entry (消費税率 マスタ)."""
+
     class Meta:
         model = ZeiMaster
         fields = [
-            "zei_kubun",
             "zei_name",
             "tax_rate",
             "valid_from",
@@ -84,7 +89,6 @@ class ZeiForm(forms.ModelForm):
             "is_active",
         ]
         widgets = {
-            "zei_kubun": forms.Select(attrs={"class": SELECT_CLASS}),
             "zei_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
             "tax_rate": forms.NumberInput(
                 attrs={"class": INPUT_CLASS, "step": "0.01", "min": "0", "max": "100"}
@@ -97,6 +101,8 @@ class ZeiForm(forms.ModelForm):
 
 
 class TorihikiSakiForm(forms.ModelForm):
+    """Form for creating / editing a business partner — customer or supplier (取引先)."""
+
     class Meta:
         model = TorihikiSakiMaster
         fields = ["code", "name", "address", "phone", "email", "is_active"]

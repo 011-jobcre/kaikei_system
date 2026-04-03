@@ -21,7 +21,7 @@ class BumonAdmin(admin.ModelAdmin):
 
 @admin.register(ZeiMaster)
 class ZeiAdmin(admin.ModelAdmin):
-    list_display = ["zei_kubun", "zei_name", "tax_rate", "is_active"]
+    list_display = ["zei_name", "tax_rate", "is_active"]
     ordering = ["order_no"]
 
 

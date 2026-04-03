@@ -1,23 +1,35 @@
-<!-- 伝票削除確認モーダル -->
+<!-- Delete confirmation modal — injected into <body> via HTMX beforeend.
+     'object' and 'delete_url' context variables must be provided by the view. -->
 <dialog id="htmx-modal" class="modal modal-open">
-    <div class="modal-box">
+    <div class="modal-box max-w-sm">
+        <!-- Close button -->
         <button onclick="document.getElementById('htmx-modal').remove()"
-                class="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">✕</button>
-        <h3 class="font-bold text-lg text-error text-center">削除の確認</h3>
-        <p class="py-4 text-base-content text-center">
-            伝票 <strong>{{ object.denpyo_no }}</strong> を削除してもよろしいですか？
-            <br />
-            <span class="text-sm text-base-content/60">削除したデータは元に戻せません。関連する仕訳明細もすべて削除されます。</span>
-        </p>
-        <div class="modal-action">
+                class="btn-ghost-x-close">✕</button>
+        <!-- Warning illustration and message -->
+        <div class="flex flex-col items-center gap-3 py-4 text-center">
+            <div class="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center">
+                <i class="fa-solid fa-triangle-exclamation text-error text-3xl"></i>
+            </div>
+            <h3 class="font-bold text-lg text-error">削除の確認</h3>
+            <p class="text-base-content">
+                伝票 <strong>{{ object.denpyo_no }}</strong> を削除してもよろしいですか？
+            </p>
+            <p class="text-sm text-base-content/50">削除したデータは元に戻せません。関連する仕訳明細もすべて削除されます。</p>
+        </div>
+        <!-- Action buttons -->
+        <div class="modal-action justify-center gap-3">
             <button onclick="document.getElementById('htmx-modal').remove()"
-                    class="btn-ghost-cancel">キャンセル</button>
+                    class="btn-ghost-cancel min-w-24">キャンセル</button>
+            <!-- Deletion form — HTMX POST so the list refreshes without a full reload -->
             <form method="post"
                   action="{% url 'journal:denpyo-delete' object.pk %}"
                   hx-post="{% url 'journal:denpyo-delete' object.pk %}"
                   hx-swap="none">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-error">削除</button>
+                <button type="submit" class="btn btn-error min-w-24 gap-2">
+                    <i class="fa-solid fa-trash-can"></i>
+                    削除
+                </button>
             </form>
         </div>
     </div>

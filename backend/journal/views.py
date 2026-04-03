@@ -14,7 +14,7 @@ from .models import ShiwakeDenpyo, ShiwakeMeisai
 
 
 # -------------------------------------------------------
-# 仕訳日記帳 一覧
+# Journal Ledger - List
 # -------------------------------------------------------
 class DenpyoListView(LoginRequiredMixin, ListView):
     model = ShiwakeDenpyo
@@ -46,7 +46,7 @@ class DenpyoListView(LoginRequiredMixin, ListView):
 
 
 # -------------------------------------------------------
-# 伝票 作成
+# Voucher / Create Entry
 # -------------------------------------------------------
 class DenpyoCreateView(LoginRequiredMixin, View):
     template_name = "journal/denpyo_form.html"
@@ -96,7 +96,7 @@ class DenpyoCreateView(LoginRequiredMixin, View):
 
 
 # -------------------------------------------------------
-# 伝票 編集
+# Voucher / Edit Entry
 # -------------------------------------------------------
 class DenpyoUpdateView(LoginRequiredMixin, View):
     template_name = "journal/denpyo_form.html"
@@ -170,7 +170,7 @@ class DenpyoUpdateView(LoginRequiredMixin, View):
 
 
 # -------------------------------------------------------
-# 伝票 削除
+# Voucher / Delete Entry
 # -------------------------------------------------------
 class DenpyoDeleteView(LoginRequiredMixin, DeleteView):
     model = ShiwakeDenpyo
@@ -197,10 +197,10 @@ class DenpyoDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # -------------------------------------------------------
-# HTMX: 明細行を1行追加
+# HTMX: Add one detail row
 # -------------------------------------------------------
 def add_meisai_row(request):
-    """HTMXから呼ばれ，空の明細行HTMLを返す"""
+    """Called from HTMX — return an empty detail row HTML."""
     form_index = int(request.GET.get("form_index", 0))
     form = ShiwakeMeisaiForm(prefix=f"meisai-{form_index}")
     return render(
@@ -214,10 +214,10 @@ def add_meisai_row(request):
 
 
 # -------------------------------------------------------
-# HTMX: リアルタイム貸借差額チェック
+# HTMX: Real-time debit/credit difference check
 # -------------------------------------------------------
 def balance_check(request):
-    """HTMXから呼ばれ，現在入力中の借方・貸方合計差額を返す"""
+    """Called from HTMX — return current debit/credit total difference for inputs."""
     try:
         kari = float(request.GET.get("kari", 0) or 0)
         kashi = float(request.GET.get("kashi", 0) or 0)

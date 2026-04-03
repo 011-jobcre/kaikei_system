@@ -6,7 +6,7 @@ from .models import ShiwakeDenpyo, ShiwakeMeisai
 class ShiwakeMeisaiInline(admin.TabularInline):
     model = ShiwakeMeisai
     extra = 2
-    fields = ["kari_kashi", "kamoku", "bumon", "kingaku", "zei_kubun", "tekyou"]
+    fields = ["kari_kashi", "kamoku", "bumon", "kingaku", "tekyou"]
 
 
 @admin.register(ShiwakeDenpyo)

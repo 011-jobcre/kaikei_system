@@ -38,7 +38,7 @@ class DashboardView(LoginRequiredMixin, View):
     template_name = "accounts/dashboard.html"
 
     def get(self, request):
-        # 当月統計
+        # Current month statistics
         from django.utils import timezone
 
         now = timezone.localdate()
@@ -68,5 +68,5 @@ class TestView(LoginRequiredMixin, View):
     template_name = "accounts/test.html"
 
     def get(self, request):
-        # テスト用のビュー
+        # Test view
         return render(request, self.template_name)

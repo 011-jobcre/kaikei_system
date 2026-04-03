@@ -19,9 +19,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # サードパーティ
+    # Third-party
     "django_htmx",
-    # ローカルアプリ
+    # Local apps
     "common",
     "account",
     "master",
@@ -82,7 +82,7 @@ TIME_ZONE = "Asia/Tokyo"
 USE_I18N = True
 USE_TZ = True
 
-# 静的ファイル
+# Static files
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 _STATIC_DIR = BASE_DIR / "static"
@@ -91,12 +91,12 @@ STATICFILES_DIRS = [_STATIC_DIR]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# 認証
+# Authentication
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 
-# メッセージ
+# Messages
 from django.contrib.messages import constants as messages  # noqa: E402
 
 MESSAGE_TAGS = {

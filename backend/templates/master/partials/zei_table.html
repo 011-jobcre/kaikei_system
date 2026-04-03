@@ -1,46 +1,55 @@
-<div class="bg-base-100 rounded-box shadow-sm overflow-hidden"
+<!-- Tax Rate (Zei) data table partial. Reloaded automatically via HTMX when
+    the 'refreshList' event fires. -->
+<div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden"
      hx-get="{% url 'master:zei-list' %}"
      hx-trigger="refreshList from:body"
      hx-swap="outerHTML">
     <div class="overflow-x-auto">
-        <table class="table table-accounting table-md w-full">
+        <table class="table table-accounting">
             <thead>
-                <tr class="bg-base-200/50">
-                    <th class="w-48">税区分名</th>
-                    <th class="w-24 text-right">税率(%)</th>
-                    <th class="w-48 text-center">適用期間</th>
-                    <th class="w-24 text-center">ステータス</th>
-                    <th class="w-24 text-center">操作</th>
+                <tr>
+                    <th class="min-w-44">税区分名</th>
+                    <!-- Right-aligned for numeric tax rate -->
+                    <th class="w-28">税率（%）</th>
+                    <th class="min-w-56 text-center">適用期間</th>
+                    <th class="w-28 text-center">ステータス</th>
+                    <th class="w-28 text-center">操作</th>
                 </tr>
             </thead>
             <tbody>
                 {% for obj in zei_list %}
-                    <tr class="hover:bg-base-200/50 transition-colors">
-                        <td class="font-bold whitespace-nowrap">{{ obj.zei_name }}</td>
-                        <td class="text-right font-mono font-bold">{{ obj.tax_rate }}%</td>
-                        <td class="text-center text-sm opacity-70 whitespace-nowrap">
-                            {{ obj.valid_from|date:"Y/m/d"|default:"-" }} 〜 {{ obj.valid_to|date:"Y/m/d"|default:"-" }}
+                    <tr>
+                        <td class="font-semibold">{{ obj.zei_name }}</td>
+                        <!-- Tax rate displayed with monospace font for alignment -->
+                        <td class="font-money">{{ obj.tax_rate }}%</td>
+                        <!-- Date range: shown as "YYYY/MM/DD ～ YYYY/MM/DD" or dashes -->
+                        <td class="text-center">
+                            {{ obj.valid_from|date:"Y/m/d"|default:"—" }}
+                            〜
+                            {{ obj.valid_to|date:"Y/m/d"|default:"—" }}
                         </td>
+                        <!-- Active / Inactive status badge -->
                         <td class="text-center">
                             {% if obj.is_active %}
-                                <span class="badge badge-success badge-outline badge-md font-bold px-2 w-20">有効</span>
+                                <span class="badge badge-success badge-outline font-semibold w-16">有効</span>
                             {% else %}
-                                <span class="badge badge-error badge-outline badge-md font-bold px-2 w-20">無効</span>
+                                <span class="badge badge-error badge-outline font-semibold w-16 opacity-60">無効</span>
                             {% endif %}
                         </td>
+                        <!-- Row action buttons: Edit and Delete via HTMX modal -->
                         <td class="text-center">
-                            <div class="flex justify-center gap-2">
+                            <div class="flex justify-center gap-1">
                                 <button hx-get="{% url 'master:zei-update' obj.pk %}"
                                         hx-target="body"
                                         hx-swap="beforeend"
-                                        class="btn btn-square btn-ghost btn-md text-info hover:bg-info/10"
+                                        class="btn btn-square btn-ghost btn-sm text-info hover:bg-info/10"
                                         title="編集">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
                                 <button hx-get="{% url 'master:zei-delete' obj.pk %}"
                                         hx-target="body"
                                         hx-swap="beforeend"
-                                        class="btn btn-square btn-ghost btn-md text-error hover:bg-error/10"
+                                        class="btn btn-square btn-ghost btn-sm text-error hover:bg-error/10"
                                         title="削除">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
@@ -49,12 +58,14 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center py-8 text-base-content/50">データがありません。</td>
+                        <td colspan="5" class="text-center">
+                            <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
+                            データがありません。
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <!-- ページネーション -->
     {% include "master/partials/pagination.html" %}
 </div>

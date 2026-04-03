@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import ProtectedError
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
@@ -11,10 +11,19 @@ from .models import BumonMaster, KanjoKamokuMaster, TorihikiSakiMaster, ZeiMaste
 
 
 # =========================================================
-# ミックスイン: HTMX対応 モーダルレスポンス
+# Mixins: shared HTMX behaviour for master data views
 # =========================================================
+
+
 class HtmxModalMixin:
-    """HTMXリクエスト時はモーダル部分テンプレートを返す"""
+    """
+    Mixin for Create/Update views that are triggered by HTMX from a modal dialog.
+
+    On success  → returns an empty 200 response with HX-Trigger: refreshList,
+                  which signals the list partial to reload itself via HTMX.
+    On failure  → re-renders only the modal template with inline validation errors,
+                  so the user can correct them without losing the modal.
+    """
 
     modal_template = None
 
@@ -25,6 +34,7 @@ class HtmxModalMixin:
         response = super().form_valid(form)
         if self.request.htmx:
             messages.success(self.request, f"「{self.object}」を保存しました。")
+            # Empty body + HX-Trigger tells the list partial to refresh itself
             return HttpResponse(
                 "",
                 status=200,
@@ -34,6 +44,7 @@ class HtmxModalMixin:
 
     def form_invalid(self, form):
         if self.request.htmx:
+            # Re-render the modal template with form errors visible
             return render(
                 self.request,
                 self.get_modal_template(),
@@ -43,20 +54,34 @@ class HtmxModalMixin:
 
 
 class HtmxListMixin:
-    """HTMXリクエスト時は部分テンプレートを返す"""
+    """
+    Mixin for ListView that returns only a table partial when the request
+    is driven by HTMX (e.g. triggered by a refreshList event after a modal save).
+    Full-page requests get the complete list template as normal.
+    """
 
     partial_template_name = None
 
     def get_template_names(self):
         if self.request.htmx:
+            # Return only the table partial for HTMX-driven refreshes
             return [self.partial_template_name]
         return [self.template_name]
 
 
 # =========================================================
-# 勘定科目マスタ
+# Chart of Accounts
 # =========================================================
+
+
 class KanjoKamokuListView(LoginRequiredMixin, HtmxListMixin, ListView):
+    """
+    Displays the full chart of accounts with optional filters:
+    - q          : search by code or account name
+    - level      : filter by hierarchy level (1=large … 4=detail)
+    - taisha     : filter by debit/credit classification
+    """
+
     model = KanjoKamokuMaster
     template_name = "master/kanjo_list.html"
     partial_template_name = "master/partials/kanjo_table.html"
@@ -68,10 +93,13 @@ class KanjoKamokuListView(LoginRequiredMixin, HtmxListMixin, ListView):
         q = self.request.GET.get("q", "")
         level = self.request.GET.get("level", "")
         taisha = self.request.GET.get("taisha", "")
+        # Full-text search on code OR name
         if q:
             qs = qs.filter(code__icontains=q) | qs.filter(name__icontains=q)
+        # Filter by hierarchy depth
         if level:
             qs = qs.filter(level=level)
+        # Filter by debit/credit classification (taisha_kubun)
         if taisha:
             qs = qs.filter(taisha_kubun=taisha)
         return qs
@@ -86,6 +114,8 @@ class KanjoKamokuListView(LoginRequiredMixin, HtmxListMixin, ListView):
 
 
 class KanjoKamokuCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
+    """Modal form to create a new account code entry."""
+
     model = KanjoKamokuMaster
     form_class = KanjoKamokuForm
     template_name = "master/partials/form_modal.html"
@@ -100,6 +130,8 @@ class KanjoKamokuCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
 
 
 class KanjoKamokuUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
+    """Modal form to edit an existing account code entry."""
+
     model = KanjoKamokuMaster
     form_class = KanjoKamokuForm
     template_name = "master/partials/form_modal.html"
@@ -114,6 +146,11 @@ class KanjoKamokuUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
 
 
 class KanjoKamokuDeleteView(LoginRequiredMixin, DeleteView):
+    """
+    Confirms and processes deletion of an account code.
+    Returns HTTP 409 if the account is already referenced by journal entries.
+    """
+
     model = KanjoKamokuMaster
     template_name = "master/partials/delete_confirm.html"
     success_url = reverse_lazy("master:kanjo-list")
@@ -135,10 +172,9 @@ class KanjoKamokuDeleteView(LoginRequiredMixin, DeleteView):
                     status=200,
                     headers={"HX-Trigger": "refreshList"},
                 )
-            from django.shortcuts import redirect
-
             return redirect(self.success_url)
         except ProtectedError:
+            # The account is linked to journal entries and cannot be deleted
             messages.error(
                 self.request, "この科目はすでに仕訳に使用されているため削除できません。"
             )
@@ -148,9 +184,13 @@ class KanjoKamokuDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # =========================================================
-# 部門マスタ
+# Department Master
 # =========================================================
+
+
 class BumonListView(LoginRequiredMixin, HtmxListMixin, ListView):
+    """Lists all departments with an optional code/name keyword search."""
+
     model = BumonMaster
     template_name = "master/bumon_list.html"
     partial_template_name = "master/partials/bumon_table.html"
@@ -165,6 +205,8 @@ class BumonListView(LoginRequiredMixin, HtmxListMixin, ListView):
 
 
 class BumonCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
+    """Modal form to create a new department."""
+
     model = BumonMaster
     form_class = BumonForm
     template_name = "master/partials/form_modal.html"
@@ -179,6 +221,8 @@ class BumonCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
 
 
 class BumonUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
+    """Modal form to edit an existing department."""
+
     model = BumonMaster
     form_class = BumonForm
     template_name = "master/partials/form_modal.html"
@@ -193,25 +237,14 @@ class BumonUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
 
 
 class BumonDeleteView(LoginRequiredMixin, DeleteView):
+    """
+    Confirms and processes deletion of a department.
+    Returns HTTP 409 if the department is already referenced by journal entries.
+    """
+
     model = BumonMaster
     template_name = "master/partials/delete_confirm.html"
     success_url = reverse_lazy("master:bumon-list")
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["delete_url"] = reverse_lazy("master:bumon-delete", args=[self.object.pk])
-        return ctx
-
-    def form_valid(self, form):
-        obj = self.get_object()
-        name = str(obj)
-        obj.delete()
-        messages.success(self.request, f"「{name}」を削除しました。")
-        if self.request.htmx:
-            return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
-        from django.shortcuts import redirect
-
-        return redirect(self.success_url)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -228,10 +261,9 @@ class BumonDeleteView(LoginRequiredMixin, DeleteView):
                 return HttpResponse(
                     "", status=200, headers={"HX-Trigger": "refreshList"}
                 )
-            from django.shortcuts import redirect
-
             return redirect(self.success_url)
         except ProtectedError:
+            # The department is linked to journal entries and cannot be deleted
             messages.error(
                 self.request, "この部門はすでに使用されているため削除できません。"
             )
@@ -241,9 +273,13 @@ class BumonDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # =========================================================
-# 消費税率マスタ
+# Tax Rate Master
 # =========================================================
+
+
 class ZeiListView(LoginRequiredMixin, HtmxListMixin, ListView):
+    """Lists all tax rates (small dataset — no search filter needed)."""
+
     model = ZeiMaster
     template_name = "master/zei_list.html"
     partial_template_name = "master/partials/zei_table.html"
@@ -251,6 +287,8 @@ class ZeiListView(LoginRequiredMixin, HtmxListMixin, ListView):
 
 
 class ZeiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
+    """Modal form to create a new tax rate entry."""
+
     model = ZeiMaster
     form_class = ZeiForm
     template_name = "master/partials/form_modal.html"
@@ -265,6 +303,8 @@ class ZeiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
 
 
 class ZeiUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
+    """Modal form to edit an existing tax rate entry."""
+
     model = ZeiMaster
     form_class = ZeiForm
     template_name = "master/partials/form_modal.html"
@@ -279,6 +319,11 @@ class ZeiUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
 
 
 class ZeiDeleteView(LoginRequiredMixin, DeleteView):
+    """
+    Confirms and processes deletion of a tax rate.
+    Returns HTTP 409 if it is already referenced by journal entries.
+    """
+
     model = ZeiMaster
     template_name = "master/partials/delete_confirm.html"
     success_url = reverse_lazy("master:zei-list")
@@ -289,21 +334,35 @@ class ZeiDeleteView(LoginRequiredMixin, DeleteView):
         return ctx
 
     def form_valid(self, form):
-        obj = self.get_object()
-        name = str(obj)
-        obj.delete()
-        messages.success(self.request, f"「{name}」を削除しました。")
-        if self.request.htmx:
-            return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
-        from django.shortcuts import redirect
-
-        return redirect(self.success_url)
+        try:
+            obj = self.get_object()
+            name = str(obj)
+            obj.delete()
+            messages.success(self.request, f"「{name}」を削除しました。")
+            if self.request.htmx:
+                return HttpResponse(
+                    "", status=200, headers={"HX-Trigger": "refreshList"}
+                )
+            return redirect(self.success_url)
+        except ProtectedError:
+            # The tax rate is referenced by journal entries and cannot be deleted
+            messages.error(
+                self.request,
+                "この税区分はすでに仕訳に使用されているため削除できません。",
+            )
+            if self.request.htmx:
+                return HttpResponse(status=409)
+            return self.get(self.request)
 
 
 # =========================================================
-# 取引先マスタ
+# Business Partner Master
 # =========================================================
+
+
 class TorihikiSakiListView(LoginRequiredMixin, HtmxListMixin, ListView):
+    """Lists business partners (customers / suppliers) with code/name search."""
+
     model = TorihikiSakiMaster
     template_name = "master/torihiki_list.html"
     partial_template_name = "master/partials/torihiki_table.html"
@@ -319,6 +378,8 @@ class TorihikiSakiListView(LoginRequiredMixin, HtmxListMixin, ListView):
 
 
 class TorihikiSakiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
+    """Modal form to create a new business partner."""
+
     model = TorihikiSakiMaster
     form_class = TorihikiSakiForm
     template_name = "master/partials/form_modal.html"
@@ -333,6 +394,8 @@ class TorihikiSakiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
 
 
 class TorihikiSakiUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
+    """Modal form to edit an existing business partner."""
+
     model = TorihikiSakiMaster
     form_class = TorihikiSakiForm
     template_name = "master/partials/form_modal.html"
@@ -349,6 +412,11 @@ class TorihikiSakiUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
 
 
 class TorihikiSakiDeleteView(LoginRequiredMixin, DeleteView):
+    """
+    Confirms and processes deletion of a business partner.
+    Returns HTTP 409 if it is already referenced by journal entries.
+    """
+
     model = TorihikiSakiMaster
     template_name = "master/partials/delete_confirm.html"
     success_url = reverse_lazy("master:torihiki-list")
@@ -361,12 +429,22 @@ class TorihikiSakiDeleteView(LoginRequiredMixin, DeleteView):
         return ctx
 
     def form_valid(self, form):
-        obj = self.get_object()
-        name = str(obj)
-        obj.delete()
-        messages.success(self.request, f"「{name}」を削除しました。")
-        if self.request.htmx:
-            return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
-        from django.shortcuts import redirect
-
-        return redirect(self.success_url)
+        try:
+            obj = self.get_object()
+            name = str(obj)
+            obj.delete()
+            messages.success(self.request, f"「{name}」を削除しました。")
+            if self.request.htmx:
+                return HttpResponse(
+                    "", status=200, headers={"HX-Trigger": "refreshList"}
+                )
+            return redirect(self.success_url)
+        except ProtectedError:
+            # The partner is referenced by journal entries and cannot be deleted
+            messages.error(
+                self.request,
+                "この取引先はすでに仕訳に使用されているため削除できません。",
+            )
+            if self.request.htmx:
+                return HttpResponse(status=409)
+            return self.get(self.request)

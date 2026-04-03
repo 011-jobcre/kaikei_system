@@ -1,54 +1,59 @@
 {% extends "base.html" %}
 {% load static %}
 {% block body %}
-    <!-- DaisyUI Drawer (モバイル: Off-canvas / デスクトップ: 固定サイドバー) -->
+    <!-- DaisyUI Drawer: off-canvas sidebar on mobile, fixed sidebar on desktop (lg+) -->
     <div class="drawer lg:drawer-open">
         <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
-        <!-- メインコンテンツ -->
+        <!-- ── Main content column ──────────────────────────────────────────────── -->
         <div class="drawer-content flex flex-col min-h-screen">
-            <!-- トップバー (インライン化してブロック利用可能に) -->
-            <header class="navbar bg-base-100 border-b border-base-300 sticky top-0 z-10 h-16 min-h-16 px-6 shadow-sm">
-                <!-- モバイル: ハンバーガーメニュー -->
+            <!-- Sticky top navigation bar -->
+            <header class="navbar bg-base-100 border-b border-base-300 sticky top-0 z-10 h-16 min-h-16 px-4 md:px-6 shadow-sm">
+                <!-- Mobile only: hamburger that opens the sidebar drawer -->
                 <div class="flex-none lg:hidden">
                     <label for="drawer-toggle" class="btn btn-square btn-ghost btn-sm">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </label>
                 </div>
-                <!-- ページタイトル / パンくず -->
+                <!-- Page title / breadcrumb — populated by child template blocks -->
                 <div class="flex-1 px-4 text-base-content text-lg md:text-2xl font-bold tracking-tight truncate overflow-hidden">
                     {% block page_header %}
                     {% endblock page_header %}
                 </div>
-                <!-- 右側: アクション & ユーザー -->
-                <div class="flex-none flex items-center gap-4">
+                <!-- Right side: quick actions + loading indicator + user avatar -->
+                <div class="flex-none flex items-center gap-3 md:gap-4">
+                    <!-- Quick journal-entry shortcut, hidden on small screens -->
                     <a href="{% url 'journal:denpyo-create' %}"
                        class="btn btn-primary btn-md gap-2 hidden md:flex">
-                        <i class="fa-solid fa-plus text-md"></i>
+                        <i class="fa-solid fa-plus"></i>
                         伝票入力
                     </a>
-                    <!-- ローディングインジケータ -->
+                    <!-- HTMX global loading spinner (visible during any HTMX request) -->
                     <span class="htmx-indicator loading loading-spinner loading-md text-primary"></span>
-                    <!-- ユーザーアバター (モバイル/タブレット用 — サイドバーに詳細あり) -->
-                    <div class="avatar placeholder md:hidden border-2 border-primary/20 rounded-full">
-                        <div class="bg-primary text-primary-content rounded-full w-10">
-                            <img src="{{ request.user.profile.avatar.url }}"
-                                 alt="{{ request.user.username }}"
-                                 class="w-full h-full object-cover" />
+                    <!-- User initials avatar — safe fallback that never crashes.
+                         Full user info is shown in the sidebar on desktop.        -->
+                    <div class="avatar placeholder md:hidden">
+                        <div class="bg-primary text-primary-content rounded-full w-9 text-sm font-bold flex items-center justify-center">
+                            <span>{{ request.user.username|slice:":1"|upper }}</span>
                         </div>
                     </div>
                 </div>
             </header>
+
+            <!-- Page content area -->
             <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
-                <!-- フラッシュメッセージ -->
-                <div class="space-y-2" id="flash-messages">{% include "includes/messages_inline.html" %}</div>
+                <!-- Django flash messages — refreshed via HTMX after successful saves -->
+                <div class="space-y-2 mb-2" id="flash-messages">
+                    {% include "includes/messages_inline.html" %}
+                </div>
                 {% block content %}
                 {% endblock content %}
             </main>
+
             <footer class="footer footer-center p-3 bg-base-200 text-base-content/50 text-xs">
                 <span>© 2026 社内会計システム — 全ての権利を保有します</span>
             </footer>
         </div>
-        <!-- サイドバー -->
+        <!-- ── Sidebar (off-canvas on mobile, always visible on lg+) ────────────── -->
         <div class="drawer-side z-20">
             <label for="drawer-toggle" aria-label="閉じる" class="drawer-overlay"></label>
             {% include "includes/sidebar.html" %}

@@ -2,109 +2,149 @@
 {% block title %}
     貸借対照表 (B/S) | 会計システム
 {% endblock title %}
-{% block page_title %}
+{% block page_header %}
     貸借対照表 (Balance Sheet)
-{% endblock page_title %}
+{% endblock page_header %}
 {% block content %}
     <div class="space-y-4">
-        <div class="flex items-center justify-between bg-base-100 p-4 rounded-box shadow-sm">
-            <form method="get" class="flex items-center gap-3">
-                <span class="text-sm font-medium w-24">決算日:</span>
+        <!-- ========= Filter / Print Toolbar ========= -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-base-100 p-4 rounded-box shadow-sm border border-base-300 print:hidden">
+            <form method="get" class="flex flex-wrap sm:flex-nowrap items-center gap-3">
+                <span class="text-sm font-bold w-full sm:w-auto mt-1 sm:mt-0">決算日:</span>
                 <input type="date"
                        name="date_to"
                        value="{{ date_to }}"
-                       class="input input-bordered input-sm" />
-                <button type="submit" class="btn btn-primary btn-sm">集計</button>
+                       class="input-jp w-full sm:w-auto" />
+                <button type="submit" class="btn btn-primary gap-2 mt-2 sm:mt-0">
+                    <i class="fa-solid fa-scale-balanced"></i> 集計
+                </button>
             </form>
-            <button onclick="window.print()" class="btn btn-outline btn-sm gap-2">
+            <button onclick="window.print()"
+                    class="btn btn-outline gap-2 shadow-sm shrink-0">
                 <i class="fa-solid fa-print"></i>
                 印刷
             </button>
         </div>
-        <div class="bg-base-100 shadow-sm rounded-box p-6 print:shadow-none">
+        <!-- ========= Balance Sheet Report Body ========= -->
+        <div class="bg-base-100 shadow-sm rounded-box p-6 border border-base-300 print:shadow-none print:border-none">
             <div class="text-center mb-8 border-b-2 border-base-300 pb-4">
-                <h2 class="text-2xl font-bold">貸借対照表</h2>
-                <p class="text-sm mt-1">
+                <h2 class="text-2xl font-bold tracking-tight">貸借対照表</h2>
+                <p class="text-sm text-base-content/60 mt-2">
                     {% if date_to %}
-                        現在日: {{ date_to|date:"Y年m月d日" }}
+                        現在日: <strong>{{ date_to|date:"Y年m月d日" }}</strong>
                     {% else %}
                         現在日: (指定なし=最新)
                     {% endif %}
                 </p>
             </div>
-            <!-- B/S は左右 (資産 vs 負債・純資産) 比較のT字フォーム -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-0 border-4 border-base-300 rounded print:border-2">
-                <!-- 借方: 資産の部 -->
-                <div class="pt-4 border-r border-base-300 min-h-[400px]">
-                    <h3 class="text-lg font-bold text-center mb-4 text-primary">資産の部</h3>
-                    <table class="table table-sm w-full mb-8">
-                        <tbody>
-                            {% for row in shisan_rows %}
-                                <tr class="hover:bg-base-200">
-                                    <td class="pl-6">{{ row.kamoku.name }}</td>
-                                    <td class="text-right font-mono pr-6">{{ row.zandaka|floatformat:0 }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <!-- 貸方: 負債・純資産の部 -->
-                <div class="pt-4">
-                    <!-- 負債の部 -->
-                    <h3 class="text-lg font-bold text-center mb-4 text-warning">負債の部</h3>
-                    <table class="table table-sm w-full mb-8">
-                        <tbody>
-                            {% for row in fusai_rows %}
-                                <tr class="hover:bg-base-200">
-                                    <td class="pl-6">{{ row.kamoku.name }}</td>
-                                    <td class="text-right font-mono pr-6">{{ row.zandaka|floatformat:0 }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot class="bg-warning/10 font-bold">
-                            <tr>
-                                <td class="text-center">負債合計</td>
-                                <td class="text-right font-mono pr-6">{{ total_fusai|floatformat:0 }}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                    <!-- 純資産の部 -->
-                    <h3 class="text-lg font-bold text-center mb-4 mt-8 text-accent">純資産の部</h3>
-                    <table class="table table-sm w-full mb-8">
-                        <tbody>
-                            {% for row in junshisan_rows %}
-                                <tr class="hover:bg-base-200">
-                                    <td class="pl-6">{{ row.kamoku.name }}</td>
-                                    <td class="text-right font-mono pr-6">{{ row.zandaka|floatformat:0 }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot class="bg-accent/10 font-bold">
-                            <tr>
-                                <td class="text-center">純資産合計</td>
-                                <td class="text-right font-mono pr-6">{{ total_junshisan|floatformat:0 }}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <!-- T字フッター 合計 -->
-                <div class="border-t-4 border-base-300 p-4 bg-primary/5">
-                    <div class="flex justify-between items-center font-bold text-lg text-primary px-2">
-                        <span>資産合計</span>
-                        <span class="font-mono underline decoration-double">{{ total_shisan|floatformat:0 }}</span>
+            <!-- B/S displays Assets on the Left (Debit) and Liabilities/Equity on the Right (Credit) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-0 border-[3px] border-base-300 rounded print:border-2 min-h-[500px]">
+                <!-- ========= Debit: Assets ========= -->
+                <div class="pt-6 border-b md:border-b-0 md:border-r border-base-300 flex flex-col">
+                    <h3 class="text-lg font-bold text-center mb-4 text-info tracking-widest">
+                        <span class="border-b-2 border-info pb-1">資産の部</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="table-accounting w-full flex-1">
+                            <tbody>
+                                {% for row in shisan_rows %}
+                                    <tr class="hover:bg-info/5 transition-colors group">
+                                        <td class="pl-6 md:pl-10 font-medium text-base-content/90">{{ row.kamoku.name }}</td>
+                                        <td class="text-right font-money pr-6 md:pr-10">{{ row.zandaka|floatformat:0 }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="2" class="text-center text-base-content/40 py-8">データなし</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Left Column Footer: Total Assets -->
+                    <div class="border-t-[3px] border-base-300 p-5 bg-info/5 mt-auto">
+                        <div class="flex justify-between items-center font-bold text-lg text-info px-2">
+                            <span>資産合計</span>
+                            <span class="font-money text-xl underline decoration-double underline-offset-4">{{ total_shisan|floatformat:0 }}</span>
+                        </div>
                     </div>
                 </div>
-                <div class="border-t-4 border-l border-base-300 p-4 bg-primary/5">
-                    <div class="flex justify-between items-center font-bold text-lg text-primary px-2">
-                        <span>負債・純資産合計</span>
-                        <span class="font-mono underline decoration-double">{{ total_fusai_junshisan|floatformat:0 }}</span>
+                <!-- ========= Credit: Liabilities & Equity ========= -->
+                <div class="pt-6 flex flex-col">
+                    <!-- Liabilities -->
+                    <h3 class="text-lg font-bold text-center mb-4 text-warning tracking-widest">
+                        <span class="border-b-2 border-warning pb-1">負債の部</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="table-accounting w-full mb-8">
+                            <tbody>
+                                {% for row in fusai_rows %}
+                                    <tr class="hover:bg-warning/5 transition-colors group">
+                                        <td class="pl-6 md:pl-10 font-medium text-base-content/90">{{ row.kamoku.name }}</td>
+                                        <td class="text-right font-money pr-6 md:pr-10">{{ row.zandaka|floatformat:0 }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="2" class="text-center text-base-content/40 py-4">データなし</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="bg-base-200/50">
+                                <tr>
+                                    <td class="text-center font-bold pl-6">負債合計</td>
+                                    <td class="text-right font-money font-bold pr-6 md:pr-10 border-t border-base-300">{{ total_fusai|floatformat:0 }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <!-- Equity -->
+                    <h3 class="text-lg font-bold text-center mb-4 mt-6 text-accent tracking-widest">
+                        <span class="border-b-2 border-accent pb-1">純資産の部</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="table-accounting w-full mb-8 flex-1">
+                            <tbody>
+                                {% for row in junshisan_rows %}
+                                    <tr class="hover:bg-accent/5 transition-colors group">
+                                        <td class="pl-6 md:pl-10 font-medium text-base-content/90">{{ row.kamoku.name }}</td>
+                                        <td class="text-right font-money pr-6 md:pr-10">{{ row.zandaka|floatformat:0 }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="2" class="text-center text-base-content/40 py-4">データなし</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="bg-base-200/50 mt-auto">
+                                <tr>
+                                    <td class="text-center font-bold pl-6">純資産合計</td>
+                                    <td class="text-right font-money font-bold pr-6 md:pr-10 border-t border-base-300">
+                                        {{ total_junshisan|floatformat:0 }}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <!-- Right Column Footer: Total Liabilities & Equity -->
+                    <div class="border-t-[3px] border-base-300 p-5 bg-base-200/50 mt-auto">
+                        <div class="flex justify-between items-center font-bold text-lg px-2">
+                            <span>負債・純資産合計</span>
+                            <span class="font-money text-xl underline decoration-double underline-offset-4">{{ total_fusai_junshisan|floatformat:0 }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
+            <!-- Warning block if accounting equation doesn't balance -->
             {% if not balanced %}
-                <div class="mt-6 alert alert-error shadow-sm font-bold flex items-center gap-3">
-                    <i class="fa-solid fa-circle-exclamation text-xl"></i>
-                    <span>警告: 資産合計 ({{ total_shisan|floatformat:0 }}) と 負債純資産合計 ({{ total_fusai_junshisan|floatformat:0 }}) が一致していません。仕訳データまたはマスタの「貸借区分」にエラーがある可能性があります。</span>
+                <div class="mt-6 p-4 bg-error/10 border border-error/20 rounded-box text-error font-bold flex items-start gap-3 shadow-sm print:hidden">
+                    <i class="fa-solid fa-circle-exclamation text-2xl mt-0.5 shrink-0"></i>
+                    <div>
+                        <p class="text-lg">貸借不一致エラー</p>
+                        <p class="text-sm font-normal mt-1 text-error/80">
+                            資産合計 (<span class="font-money amount-positive">¥{{ total_shisan|floatformat:0 }}</span>) と
+                            負債・純資産合計 (<span class="font-money amount-positive">¥{{ total_fusai_junshisan|floatformat:0 }}</span>) が一致していません。
+                            仕訳データまたはマスタの「貸借区分」に誤りがある可能性があります。
+                        </p>
+                    </div>
                 </div>
             {% endif %}
         </div>

@@ -1,47 +1,108 @@
-<!-- 汎用HTMXモーダル — #modal-container に差し込まれる -->
+<!-- Generic HTMX modal for master-data create/edit forms.
+     Injected into <body> via hx-target="body" hx-swap="beforeend".
+     The 'title' and 'action_url' context variables must be provided by the view. -->
 <dialog id="htmx-modal" class="modal modal-open">
     <div class="modal-box w-11/12 max-w-2xl relative">
-        <!-- 閉じるボタン -->
+        <!-- Close button: removes the dialog element from the DOM entirely -->
         <button onclick="document.getElementById('htmx-modal').remove()"
                 class="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">✕</button>
-        <h3 class="font-bold text-lg mb-4">{{ title }}</h3>
+        <h3 class="font-bold text-lg mb-5">{{ title }}</h3>
         <form method="post"
               action="{{ action_url }}"
               hx-post="{{ action_url }}"
-              hx-swap="none">
+              hx-swap="none"
+              id="modal-form"
+              novalidate>
             {% csrf_token %}
             <div class="space-y-4">
                 {% for field in form %}
-                    <div class="form-control">
-                        <label class="label pb-1">
-                            <span class="label-text font-medium">
-                                {{ field.label }}
-                                {% if field.field.required %}<span class="text-error ml-1">*</span>{% endif %}
-                            </span>
-                        </label>
-                        {{ field }}
-                        {% if field.errors %}
-                            <div class="label">
-                                <span class="label-text-alt text-error">{{ field.errors|join:", " }}</span>
-                            </div>
-                        {% endif %}
-                    </div>
+                    {% include 'includes/form_row.html' with field=field %}
                 {% endfor %}
             </div>
+            <!-- Non-field (form-level) validation errors -->
             {% if form.non_field_errors %}
-                <div class="alert alert-error mt-4">
+                <div class="alert alert-error mt-4 text-sm gap-2">
+                    <i class="fa-solid fa-triangle-exclamation shrink-0"></i>
                     <span>{{ form.non_field_errors|join:", " }}</span>
                 </div>
             {% endif %}
-            <div class="modal-action mt-6">
+            <div class="modal-action mt-6 gap-3">
                 <button type="button"
                         onclick="document.getElementById('htmx-modal').remove()"
-                        class="btn-ghost-cancel">キャンセル</button>
-                <button type="submit" class="btn btn-info">保存</button>
+                        class="btn btn-ghost">キャンセル</button>
+                <button type="submit" class="btn btn-primary gap-2">
+                    <!-- Spinner visible during HTMX submission -->
+                    <span class="htmx-indicator loading loading-spinner loading-xs"></span>
+                    保存
+                </button>
             </div>
         </form>
     </div>
+    <!-- Clicking the backdrop closes the modal -->
     <form method="dialog" class="modal-backdrop">
         <button onclick="document.getElementById('htmx-modal').remove()">閉じる</button>
     </form>
 </dialog>
+<script>
+// ── Client-side validation for master-data modal forms ──────────────────────────
+// Provides immediate visual feedback by highlighting required fields before the
+// form is submitted to the server.  Django's server-side validation remains the
+// authoritative check; this JS layer is purely a UX convenience.
+(function () {
+    const form = document.getElementById('modal-form');
+    if (!form) return;
+
+    /**
+     * Validates a single form field element.
+     * Adds a red error label below the field if it is required but empty.
+     * Removes the error label once the field has a value.
+     *
+     * @param {HTMLElement} el  The input/select/textarea element to validate.
+     * @returns {boolean}       True when the field value is acceptable.
+     */
+    function validateField(el) {
+        const wrapper = el.closest('.form-control');
+        if (!wrapper) return true;
+
+        // Remove any existing client-side error label before re-validating
+        const prev = wrapper.querySelector('.js-field-error');
+        if (prev) prev.remove();
+
+        const isEmpty = el.type !== 'checkbox' && !el.value.trim();
+        if (el.required && isEmpty) {
+            // Apply error border styling
+            el.classList.add('border-error');
+            // Insert the error message below the field
+            const msg = document.createElement('div');
+            msg.className = 'label pt-1 js-field-error';
+            msg.innerHTML =
+                '<span class="label-text-alt text-error flex items-center gap-1">' +
+                '<i class="fa-solid fa-circle-exclamation text-xs"></i>' +
+                'この項目は必須です。</span>';
+            el.insertAdjacentElement('afterend', msg);
+            return false;
+        }
+        // Clear error styling once the field is valid
+        el.classList.remove('border-error');
+        return true;
+    }
+
+    // Validate a field immediately when the user leaves it (blur)
+    // and again on every keystroke if the field was already errored.
+    form.querySelectorAll('input, select, textarea').forEach(el => {
+        el.addEventListener('blur', () => validateField(el));
+        el.addEventListener('input', () => {
+            if (el.classList.contains('border-error')) validateField(el);
+        });
+        el.addEventListener('change', () => {
+            if (el.classList.contains('border-error')) validateField(el);
+        });
+    });
+
+    // Run validation on all fields when the user clicks Submit.
+    // We do NOT call e.preventDefault() — the server is the authority.
+    form.addEventListener('submit', () => {
+        form.querySelectorAll('input, select, textarea').forEach(el => validateField(el));
+    });
+}());
+</script>

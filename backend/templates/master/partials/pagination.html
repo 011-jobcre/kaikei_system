@@ -1,23 +1,31 @@
 {% if is_paginated %}
+    <!-- ── Pagination Controls ──────────────────────────────────────────────────
+         Shared partial for list views (Master data, Journal, etc.).
+         Preserves current query parameters (q, level, taisha) when changing pages. -->
     <div class="p-4 sm:p-6 bg-base-200/30 border-t border-base-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <!-- Page info (e.g. Page 1 of 5) -->
         <div class="text-md text-base-content/60 font-medium">
             Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
         </div>
+        <!-- Pagination buttons -->
         <div class="join shadow-sm">
+            <!-- Previous page link -->
             {% if page_obj.has_previous %}
                 <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&level={{ level_filter }}&taisha={{ taisha_filter }}"
                    class="join-item btn btn-md bg-base-100 hover:bg-base-200">
                     <i class="fa-solid fa-chevron-left text-xs"></i>
                 </a>
             {% endif %}
+            <!-- Page number links (show max 3 pages around current) -->
             {% for page_num in page_obj.paginator.page_range %}
                 {% if page_num == page_obj.number %}
-                    <button class="join-item btn btn-md btn-disabled bg-base-100 text-base-content">{{ page_num }}</button>
+                    <button class="join-item btn btn-md btn-disabled bg-base-100 text-base-content font-bold">{{ page_num }}</button>
                 {% elif page_num > page_obj.number|add:'-2' and page_num < page_obj.number|add:'2' %}
                     <a href="?page={{ page_num }}&q={{ q }}&level={{ level_filter }}&taisha={{ taisha_filter }}"
                        class="join-item btn btn-md bg-base-100 hover:bg-base-200">{{ page_num }}</a>
                 {% endif %}
             {% endfor %}
+            <!-- Next page link -->
             {% if page_obj.has_next %}
                 <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&level={{ level_filter }}&taisha={{ taisha_filter }}"
                    class="join-item btn btn-md bg-base-100 hover:bg-base-200">

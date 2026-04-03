@@ -1,0 +1,27 @@
+{% comment %}
+Reusable form row for modal and inline forms.
+Context: expects `field` variable (a BoundField).
+Provides consistent label, input wrapper and error/help rendering.
+{% endcomment %}
+<div class="form-control">
+    <label class="label pb-1" for="{{ field.id_for_label }}">
+        <span class="label-text font-medium">
+            {{ field.label }}
+            {% if field.field.required %}<span class="text-error ml-1">*</span>{% endif %}
+        </span>
+    </label>
+    {{ field }}
+    {% if field.errors %}
+        <div class="label pt-1">
+            <span class="label-text-alt text-error flex items-center gap-1">
+                <i class="fa-solid fa-circle-exclamation text-xs"></i>
+                {{ field.errors|join:", " }}
+            </span>
+        </div>
+    {% endif %}
+    {% if field.help_text %}
+        <div class="label pt-0">
+            <span class="label-text-alt text-base-content/50">{{ field.help_text }}</span>
+        </div>
+    {% endif %}
+</div>

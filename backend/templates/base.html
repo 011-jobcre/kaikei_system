@@ -10,120 +10,109 @@
         </title>
         <meta name="description" content="社内用会計システム — 日本の会計基準に準拠した複式簿記システム" />
         <meta name="keywords" content="会計システム, 複式簿記, 勘定科目, 財務諸表, 日本基準" />
-        <!-- Tailwind / DaisyUI (ビルド済みCSS) -->
+        <!-- Compiled Tailwind + DaisyUI stylesheet (built by npm run dev) -->
         <link rel="stylesheet"
               href="{% load static %}{% static 'css/output.css' %}" />
-        <!-- Tom Select (科目検索用ドロップダウン) -->
+        <!-- Tom Select: searchable dropdown library for account/subject pickers -->
         <link rel="stylesheet"
               href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.min.css" />
-        <!-- Google Fonts: Inter & Noto Sans JP -->
+        <!-- Google Fonts: Inter (Latin) + Noto Sans JP (Japanese) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+JP:wght@100..900&display=swap"
               rel="stylesheet">
-        <!-- Font Awesome 6 (Free) -->
+        <!-- Font Awesome 6 Free: icon set used throughout the UI -->
         <link rel="stylesheet"
               href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
         {% block extra_head %}
         {% endblock extra_head %}
     </head>
     <body class="min-h-screen bg-base-100">
-        <!-- モーダルコンテナ (HTMX ターゲット) -->
+        <!-- Modal container: HTMX injects modal dialogs here via hx-swap="beforeend" -->
         <div id="modal-container"></div>
         {% block body %}
         {% endblock body %}
-        <!-- HTMX -->
+        <!-- HTMX: partial-page update engine for modals, list refreshes, balance bar -->
         <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
-        <!-- Alpine.js (インタラクティブUI用) -->
+        <!-- Alpine.js: lightweight reactivity for balance calculation and UI state -->
         <script defer
                 src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-        <!-- Tom Select -->
+        <!-- Tom Select: enhances <select> elements with search and keyboard nav -->
         <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-        <!-- Django CSRF for HTMX -->
+        <!-- HTMX ↔ Django CSRF integration + modal lifecycle management -->
         <script>
             document.addEventListener('DOMContentLoaded', () => {
+
+                // ── CSRF token ───────────────────────────────────────────────────────
+                // Read the CSRF token from Django's cookie and attach it to every
+                // HTMX POST/PUT/DELETE request via the hx-headers attribute on <body>.
                 const csrfToken = document.cookie.split(';')
                     .find(c => c.trim().startsWith('csrftoken='))
                     ?.split('=')[1];
                 if (csrfToken) {
-                    document.body.setAttribute('hx-headers', JSON.stringify({'X-CSRFToken': csrfToken}));
+                    document.body.setAttribute(
+                        'hx-headers',
+                        JSON.stringify({'X-CSRFToken': csrfToken})
+                    );
                 }
 
-                // HTMX modal handling
+                // ── Modal auto-close on success ──────────────────────────────────────
+                // When a modal form POSTs successfully and the server responds with
+                // the header HX-Trigger: refreshList, close the open modal.
                 document.addEventListener('htmx:afterRequest', (evt) => {
-                    // Close modal on successful form submission with HX-Trigger
                     if (evt.detail.xhr.status === 200) {
                         const hxTrigger = evt.detail.xhr.getResponseHeader('HX-Trigger');
                         if (hxTrigger && hxTrigger.includes('refreshList')) {
                             const modal = document.getElementById('htmx-modal');
-                            if (modal) {
-                                modal.remove();
-                            }
-                            // update flash/toast messages
-                            try { updateMessages(); } catch (e) { console.warn('updateMessages failed', e); }
+                            if (modal) modal.remove();
+                            try { updateMessages(); } catch (e) { /* ignore */ }
                         }
                     }
                 });
 
-                // Also listen for HTMX trigger events
+                // ── Flash message refresher ──────────────────────────────────────────
+                // After a modal save succeeds, refetch Django's flash messages and
+                // inject them into the page without a full reload.
                 function updateMessages() {
-                    // Fetch inline HTML to update #flash-messages if present
+                    // Inline messages panel (persistent, inside page content)
                     fetch('/_messages/?format=inline')
-                        .then((r) => r.text())
-                        .then((html) => {
+                        .then(r => r.text())
+                        .then(html => {
                             const flash = document.getElementById('flash-messages');
-                            if (flash) {
-                                flash.innerHTML = html;
-                            }
-                        })
-                        .catch((e) => console.warn('Failed to fetch inline messages partial', e));
-
-                    // Fetch toast HTML and append to body so transient toasts show
+                            if (flash) flash.innerHTML = html;
+                        });
+                    // Transient toast notifications (appended to <body>)
                     fetch('/_messages/?format=toast')
-                        .then((r) => r.text())
-                        .then((html) => {
+                        .then(r => r.text())
+                        .then(html => {
                             if (html && html.trim()) {
                                 document.body.insertAdjacentHTML('beforeend', html);
                             }
-                        })
-                        .catch((e) => console.warn('Failed to fetch toast messages partial', e));
+                        });
                 }
 
+                // ── refreshList custom event ─────────────────────────────────────────
+                // Fired by HTMX when the server sends HX-Trigger: refreshList.
+                // Closes any open modal and refreshes flash messages.
                 document.addEventListener('refreshList', () => {
                     const modal = document.getElementById('htmx-modal');
-                    if (modal) {
-                        modal.remove();
-                    }
+                    if (modal) modal.remove();
                     updateMessages();
                 });
-                // Handle missing swap target errors (prevent modal hang)
-                document.addEventListener('htmx:targetError', (evt) => {
-                    console.warn('HTMX targetError:', evt.detail);
-                    // If modal exists, remove it to recover UI
+
+                // ── HTMX swap-target error recovery ─────────────────────────────────
+                // If HTMX cannot locate its swap target (e.g. modal removed mid-flight),
+                // clean up any stale modal and restore the modal-container div.
+                document.addEventListener('htmx:targetError', () => {
                     const modal = document.getElementById('htmx-modal');
                     if (modal) modal.remove();
-                    // Ensure modal container exists for future swaps
                     if (!document.getElementById('modal-container')) {
                         const container = document.createElement('div');
                         container.id = 'modal-container';
                         document.body.insertBefore(container, document.body.firstChild);
                     }
                 });
-                // Debug: log swap details to diagnose target errors
-                document.addEventListener('htmx:beforeSwap', (evt) => {
-                    try {
-                        console.debug('htmx:beforeSwap', {
-                            target: evt.detail.targetSelector || evt.detail.target, 
-                            swapSpecification: evt.detail.swapSpecification,
-                            xhrStatus: evt.detail.xhr && evt.detail.xhr.status,
-                        });
-                    } catch (e) {
-                        console.debug('htmx:beforeSwap - unable to read details', e);
-                    }
-                });
-                document.addEventListener('htmx:beforeOnLoad', (evt) => {
-                    console.debug('htmx:beforeOnLoad - response snippet length', evt.detail && evt.detail.xhr && evt.detail.xhr.responseText ? evt.detail.xhr.responseText.length : 0);
-                });
+
             });
         </script>
         {% block extra_scripts %}

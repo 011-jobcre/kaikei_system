@@ -13,7 +13,8 @@ class KanjoKamokuMaster(BaseModel):
         ("HIYO", "費用"),
     ]
 
-    # 借方残高科目: 資産・費用 / 貸方残高科目: 負債・純資産・収益
+    # Debit-balance accounts: Assets & Expenses
+    # Credit-balance accounts: Liabilities, Equity & Revenue
     KARI_ZANDAKA = {"SHISAN", "HIYO"}
     KASHI_ZANDAKA = {"FUSAI", "JUNSHISAN", "SHUEKI"}
 
@@ -47,14 +48,14 @@ class KanjoKamokuMaster(BaseModel):
     def save(self, *args, **kwargs):
         """保存時にレベルと貸借区分を自動設定"""
         if self.parent:
-            # 親がある場合は親のレベル+1
+            # If parent exists, set level = parent.level + 1
             self.level = self.parent.level + 1
-            # 貸借区分が未設定なら親から継承
+            # Inherit taisha_kubun from parent if not set
             self.taisha_kubun = self.parent.taisha_kubun
         else:
-            # 親がない場合はレベル1
+            # No parent: set level to 1
             self.level = 1
-            # レベル1かつ貸借区分が未設定の場合、名称から推測
+            # If level 1 and taisha_kubun is unset, infer from the name
             if not self.taisha_kubun:
                 name = self.name or ""
                 if "資産" == name:
@@ -112,20 +113,6 @@ class BumonMaster(BaseModel):
 class ZeiMaster(BaseModel):
     """消費税率マスタ"""
 
-    ZEI_KUBUN_CHOICES = [
-        ("STANDARD", "課税（標準税率10%）"),
-        ("REDUCED", "課税（軽減税率8%）"),
-        ("EXEMPT", "非課税"),
-        ("FREE", "免税"),
-        ("OUTSIDE", "対象外"),
-    ]
-
-    zei_kubun = models.CharField(
-        max_length=20,
-        choices=ZEI_KUBUN_CHOICES,
-        unique=True,
-        verbose_name="税区分コード",
-    )
     zei_name = models.CharField(max_length=100, verbose_name="税区分名")
     tax_rate = models.DecimalField(
         max_digits=5, decimal_places=2, default=0, verbose_name="税率(%)"

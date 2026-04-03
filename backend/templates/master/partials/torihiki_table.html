@@ -1,46 +1,50 @@
-<div class="bg-base-100 rounded-box shadow-sm overflow-hidden"
+<!-- Business Partner (Torihiki Saki) data table partial.
+     Reloaded automatically via HTMX when the 'refreshList' event fires. -->
+<div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden"
      hx-get="{% url 'master:torihiki-list' %}"
      hx-trigger="refreshList from:body"
      hx-swap="outerHTML">
     <div class="overflow-x-auto">
-        <table class="table table-accounting table-md w-full">
+        <table class="table table-accounting">
             <thead>
-                <tr class="bg-base-200/50">
-                    <th class="w-24">コード</th>
-                    <th class="w-auto">取引先名</th>
+                <tr>
+                    <th class="w-28">コード</th>
+                    <th class="w-40">取引先名</th>
                     <th class="w-40">電話番号</th>
-                    <th class="w-48">メールアドレス</th>
-                    <th class="w-24 text-center">ステータス</th>
-                    <th class="w-24 text-center">操作</th>
+                    <th class="w-40">メールアドレス</th>
+                    <th class="w-28 text-center">ステータス</th>
+                    <th class="w-28 text-center">操作</th>
                 </tr>
             </thead>
             <tbody>
                 {% for obj in torihiki_list %}
-                    <tr class="hover:bg-base-200/50 transition-colors">
-                        <td class="font-mono text-sm opacity-70">{{ obj.code }}</td>
-                        <td class="font-bold whitespace-nowrap">{{ obj.name }}</td>
-                        <td class="text-sm whitespace-nowrap">{{ obj.phone|default:"-" }}</td>
-                        <td class="text-sm whitespace-nowrap">{{ obj.email|default:"-" }}</td>
+                    <tr>
+                        <td class="font-mono">{{ obj.code }}</td>
+                        <td class="font-semibold">{{ obj.name }}</td>
+                        <td>{{ obj.phone|default:"—" }}</td>
+                        <td>{{ obj.email|default:"—" }}</td>
+                        <!-- Active / Inactive status badge -->
                         <td class="text-center">
                             {% if obj.is_active %}
-                                <span class="badge badge-success badge-outline badge-md font-bold px-2 w-20">有効</span>
+                                <span class="badge badge-success badge-outline font-semibold w-16">有効</span>
                             {% else %}
-                                <span class="badge badge-error badge-outline badge-md font-bold px-2 w-20">無効</span>
+                                <span class="badge badge-error badge-outline font-semibold w-16 opacity-60">無効</span>
                             {% endif %}
                         </td>
+                        <!-- Row action buttons: Edit and Delete via HTMX modal -->
                         <td class="text-center">
                             <div class="flex justify-center gap-1">
                                 <button hx-get="{% url 'master:torihiki-update' obj.pk %}"
                                         hx-target="body"
                                         hx-swap="beforeend"
-                                        class="btn btn-square btn-ghost btn-md text-info hover:bg-info/10"
+                                        class="btn btn-square btn-ghost btn-sm text-info hover:bg-info/10"
                                         title="編集">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
                                 <button hx-get="{% url 'master:torihiki-delete' obj.pk %}"
                                         hx-target="body"
                                         hx-swap="beforeend"
-                                        class="btn btn-square btn-ghost btn-md text-error hover:bg-error/10"
+                                        class="btn btn-square btn-ghost btn-sm text-error hover:bg-error/10"
                                         title="削除">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
@@ -49,12 +53,14 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center py-8 text-base-content/50">データがありません。</td>
+                        <td colspan="6" class="text-center">
+                            <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
+                            データがありません。
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <!-- ページネーション -->
     {% include "master/partials/pagination.html" %}
 </div>

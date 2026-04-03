@@ -10,7 +10,7 @@ from master.models import KanjoKamokuMaster
 
 
 def _aggregate_by_kubun(kubun_list, date_to=None):
-    """指定した科目属性グループの借方・貸方発生を集計してzandakaを返す"""
+    """Aggregate debit/credit occurrences for the given account-type group and return balance (zandaka)."""
     qs = ShiwakeMeisai.objects.filter(kamoku__taisha_kubun__in=kubun_list)
     if date_to:
         qs = qs.filter(denpyo__hiduke__lte=date_to)
@@ -22,14 +22,14 @@ def _aggregate_by_kubun(kubun_list, date_to=None):
 
 
 class BalanceSheetView(LoginRequiredMixin, View):
-    """貸借対照表 (B/S)"""
+    """Balance Sheet (B/S)"""
 
     template_name = "report/balance_sheet.html"
 
     def get(self, request):
         date_to = request.GET.get("date_to", "")
 
-        # 資産
+        # Assets
         shisan_kamoku = KanjoKamokuMaster.objects.filter(
             taisha_kubun="SHISAN", level=4, is_active=True
         ).order_by("code")
@@ -48,22 +48,26 @@ class BalanceSheetView(LoginRequiredMixin, View):
                 shisan_rows.append({"kamoku": k, "zandaka": z})
                 total_shisan += z
 
-        # 負債
+        # Liabilities
         fusai_rows, total_fusai = self._get_rows("FUSAI", date_to)
-        # 純資産
+        # Equity
         junshisan_rows, total_junshisan = self._get_rows("JUNSHISAN", date_to)
 
-        return render(request, self.template_name, {
-            "shisan_rows": shisan_rows,
-            "total_shisan": total_shisan,
-            "fusai_rows": fusai_rows,
-            "total_fusai": total_fusai,
-            "junshisan_rows": junshisan_rows,
-            "total_junshisan": total_junshisan,
-            "total_fusai_junshisan": total_fusai + total_junshisan,
-            "balanced": total_shisan == total_fusai + total_junshisan,
-            "date_to": date_to,
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                "shisan_rows": shisan_rows,
+                "total_shisan": total_shisan,
+                "fusai_rows": fusai_rows,
+                "total_fusai": total_fusai,
+                "junshisan_rows": junshisan_rows,
+                "total_junshisan": total_junshisan,
+                "total_fusai_junshisan": total_fusai + total_junshisan,
+                "balanced": total_shisan == total_fusai + total_junshisan,
+                "date_to": date_to,
+            },
+        )
 
     def _get_rows(self, taisha_kubun, date_to):
         kamoku_qs = KanjoKamokuMaster.objects.filter(
@@ -87,7 +91,7 @@ class BalanceSheetView(LoginRequiredMixin, View):
 
 
 class IncomeStatementView(LoginRequiredMixin, View):
-    """損益計算書 (P/L)"""
+    """Income Statement (P/L)"""
 
     template_name = "report/income_statement.html"
 
@@ -123,12 +127,16 @@ class IncomeStatementView(LoginRequiredMixin, View):
         hiyo_rows, total_hiyo = get_rows("HIYO", True)
         rieki = total_shueki - total_hiyo
 
-        return render(request, self.template_name, {
-            "shueki_rows": shueki_rows,
-            "total_shueki": total_shueki,
-            "hiyo_rows": hiyo_rows,
-            "total_hiyo": total_hiyo,
-            "rieki": rieki,
-            "date_from": date_from,
-            "date_to": date_to,
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                "shueki_rows": shueki_rows,
+                "total_shueki": total_shueki,
+                "hiyo_rows": hiyo_rows,
+                "total_hiyo": total_hiyo,
+                "rieki": rieki,
+                "date_from": date_from,
+                "date_to": date_to,
+            },
+        )
