@@ -1,10 +1,7 @@
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
-
 from master.models import BumonMaster, KanjoKamokuMaster, ZeiMaster
-
 from .models import ShiwakeDenpyo, ShiwakeMeisai
-
 from common.forms_widgets import (
     INPUT_CLASS,
     SELECT_CLASS,
@@ -39,8 +36,8 @@ class ShiwakeMeisaiForm(forms.ModelForm):
         fields = ["kari_kashi", "kamoku", "bumon", "kingaku", "zei_kubun", "tekyou"]
         widgets = {
             "kari_kashi": forms.Select(
-                # Alpine.js x-model bind to track debit/credit side for live balance calculation
-                attrs={"class": SELECT_CLASS, "x-model": "kari_kashi"}
+                # Alpine.js event trigger to update live balance on user input
+                attrs={"class": SELECT_CLASS, "x-on:change": "calcBalance()"}
             ),
             "kamoku": forms.Select(
                 attrs={

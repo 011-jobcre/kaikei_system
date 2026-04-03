@@ -13,12 +13,16 @@ from .forms import MeisaiFormSet, ShiwakeDenpyoForm, ShiwakeMeisaiForm
 from .models import ShiwakeDenpyo, ShiwakeMeisai
 
 
+from master.views import HtmxListMixin
+
+
 # -------------------------------------------------------
 # Journal Ledger - List
 # -------------------------------------------------------
-class DenpyoListView(LoginRequiredMixin, ListView):
+class DenpyoListView(LoginRequiredMixin, HtmxListMixin, ListView):
     model = ShiwakeDenpyo
     template_name = "journal/denpyo_list.html"
+    partial_template_name = "journal/partials/denpyo_table.html"
     context_object_name = "denpyo_list"
     paginate_by = 30
 
@@ -50,6 +54,7 @@ class DenpyoListView(LoginRequiredMixin, ListView):
 # -------------------------------------------------------
 class DenpyoCreateView(LoginRequiredMixin, View):
     template_name = "journal/denpyo_form.html"
+    partial_template_name = "journal/partials/denpyo_form_modal.html"
 
     def get(self, request):
         form = ShiwakeDenpyoForm()
@@ -61,7 +66,7 @@ class DenpyoCreateView(LoginRequiredMixin, View):
             "is_new": True,
         }
         if request.htmx:
-            return render(request, "journal/partials/denpyo_form_modal.html", context)
+            return render(request, self.partial_template_name, context)
         return render(request, self.template_name, context)
 
     def post(self, request):
@@ -91,7 +96,7 @@ class DenpyoCreateView(LoginRequiredMixin, View):
             "is_new": True,
         }
         if request.htmx:
-            return render(request, "journal/partials/denpyo_form_modal.html", context)
+            return render(request, self.partial_template_name, context)
         return render(request, self.template_name, context)
 
 

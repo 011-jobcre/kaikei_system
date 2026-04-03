@@ -1,15 +1,17 @@
 <!-- ── Journal Entry Modal (HTMX) ───────────────────────────────────────────
      Used on the Journal List page when clicking Edit/New instead of full-page navigation. -->
 <dialog id="htmx-modal" class="modal modal-open">
-    <div class="modal-box w-11/12 max-w-5xl relative max-h-[90vh] overflow-y-auto" x-data="denpyoForm()">
+    <div class="modal-box w-11/12 max-w-5xl relative max-h-[90vh] overflow-y-auto"
+         x-data="denpyoForm()">
         <button onclick="document.getElementById('htmx-modal').remove()"
                 class="btn btn-ghost btn-sm btn-circle absolute right-3 top-3 z-10">✕</button>
-        
         <h3 class="font-bold text-lg mb-4">{{ title }}</h3>
-        
-        <form method="post" action="." hx-post="." hx-swap="none" id="denpyo-form" novalidate>
+        <form method="post"
+              {% if is_new %} action="{% url 'journal:denpyo-create' %}" hx-post="{% url 'journal:denpyo-create' %}" {% else %} action="{% url 'journal:denpyo-update' denpyo.pk %}" hx-post="{% url 'journal:denpyo-update' denpyo.pk %}" {% endif %}
+              hx-swap="none"
+              id="denpyo-form"
+              novalidate>
             {% csrf_token %}
-            
             <div class="space-y-6">
                 <!-- ── Header Section ─────────────────────────────────────────────────── -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-base-200/50 rounded-box border border-base-300">
@@ -19,16 +21,18 @@
                         </label>
                         {{ form.date }}
                         {% if form.date.errors %}
-                            <div class="label pt-1 pb-0"><span class="label-text-alt text-error font-medium">{{ form.date.errors.0 }}</span></div>
+                            <div class="label pt-1 pb-0">
+                                <span class="label-text-alt text-error font-medium">{{ form.date.errors.0 }}</span>
+                            </div>
                         {% endif %}
                     </div>
                     {% if form.denpyo_no %}
-                    <div class="form-control">
-                        <label class="label pb-1">
-                            <span class="label-text font-medium">伝票番号</span>
-                        </label>
-                        {{ form.denpyo_no }}
-                    </div>
+                        <div class="form-control">
+                            <label class="label pb-1">
+                                <span class="label-text font-medium">伝票番号</span>
+                            </label>
+                            {{ form.denpyo_no }}
+                        </div>
                     {% endif %}
                     <div class="form-control md:col-span-{% if form.denpyo_no %}2{% else %}3{% endif %}">
                         <label class="label pb-1">
@@ -36,48 +40,48 @@
                         </label>
                         {{ form.memo }}
                         {% if form.memo.errors %}
-                            <div class="label pt-1 pb-0"><span class="label-text-alt text-error font-medium">{{ form.memo.errors.0 }}</span></div>
+                            <div class="label pt-1 pb-0">
+                                <span class="label-text-alt text-error font-medium">{{ form.memo.errors.0 }}</span>
+                            </div>
                         {% endif %}
                     </div>
                 </div>
-
                 <!-- ── Live Balance Tracker ─────────────────────────────────────────── -->
-                <div id="modal-balance-container" class="bg-base-100 rounded-box shadow-sm p-3 border border-base-200">
+                <div id="modal-balance-container"
+                     class="bg-base-100 rounded-box shadow-sm p-3 border border-base-200">
                     <div class="text-sm font-medium text-base-content/70">借貸バランス（自動計算）</div>
-                    <div id="balance-bar"
-                         hx-get="{% url 'journal:balance-check' %}"
-                         hx-trigger="updateBalance from:body"
-                         x-init="$watch('triggerCalc', () => htmx.trigger('#balance-bar', 'updateBalance'))">
+                    <div id="balance-bar">
+                        <div class="text-xs text-base-content/50 mt-1">金額を入力すると自動計算されます</div>
                     </div>
-                    <input type="hidden" name="kari" :value="kariTotal" form="dummy" />
-                    <input type="hidden" name="kashi" :value="kashiTotal" form="dummy" />
+                    <input type="hidden" name="kari" value="0" />
+                    <input type="hidden" name="kashi" value="0" />
                 </div>
-
                 <!-- ── Line Items ───────────────────────────────────────────────────── -->
                 <div class="space-y-4">
                     <h4 class="font-semibold text-base flex items-center gap-2">
                         <i class="fa-solid fa-list text-primary"></i> 仕訳明細
                     </h4>
-                    
                     <div class="bg-base-100 rounded-box border border-base-300 overflow-hidden">
                         {{ formset.management_form }}
-                        
                         {% if formset.non_form_errors %}
                             <div class="bg-error/10 text-error p-3 text-sm font-bold border-b border-error/20 flex gap-2">
                                 <i class="fa-solid fa-circle-exclamation mt-1"></i>
                                 {{ formset.non_form_errors.0 }}
                             </div>
                         {% endif %}
-                        
                         <div class="overflow-x-auto">
                             <!-- We match the regular form structure so the add-row partial fits perfectly -->
                             <table class="table table-sm w-full" id="meisai-table">
                                 <thead class="bg-base-200/50">
                                     <tr>
                                         <th class="w-20 lg:w-24 text-center">区分</th>
-                                        <th class="min-w-[160px] lg:w-64">科目 <span class="text-error">*</span></th>
+                                        <th class="min-w-[160px] lg:w-64">
+                                            科目 <span class="text-error">*</span>
+                                        </th>
                                         <th class="min-w-[120px] lg:w-40">部門</th>
-                                        <th class="min-w-[100px] lg:w-32 text-right">金額 <span class="text-error">*</span></th>
+                                        <th class="min-w-[100px] lg:w-32 text-right">
+                                            金額 <span class="text-error">*</span>
+                                        </th>
                                         <th class="min-w-[140px] lg:w-40">税区分</th>
                                         <th class="min-w-[200px]">摘要</th>
                                         <th class="w-10"></th>
@@ -90,7 +94,6 @@
                                 </tbody>
                             </table>
                         </div>
-
                         <!-- ── Add Row Trigger (HTMX) ───────────────────────────────────── -->
                         <div class="p-3 border-t border-base-300 bg-base-50">
                             <!-- Reuses the exact same HTMX endpoint as the main form -->
@@ -106,7 +109,6 @@
                         </div>
                     </div>
                 </div>
-
                 {% if form.non_field_errors %}
                     <div class="alert alert-error gap-2 text-sm mt-4">
                         <i class="fa-solid fa-triangle-exclamation shrink-0"></i>
@@ -114,77 +116,28 @@
                     </div>
                 {% endif %}
             </div>
-
             <!-- ── Actions ──────────────────────────────────────────────────────── -->
-            <div class="modal-action mt-6 gap-3">
+            <div class="modal-action justify-end gap-3">
                 <button type="button"
                         onclick="document.getElementById('htmx-modal').remove()"
-                        class="btn btn-ghost">キャンセル</button>
-                <button type="submit" class="btn btn-primary gap-2" :disabled="!isBalanced()">
-                    <span class="htmx-indicator loading loading-spinner loading-xs"></span>
-                    保存する
+                        class="btn-ghost-cancel min-w-24">キャンセル</button>
+                <button type="submit"
+                        class="btn btn-primary min-w-24 gap-2"
+                        :disabled="!isBalanced()">
+                    <i class="fa-regular fa-floppy-disk"></i>保存
                 </button>
             </div>
         </form>
     </div>
-    
     <form method="dialog" class="modal-backdrop">
         <button onclick="document.getElementById('htmx-modal').remove()">閉じる</button>
     </form>
 </dialog>
-
 <script>
-// Expose functions globally for the modal
-function getNextFormIndex() {
-    return parseInt(document.getElementById('id_meisai-TOTAL_FORMS').value);
-}
-
-function incrementFormIndex() {
-    let t = document.getElementById('id_meisai-TOTAL_FORMS');
-    t.value = parseInt(t.value) + 1;
-}
-
-function initTomSelectsInModal() {
-    document.querySelectorAll('#htmx-modal select.tomselect:not(.tomselected)').forEach(el => {
-        new TomSelect(el, {
-            create: false,
-            sortField: { field: "text", direction: "asc" },
-            placeholder: "科目を選択..."
-        });
-    });
-}
-
-function removeRow(btn) {
-    const row = btn.closest('tr');
-    const delInput = row.querySelector('input[name$="-DELETE"]');
-    if (delInput) {
-        delInput.checked = true;
-        row.style.display = 'none';
-    } else {
-        row.remove();
+// Initialize TomSelects for the freshly inject modal since it bypasses DOMContentLoaded
+setTimeout(() => {
+    if (typeof initTomSelects === 'function') {
+        initTomSelects();
     }
-    const alpineData = document.querySelector('#htmx-modal [x-data]').__x.$data;
-    if (alpineData) alpineData.calcBalance();
-}
-
-// Manually init tomselects on initial modal load
-setTimeout(initTomSelectsInModal, 50);
-
-// Client-side validation
-(function() {
-    const form = document.querySelector('#denpyo-form');
-    if (!form) return;
-    
-    function validateField(el) {
-        if (el.required && !el.value.trim()) el.classList.add('border-error');
-        else el.classList.remove('border-error');
-    }
-    
-    form.querySelectorAll('input, select').forEach(el => {
-        el.addEventListener('blur', () => validateField(el));
-        el.addEventListener('input', () => {
-            if (el.classList.contains('border-error')) validateField(el);
-        });
-    });
-})();
+}, 50);
 </script>

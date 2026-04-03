@@ -47,4 +47,7 @@
         <!-- ── Journal Data Table ───────────────────────────────────────────────── -->
         {% include "journal/partials/denpyo_table.html" %}
     </div>
+    {% block extra_scripts %}
+        {% include "journal/partials/denpyo_scripts.html" %}
+    {% endblock extra_scripts %}
 {% endblock content %}

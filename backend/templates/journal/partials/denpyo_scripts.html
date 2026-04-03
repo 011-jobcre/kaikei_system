@@ -1,0 +1,141 @@
+<script>
+// ── Alpine.js Component for Frontend Balance Tracking ────────────────
+document.addEventListener('alpine:init', () => {
+    Alpine.data('denpyoForm', () => ({
+        kariTotal: 0,
+        kashiTotal: 0,
+        triggerCalc: 0,
+        
+        init() {
+            // Delay slightly to let HTMX mount the elements
+            setTimeout(() => {
+                this.calcBalance();
+            }, 50);
+            
+            // Client-side validation styles for inputs
+            const form = document.querySelector('#denpyo-form');
+            if (form) {
+                form.querySelectorAll('input[required], select[required]').forEach(el => {
+                    el.addEventListener('blur', () => this.validateField(el));
+                    el.addEventListener('input', () => {
+                        if (el.classList.contains('border-error')) this.validateField(el);
+                    });
+                });
+            }
+        },
+
+        // Scan all rows, sum debits/credits, and notify HTMX
+        calcBalance() {
+            let kari = 0;
+            let kashi = 0;
+            
+            const rows = document.querySelectorAll('#meisai-rows tr:not([style*="display: none"])');
+            
+            rows.forEach(row => {
+                const select = row.querySelector('select[name$="-kari_kashi"]');
+                const input = row.querySelector('input[name$="-kingaku"]');
+                const del = row.querySelector('input[name$="-DELETE"]');
+                
+                if (!del || !del.checked) {
+                    const val = parseFloat(input?.value) || 0;
+                    if (select?.value === 'KA') kari += val;
+                    if (select?.value === 'SHI') kashi += val;
+                }
+            });
+            
+            this.kariTotal = kari;
+            this.kashiTotal = kashi;
+            
+            // Sync values to hidden inputs (for standard form submission)
+            document.querySelectorAll('input[name="kari"], input[name="kashi"]').forEach(el => {
+                if (el.name === 'kari') el.value = kari;
+                if (el.name === 'kashi') el.value = kashi;
+            });
+            
+            // Tell HTMX to fetch and redraw the balance bar using the AJAX API.
+            // This is more robust than hx-trigger because we pass values directly.
+            if (typeof htmx !== 'undefined') {
+                const balanceBar = document.getElementById('balance-bar');
+                if (balanceBar) {
+                    htmx.ajax('GET', '{% url "journal:balance-check" %}', {
+                        target: '#balance-bar',
+                        values: { kari: kari, kashi: kashi }
+                    });
+                }
+            }
+        },
+        
+        isBalanced() {
+            return this.kariTotal > 0 && this.kariTotal === this.kashiTotal;
+        },
+        
+        // Helper: Apply red border to empty required fields
+        validateField(el) {
+            if (el.required && !el.value.trim()) {
+                el.classList.add('border-error');
+            } else {
+                el.classList.remove('border-error');
+            }
+        }
+    }));
+});
+
+// ── Django Formset Dynamic Index Management ──────────────────────────
+function getNextFormIndex() {
+    let el = document.getElementById('id_meisai-TOTAL_FORMS');
+    if (!el) return 0;
+    return parseInt(el.value);
+}
+
+function incrementFormIndex() {
+    let el = document.getElementById('id_meisai-TOTAL_FORMS');
+    if (el) {
+        el.value = parseInt(el.value) + 1;
+    }
+}
+
+// ── TomSelect Searchable Dropdown Initializer ────────────────────────
+function initTomSelects() {
+    document.querySelectorAll('select.tomselect:not(.tomselected)').forEach(el => {
+        new TomSelect(el, {
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: "科目を選択..."
+        });
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    initTomSelects();
+});
+
+// For modals, we expose this globally
+function initTomSelectsInModal() {
+    initTomSelects();
+}
+
+// ── Row Deletion Handler ─────────────────────────────────────────────
+function removeRow(btn) {
+    const row = btn.closest('tr');
+    const delInput = row.querySelector('input[name$="-DELETE"]');
+    
+    if (delInput) {
+        // If the row exists in Django DB, mark it for deletion and hide it
+        delInput.checked = true;
+        row.style.display = 'none';
+    } else {
+        // If it is a newly added row that hasn't been saved, completely remove it
+        row.remove();
+    }
+    
+    // Recalculate balance using whichever active alpine scope exists
+    const container = document.querySelector('#htmx-modal') || document.querySelector('.max-w-6xl.mx-auto');
+    if (container && container.__x && container.__x.$data) {
+        container.__x.$data.calcBalance();
+    } else {
+        // Fallback to querySelector approach for v3
+        const alpineData = document.querySelector('[x-data]') && document.querySelector('[x-data]').__x && document.querySelector('[x-data]').__x.$data;
+        if (alpineData) alpineData.calcBalance();
+    }
+}
+</script>

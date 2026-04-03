@@ -54,63 +54,63 @@
             <div id="balance-container"
                  class="sticky top-14 z-20 mb-4 bg-base-100/90 backdrop-blur rounded-box shadow-sm p-3 border border-base-200">
                 <div class="text-sm font-medium text-base-content/70">借貸バランス（自動計算）</div>
-                <!-- HTMX targets this div to render the balance bar partial -->
-                <div id="balance-bar"
-                     hx-get="{% url 'journal:balance-check' %}"
-                     hx-trigger="updateBalance from:body"
-                     x-init="$watch('triggerCalc', () => htmx.trigger('#balance-bar', 'updateBalance'))">
+                <div id="balance-bar">
                     <div class="text-xs text-base-content/50 mt-1">金額を入力すると自動計算されます</div>
                 </div>
-                <!-- Alpine.js bound inputs that HTMX reads to send data to the backend -->
-                <input type="hidden" name="kari" :value="kariTotal" form="dummy" />
-                <input type="hidden" name="kashi" :value="kashiTotal" form="dummy" />
+                <input type="hidden" name="kari" value="0" />
+                <input type="hidden" name="kashi" value="0" />
             </div>
             <!-- ── Line Items (Meisai) Container ────────────────────────────────── -->
-            <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
-                {{ formset.management_form }}
-                <!-- Formset-level validation errors (e.g. out of balance) -->
-                {% if formset.non_form_errors %}
-                    <div class="bg-error/10 text-error p-3 text-sm font-bold border-b border-error/20 flex gap-2 items-center">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        {{ formset.non_form_errors.0 }}
+            <div class="space-y-4">
+                <h4 class="font-semibold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-list text-primary"></i> 仕訳明細
+                </h4>
+                <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
+                    {{ formset.management_form }}
+                    <!-- Formset-level validation errors (e.g. out of balance) -->
+                    {% if formset.non_form_errors %}
+                        <div class="bg-error/10 text-error p-3 text-sm font-bold border-b border-error/20 flex gap-2 items-center">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            {{ formset.non_form_errors.0 }}
+                        </div>
+                    {% endif %}
+                    <div class="overflow-x-auto">
+                        <table class="table table-sm w-full" id="meisai-table">
+                            <thead class="bg-base-200/50">
+                                <tr>
+                                    <th class="w-16 md:w-24 text-center">借/貸</th>
+                                    <th class="min-w-[160px] md:w-64">
+                                        勘定科目 <span class="text-error">*</span>
+                                    </th>
+                                    <th class="min-w-[120px] md:w-40">部門</th>
+                                    <th class="min-w-[100px] md:w-32 text-right">
+                                        金額 <span class="text-error">*</span>
+                                    </th>
+                                    <th class="min-w-[140px] md:w-40">税区分</th>
+                                    <th class="min-w-[200px]">摘要</th>
+                                    <th class="w-10"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="meisai-rows" class="divide-y divide-base-200/50">
+                                {% for row_form in formset %}
+                                    {% include "journal/partials/meisai_row.html" with form=row_form form_index=forloop.counter0 %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                {% endif %}
-                <div class="overflow-x-auto">
-                    <table class="table table-sm w-full" id="meisai-table">
-                        <thead class="bg-base-200/50">
-                            <tr>
-                                <th class="w-16 md:w-24 text-center">借/貸</th>
-                                <th class="min-w-[160px] md:w-64">
-                                    勘定科目 <span class="text-error">*</span>
-                                </th>
-                                <th class="min-w-[120px] md:w-40">部門</th>
-                                <th class="min-w-[100px] md:w-32 text-right">
-                                    金額 <span class="text-error">*</span>
-                                </th>
-                                <th class="min-w-[140px] md:w-40">税区分</th>
-                                <th class="min-w-[200px]">摘要</th>
-                                <th class="w-10"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="meisai-rows" class="divide-y divide-base-200/50">
-                            {% for row_form in formset %}
-                                {% include "journal/partials/meisai_row.html" with form=row_form form_index=forloop.counter0 %}
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <!-- ── Add Row Trigger (HTMX) ───────────────────────────────────── -->
-                <div class="p-3 border-t border-base-300 bg-base-50 flex justify-between items-center">
-                    <button type="button"
-                            class="btn btn-sm btn-outline btn-secondary"
-                            hx-get="{% url 'journal:add-row' %}"
-                            hx-vals="js:{form_index: getNextFormIndex()}"
-                            hx-target="#meisai-rows"
-                            hx-swap="beforeend"
-                            hx-on::after-request="incrementFormIndex(); initTomSelects(); calcBalance();">
-                        <i class="fa-solid fa-plus"></i> 行を追加
-                    </button>
-                    <!-- Fallback balance summary could go here if alpine fails -->
+                    <!-- ── Add Row Trigger (HTMX) ───────────────────────────────────── -->
+                    <div class="p-3 border-t border-base-300 bg-base-50 flex justify-between items-center">
+                        <button type="button"
+                                class="btn btn-sm btn-outline btn-secondary"
+                                hx-get="{% url 'journal:add-row' %}"
+                                hx-vals="js:{form_index: getNextFormIndex()}"
+                                hx-target="#meisai-rows"
+                                hx-swap="beforeend"
+                                hx-on::after-request="incrementFormIndex(); initTomSelects(); calcBalance();">
+                            <i class="fa-solid fa-plus"></i> 行を追加
+                        </button>
+                        <!-- Fallback balance summary could go here if alpine fails -->
+                    </div>
                 </div>
             </div>
             <!-- ── Action Buttons ───────────────────────────────────────────────── -->
@@ -139,118 +139,6 @@
         </form>
     </div>
     {% block extra_scripts %}
-        <script>
-        // ── Alpine.js Component for Frontend Balance Tracking ────────────────
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('denpyoForm', () => ({
-                kariTotal: 0,
-                kashiTotal: 0,
-                triggerCalc: 0,
-                
-                init() {
-                    // Initial calculation on load
-                    this.calcBalance();
-                    
-                    // Client-side validation styles for inputs
-                    const form = document.querySelector('#denpyo-form');
-                    form.querySelectorAll('input[required], select[required]').forEach(el => {
-                        el.addEventListener('blur', () => this.validateField(el));
-                        el.addEventListener('input', () => {
-                            if (el.classList.contains('border-error')) this.validateField(el);
-                        });
-                    });
-                },
-
-                // Scan all rows, sum debits/credits, and notify HTMX
-                calcBalance() {
-                    let kari = 0;
-                    let kashi = 0;
-                    
-                    const rows = document.querySelectorAll('#meisai-rows tr:not([style*="display: none"])');
-                    
-                    rows.forEach(row => {
-                        const select = row.querySelector('select[name$="-kari_kashi"]');
-                        const input = row.querySelector('input[name$="-kingaku"]');
-                        const del = row.querySelector('input[name$="-DELETE"]');
-                        
-                        if (!del || !del.checked) {
-                            const val = parseFloat(input?.value) || 0;
-                            if (select?.value === 'KA') kari += val;
-                            if (select?.value === 'SHI') kashi += val;
-                        }
-                    });
-                    
-                    this.kariTotal = kari;
-                    this.kashiTotal = kashi;
-                    
-                    // Sync values to HTMX payload tracker fields
-                    document.querySelectorAll('#balance-container input[name="kari"]').forEach(el => el.value = kari);
-                    document.querySelectorAll('#balance-container input[name="kashi"]').forEach(el => el.value = kashi);
-                    
-                    // Tell HTMX to fetch and redraw the balance bar
-                    htmx.trigger('#balance-bar', 'updateBalance');
-                },
-                
-                isBalanced() {
-                    return this.kariTotal > 0 && this.kariTotal === this.kashiTotal;
-                },
-                
-                // Helper: Apply red border to empty required fields
-                validateField(el) {
-                    if (el.required && !el.value.trim()) {
-                        el.classList.add('border-error');
-                    } else {
-                        el.classList.remove('border-error');
-                    }
-                }
-            }));
-        });
-
-        // ── Django Formset Dynamic Index Management ──────────────────────────
-        let TOTAL_FORMS = parseInt(document.getElementById('id_meisai-TOTAL_FORMS').value);
-        
-        function getNextFormIndex() {
-            return TOTAL_FORMS;
-        }
-        
-        function incrementFormIndex() {
-            TOTAL_FORMS++;
-            document.getElementById('id_meisai-TOTAL_FORMS').value = TOTAL_FORMS;
-        }
-
-        // ── TomSelect Searchable Dropdown Initializer ────────────────────────
-        function initTomSelects() {
-            document.querySelectorAll('select.tomselect:not(.tomselected)').forEach(el => {
-                new TomSelect(el, {
-                    create: false,
-                    sortField: { field: "text", direction: "asc" },
-                    placeholder: "科目を選択..."
-                });
-            });
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            initTomSelects();
-        });
-        
-        // ── Row Deletion Handler ─────────────────────────────────────────────
-        function removeRow(btn) {
-            const row = btn.closest('tr');
-            const delInput = row.querySelector('input[name$="-DELETE"]');
-            
-            if (delInput) {
-                // If the row exists in Django DB, mark it for deletion and hide it
-                delInput.checked = true;
-                row.style.display = 'none';
-            } else {
-                // If it is a newly added row that hasn't been saved, completely remove it
-                row.remove();
-            }
-            
-            // Recalculate balance
-            const alpineData = document.querySelector('[x-data]').__x.$data;
-            if (alpineData) alpineData.calcBalance();
-        }
-        </script>
+        {% include "journal/partials/denpyo_scripts.html" %}
     {% endblock extra_scripts %}
 {% endblock content %}

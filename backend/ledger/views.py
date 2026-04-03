@@ -37,12 +37,12 @@ class SokanjoMotochoView(LoginRequiredMixin, View):
                 qs = (
                     ShiwakeMeisai.objects.filter(kamoku=selected_kamoku)
                     .select_related("denpyo", "bumon", "zei_kubun")
-                    .order_by("denpyo__hiduke", "denpyo__denpyo_no")
+                    .order_by("denpyo__date", "denpyo__denpyo_no")
                 )
                 if date_from:
-                    qs = qs.filter(denpyo__hiduke__gte=date_from)
+                    qs = qs.filter(denpyo__date__gte=date_from)
                 if date_to:
-                    qs = qs.filter(denpyo__hiduke__lte=date_to)
+                    qs = qs.filter(denpyo__date__lte=date_to)
 
                 # Running balance calculation
                 running = Decimal("0")
@@ -104,7 +104,7 @@ class ZandakaShisanhyouView(LoginRequiredMixin, View):
         for kamoku in kamoku_list:
             qs = ShiwakeMeisai.objects.filter(kamoku=kamoku)
             if date_to:
-                qs = qs.filter(denpyo__hiduke__lte=date_to)
+                qs = qs.filter(denpyo__date__lte=date_to)
 
             agg = qs.aggregate(
                 kari=models.Sum("kingaku", filter=models.Q(kari_kashi="KA")),

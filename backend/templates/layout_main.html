@@ -38,17 +38,13 @@
                     </div>
                 </div>
             </header>
-
             <!-- Page content area -->
             <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
                 <!-- Django flash messages — refreshed via HTMX after successful saves -->
-                <div class="space-y-2 mb-2" id="flash-messages">
-                    {% include "includes/messages_inline.html" %}
-                </div>
+                <div class="space-y-2 mb-2" id="flash-messages">{% include "includes/messages_inline.html" %}</div>
                 {% block content %}
                 {% endblock content %}
             </main>
-
             <footer class="footer footer-center p-3 bg-base-200 text-base-content/50 text-xs">
                 <span>© 2026 社内会計システム — 全ての権利を保有します</span>
             </footer>

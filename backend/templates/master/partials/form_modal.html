@@ -5,8 +5,8 @@
     <div class="modal-box w-11/12 max-w-2xl relative">
         <!-- Close button: removes the dialog element from the DOM entirely -->
         <button onclick="document.getElementById('htmx-modal').remove()"
-                class="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">✕</button>
-        <h3 class="font-bold text-lg mb-5">{{ title }}</h3>
+                class="btn-ghost-x-close">✕</button>
+        <h3 class="font-bold text-xl mb-4">{{ title }}</h3>
         <form method="post"
               action="{{ action_url }}"
               hx-post="{{ action_url }}"
@@ -22,18 +22,16 @@
             <!-- Non-field (form-level) validation errors -->
             {% if form.non_field_errors %}
                 <div class="alert alert-error mt-4 text-sm gap-2">
-                    <i class="fa-solid fa-triangle-exclamation shrink-0"></i>
+                    <i class="fa-solid fa-circle-exclamation"></i>
                     <span>{{ form.non_field_errors|join:", " }}</span>
                 </div>
             {% endif %}
-            <div class="modal-action mt-6 gap-3">
+            <div class="modal-action justify-end gap-3">
                 <button type="button"
                         onclick="document.getElementById('htmx-modal').remove()"
-                        class="btn btn-ghost">キャンセル</button>
-                <button type="submit" class="btn btn-primary gap-2">
-                    <!-- Spinner visible during HTMX submission -->
-                    <span class="htmx-indicator loading loading-spinner loading-xs"></span>
-                    保存
+                        class="btn-ghost-cancel min-w-24">キャンセル</button>
+                <button type="submit" class="btn btn-primary min-w-24 gap-2">
+                    <i class="fa-regular fa-floppy-disk"></i>保存
                 </button>
             </div>
         </form>
@@ -77,7 +75,7 @@
             msg.className = 'label pt-1 js-field-error';
             msg.innerHTML =
                 '<span class="label-text-alt text-error flex items-center gap-1">' +
-                '<i class="fa-solid fa-circle-exclamation text-xs"></i>' +
+                '<i class="fa-solid fa-circle-exclamation text-sm"></i>' +
                 'この項目は必須です。</span>';
             el.insertAdjacentElement('afterend', msg);
             return false;

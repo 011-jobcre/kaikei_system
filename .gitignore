@@ -53,4 +53,5 @@ Thumbs.db
 # !*/migrations/__init__.py
 seed.py
 seed copy.py
-features.md
+*.md
+frontend_checks/
