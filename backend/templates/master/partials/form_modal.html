@@ -16,13 +16,13 @@
             {% csrf_token %}
             <div class="space-y-4">
                 {% for field in form %}
-                    {% include 'includes/form_row.html' with field=field %}
+                    {% include "includes/form_row.html" with field=field %}
                 {% endfor %}
             </div>
             <!-- Non-field (form-level) validation errors -->
             {% if form.non_field_errors %}
                 <div class="alert alert-error mt-4 text-sm gap-2">
-                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <i class="fa-solid fa-triangle-exclamation shrink-0"></i>
                     <span>{{ form.non_field_errors|join:", " }}</span>
                 </div>
             {% endif %}
@@ -36,71 +36,67 @@
             </div>
         </form>
     </div>
-    <!-- Clicking the backdrop closes the modal -->
-    <form method="dialog" class="modal-backdrop">
-        <button onclick="document.getElementById('htmx-modal').remove()">閉じる</button>
-    </form>
 </dialog>
 <script>
-// ── Client-side validation for master-data modal forms ──────────────────────────
-// Provides immediate visual feedback by highlighting required fields before the
-// form is submitted to the server.  Django's server-side validation remains the
-// authoritative check; this JS layer is purely a UX convenience.
-(function () {
-    const form = document.getElementById('modal-form');
-    if (!form) return;
+    // ── Client-side validation for master-data modal forms ──────────────────────────
+    // Provides immediate visual feedback by highlighting required fields before the
+    // form is submitted to the server.  Django's server-side validation remains the
+    // authoritative check; this JS layer is purely a UX convenience.
+    (function() {
+        const form = document.getElementById('modal-form');
+        if (!form) return;
 
-    /**
-     * Validates a single form field element.
-     * Adds a red error label below the field if it is required but empty.
-     * Removes the error label once the field has a value.
-     *
-     * @param {HTMLElement} el  The input/select/textarea element to validate.
-     * @returns {boolean}       True when the field value is acceptable.
-     */
-    function validateField(el) {
-        const wrapper = el.closest('.form-control');
-        if (!wrapper) return true;
+        /**
+         * Validates a single form field element.
+         * Adds a red error label below the field if it is required but empty.
+         * Removes the error label once the field has a value.
+         *
+         * @param {HTMLElement} el  The input/select/textarea element to validate.
+         * @returns {boolean}       True when the field value is acceptable.
+         */
+        function validateField(el) {
+            const wrapper = el.closest('.form-control');
+            if (!wrapper) return true;
 
-        // Remove any existing client-side error label before re-validating
-        const prev = wrapper.querySelector('.js-field-error');
-        if (prev) prev.remove();
+            // Remove any existing client-side error label before re-validating
+            const prev = wrapper.querySelector('.js-field-error');
+            if (prev) prev.remove();
 
-        const isEmpty = el.type !== 'checkbox' && !el.value.trim();
-        if (el.required && isEmpty) {
-            // Apply error border styling
-            el.classList.add('border-error');
-            // Insert the error message below the field
-            const msg = document.createElement('div');
-            msg.className = 'label pt-1 js-field-error';
-            msg.innerHTML =
-                '<span class="label-text-alt text-error flex items-center gap-1">' +
-                '<i class="fa-solid fa-circle-exclamation text-sm"></i>' +
-                'この項目は必須です。</span>';
-            el.insertAdjacentElement('afterend', msg);
-            return false;
+            const isEmpty = el.type !== 'checkbox' && !el.value.trim();
+            if (el.required && isEmpty) {
+                // Apply error border styling
+                el.classList.add('border-error');
+                // Insert the error message below the field
+                const msg = document.createElement('div');
+                msg.className = 'label pt-1 js-field-error';
+                msg.innerHTML =
+                    '<span class="label-text-alt text-error flex items-center gap-1">' +
+                    '<i class="fa-solid fa-circle-exclamation text-sm"></i>' +
+                    'この項目は必須です。</span>';
+                el.insertAdjacentElement('afterend', msg);
+                return false;
+            }
+            // Clear error styling once the field is valid
+            el.classList.remove('border-error');
+            return true;
         }
-        // Clear error styling once the field is valid
-        el.classList.remove('border-error');
-        return true;
-    }
 
-    // Validate a field immediately when the user leaves it (blur)
-    // and again on every keystroke if the field was already errored.
-    form.querySelectorAll('input, select, textarea').forEach(el => {
-        el.addEventListener('blur', () => validateField(el));
-        el.addEventListener('input', () => {
-            if (el.classList.contains('border-error')) validateField(el);
+        // Validate a field immediately when the user leaves it (blur)
+        // and again on every keystroke if the field was already errored.
+        form.querySelectorAll('input, select, textarea').forEach(el => {
+            el.addEventListener('blur', () => validateField(el));
+            el.addEventListener('input', () => {
+                if (el.classList.contains('border-error')) validateField(el);
+            });
+            el.addEventListener('change', () => {
+                if (el.classList.contains('border-error')) validateField(el);
+            });
         });
-        el.addEventListener('change', () => {
-            if (el.classList.contains('border-error')) validateField(el);
-        });
-    });
 
-    // Run validation on all fields when the user clicks Submit.
-    // We do NOT call e.preventDefault() — the server is the authority.
-    form.addEventListener('submit', () => {
-        form.querySelectorAll('input, select, textarea').forEach(el => validateField(el));
-    });
-}());
+        // Run validation on all fields when the user clicks Submit.
+        // We do NOT call e.preventDefault() — the server is the authority.
+        form.addEventListener('submit', () => {
+            form.querySelectorAll('input, select, textarea').forEach(el => validateField(el));
+        });
+    }());
 </script>

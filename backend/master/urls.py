@@ -8,23 +8,13 @@ urlpatterns = [
     # Chart of Accounts
     path("kanjo/", views.KanjoKamokuListView.as_view(), name="kanjo-list"),
     path("kanjo/new/", views.KanjoKamokuCreateView.as_view(), name="kanjo-create"),
-    path(
-        "kanjo/<int:pk>/edit/",
-        views.KanjoKamokuUpdateView.as_view(),
-        name="kanjo-update",
-    ),
-    path(
-        "kanjo/<int:pk>/delete/",
-        views.KanjoKamokuDeleteView.as_view(),
-        name="kanjo-delete",
-    ),
+    path("kanjo/<int:pk>/edit/", views.KanjoKamokuUpdateView.as_view(), name="kanjo-update"),
+    path("kanjo/<int:pk>/delete/", views.KanjoKamokuDeleteView.as_view(), name="kanjo-delete"),
     # Department Master
     path("bumon/", views.BumonListView.as_view(), name="bumon-list"),
     path("bumon/new/", views.BumonCreateView.as_view(), name="bumon-create"),
     path("bumon/<int:pk>/edit/", views.BumonUpdateView.as_view(), name="bumon-update"),
-    path(
-        "bumon/<int:pk>/delete/", views.BumonDeleteView.as_view(), name="bumon-delete"
-    ),
+    path("bumon/<int:pk>/delete/", views.BumonDeleteView.as_view(), name="bumon-delete"),
     # Tax Rate Master
     path("zei/", views.ZeiListView.as_view(), name="zei-list"),
     path("zei/new/", views.ZeiCreateView.as_view(), name="zei-create"),
@@ -32,17 +22,7 @@ urlpatterns = [
     path("zei/<int:pk>/delete/", views.ZeiDeleteView.as_view(), name="zei-delete"),
     # Partner Master
     path("torihiki/", views.TorihikiSakiListView.as_view(), name="torihiki-list"),
-    path(
-        "torihiki/new/", views.TorihikiSakiCreateView.as_view(), name="torihiki-create"
-    ),
-    path(
-        "torihiki/<int:pk>/edit/",
-        views.TorihikiSakiUpdateView.as_view(),
-        name="torihiki-update",
-    ),
-    path(
-        "torihiki/<int:pk>/delete/",
-        views.TorihikiSakiDeleteView.as_view(),
-        name="torihiki-delete",
-    ),
+    path("torihiki/new/", views.TorihikiSakiCreateView.as_view(), name="torihiki-create"),
+    path("torihiki/<int:pk>/edit/", views.TorihikiSakiUpdateView.as_view(), name="torihiki-update"),
+    path("torihiki/<int:pk>/delete/", views.TorihikiSakiDeleteView.as_view(), name="torihiki-delete"),
 ]

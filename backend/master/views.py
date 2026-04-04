@@ -175,9 +175,7 @@ class KanjoKamokuDeleteView(LoginRequiredMixin, DeleteView):
             return redirect(self.success_url)
         except ProtectedError:
             # The account is linked to journal entries and cannot be deleted
-            messages.error(
-                self.request, "この科目はすでに仕訳に使用されているため削除できません。"
-            )
+            messages.error(self.request, "この科目はすでに仕訳に使用されているため削除できません。")
             if self.request.htmx:
                 return HttpResponse(status=409)
             return self.get(self.request)
@@ -195,6 +193,7 @@ class BumonListView(LoginRequiredMixin, HtmxListMixin, ListView):
     template_name = "master/bumon_list.html"
     partial_template_name = "master/partials/bumon_table.html"
     context_object_name = "bumon_list"
+    paginate_by = 10
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -258,15 +257,11 @@ class BumonDeleteView(LoginRequiredMixin, DeleteView):
             obj.delete()
             messages.success(self.request, f"「{name}」を削除しました。")
             if self.request.htmx:
-                return HttpResponse(
-                    "", status=200, headers={"HX-Trigger": "refreshList"}
-                )
+                return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
             return redirect(self.success_url)
         except ProtectedError:
             # The department is linked to journal entries and cannot be deleted
-            messages.error(
-                self.request, "この部門はすでに使用されているため削除できません。"
-            )
+            messages.error(self.request, "この部門はすでに使用されているため削除できません。")
             if self.request.htmx:
                 return HttpResponse(status=409)
             return self.get(self.request)
@@ -284,6 +279,7 @@ class ZeiListView(LoginRequiredMixin, HtmxListMixin, ListView):
     template_name = "master/zei_list.html"
     partial_template_name = "master/partials/zei_table.html"
     context_object_name = "zei_list"
+    paginate_by = 10
 
 
 class ZeiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
@@ -340,9 +336,7 @@ class ZeiDeleteView(LoginRequiredMixin, DeleteView):
             obj.delete()
             messages.success(self.request, f"「{name}」を削除しました。")
             if self.request.htmx:
-                return HttpResponse(
-                    "", status=200, headers={"HX-Trigger": "refreshList"}
-                )
+                return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
             return redirect(self.success_url)
         except ProtectedError:
             # The tax rate is referenced by journal entries and cannot be deleted
@@ -367,7 +361,7 @@ class TorihikiSakiListView(LoginRequiredMixin, HtmxListMixin, ListView):
     template_name = "master/torihiki_list.html"
     partial_template_name = "master/partials/torihiki_table.html"
     context_object_name = "torihiki_list"
-    paginate_by = 30
+    paginate_by = 10
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -405,9 +399,7 @@ class TorihikiSakiUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["title"] = f"取引先 編集: {self.object}"
-        ctx["action_url"] = reverse_lazy(
-            "master:torihiki-update", args=[self.object.pk]
-        )
+        ctx["action_url"] = reverse_lazy("master:torihiki-update", args=[self.object.pk])
         return ctx
 
 
@@ -423,9 +415,7 @@ class TorihikiSakiDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["delete_url"] = reverse_lazy(
-            "master:torihiki-delete", args=[self.object.pk]
-        )
+        ctx["delete_url"] = reverse_lazy("master:torihiki-delete", args=[self.object.pk])
         return ctx
 
     def form_valid(self, form):
@@ -435,9 +425,7 @@ class TorihikiSakiDeleteView(LoginRequiredMixin, DeleteView):
             obj.delete()
             messages.success(self.request, f"「{name}」を削除しました。")
             if self.request.htmx:
-                return HttpResponse(
-                    "", status=200, headers={"HX-Trigger": "refreshList"}
-                )
+                return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
             return redirect(self.success_url)
         except ProtectedError:
             # The partner is referenced by journal entries and cannot be deleted

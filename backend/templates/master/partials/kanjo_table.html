@@ -11,7 +11,7 @@
                 <tr>
                     <th class="w-28">コード</th>
                     <th class="min-w-44">科目名</th>
-                    <th class="w-28 text-center">レベル</th>
+                    <th class="w-28 text-center">分類</th>
                     <th class="w-40 text-center">貸借区分</th>
                     <th class="w-28 text-center">有効</th>
                     <th class="w-28 text-center">操作</th>
@@ -20,16 +20,16 @@
             <tbody>
                 {% for obj in kamoku_list %}
                     <tr>
-                        <td class="font-mono text-sm">{{ obj.code }}</td>
+                        <td class="font-mono">{{ obj.code }}</td>
                         <td>
                             {% if obj.level == 1 %}
-                                <span class="font-semibold">{{ obj.name }}</span>
+                                <span class="text-primary font-semibold">{{ obj.name }}</span>
                             {% elif obj.level == 2 %}
-                                <span class="pl-5 text-sm">{{ obj.name }}</span>
+                                <span class="pl-5 text-secondary font-semibold">{{ obj.name }}</span>
                             {% elif obj.level == 3 %}
-                                <span class="pl-10 text-sm">{{ obj.name }}</span>
+                                <span class="pl-10 text-accent font-semibold">{{ obj.name }}</span>
                             {% else %}
-                                <span class="pl-14 text-sm">{{ obj.name }}</span>
+                                <span class="pl-14 text-neutral">{{ obj.name }}</span>
                             {% endif %}
                         </td>
                         <!-- Hierarchy level badge -->
@@ -91,5 +91,5 @@
             </tbody>
         </table>
     </div>
-    {% include "master/partials/pagination.html" %}
+    {% include "includes/pagination.html" %}
 </div>

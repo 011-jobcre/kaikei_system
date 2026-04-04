@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ja" data-theme="mytheme">
     <head>
@@ -11,16 +12,15 @@
         <meta name="description" content="社内用会計システム — 日本の会計基準に準拠した複式簿記システム" />
         <meta name="keywords" content="会計システム, 複式簿記, 勘定科目, 財務諸表, 日本基準" />
         <!-- Compiled Tailwind + DaisyUI stylesheet (built by npm run dev) -->
-        <link rel="stylesheet"
-              href="{% load static %}{% static 'css/output.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/output.css' %}" />
         <!-- Tom Select: searchable dropdown library for account/subject pickers -->
         <link rel="stylesheet"
               href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.min.css" />
         <!-- Google Fonts: Inter (Latin) + Noto Sans JP (Japanese) -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+JP:wght@100..900&display=swap"
-              rel="stylesheet">
+              rel="stylesheet" />
         <!-- Font Awesome 6 Free: icon set used throughout the UI -->
         <link rel="stylesheet"
               href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -28,8 +28,6 @@
         {% endblock extra_head %}
     </head>
     <body class="min-h-screen bg-base-100">
-        <!-- Modal container: HTMX injects modal dialogs here via hx-swap="beforeend" -->
-        <div id="modal-container"></div>
         {% block body %}
         {% endblock body %}
         <!-- HTMX: partial-page update engine for modals, list refreshes, balance bar -->
@@ -52,7 +50,9 @@
                 if (csrfToken) {
                     document.body.setAttribute(
                         'hx-headers',
-                        JSON.stringify({'X-CSRFToken': csrfToken})
+                        JSON.stringify({
+                            'X-CSRFToken': csrfToken
+                        })
                     );
                 }
 
@@ -65,7 +65,11 @@
                         if (hxTrigger && hxTrigger.includes('refreshList')) {
                             const modal = document.getElementById('htmx-modal');
                             if (modal) modal.remove();
-                            try { updateMessages(); } catch (e) { /* ignore */ }
+                            try {
+                                updateMessages();
+                            } catch (e) {
+                                console.error('Failed to update messages after modal submission:', e);
+                            }
                         }
                     }
                 });
@@ -99,21 +103,7 @@
                     if (modal) modal.remove();
                     updateMessages();
                 });
-
-                // ── HTMX swap-target error recovery ─────────────────────────────────
-                // If HTMX cannot locate its swap target (e.g. modal removed mid-flight),
-                // clean up any stale modal and restore the modal-container div.
-                document.addEventListener('htmx:targetError', () => {
-                    const modal = document.getElementById('htmx-modal');
-                    if (modal) modal.remove();
-                    if (!document.getElementById('modal-container')) {
-                        const container = document.createElement('div');
-                        container.id = 'modal-container';
-                        document.body.insertBefore(container, document.body.firstChild);
-                    }
-                });
-
-            });
+            });            
         </script>
         {% block extra_scripts %}
         {% endblock extra_scripts %}

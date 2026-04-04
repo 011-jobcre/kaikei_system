@@ -3,4 +3,4 @@
 INPUT_CLASS = "input w-full"
 SELECT_CLASS = "select w-full"
 TEXTAREA_CLASS = "textarea w-full"
-CHECKBOX_CLASS = "checkbox checkbox-primary"
+CHECKBOX_CLASS = "checkbox checkbox-primary checkbox-sm ml-2"

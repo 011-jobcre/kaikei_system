@@ -6,9 +6,17 @@
         <button onclick="document.getElementById('htmx-modal').remove()"
                 class="btn btn-ghost btn-sm btn-circle absolute right-3 top-3 z-10">✕</button>
         <h3 class="font-bold text-lg mb-4">{{ title }}</h3>
+        <!-- Global Server-Side Validation Notice -->
+        {% if form.errors or formset.errors %}
+            <div class="alert alert-error text-sm shadow-sm gap-2 mb-4">
+                <i class="fa-solid fa-triangle-exclamation shrink-0"></i>
+                エラーがあります。赤字の項目を確認してください。
+            </div>
+        {% endif %}
         <form method="post"
               {% if is_new %} action="{% url 'journal:denpyo-create' %}" hx-post="{% url 'journal:denpyo-create' %}" {% else %} action="{% url 'journal:denpyo-update' denpyo.pk %}" hx-post="{% url 'journal:denpyo-update' denpyo.pk %}" {% endif %}
-              hx-swap="none"
+              hx-target="#htmx-modal"
+              hx-swap="outerHTML"
               id="denpyo-form"
               novalidate>
             {% csrf_token %}
@@ -112,7 +120,7 @@
                 {% if form.non_field_errors %}
                     <div class="alert alert-error gap-2 text-sm mt-4">
                         <i class="fa-solid fa-triangle-exclamation shrink-0"></i>
-                        <span>{{ form.non_field_errors.0 }}</span>
+                        <span>{{ form.non_field_errors|join:", " }}</span>
                     </div>
                 {% endif %}
             </div>
@@ -134,10 +142,10 @@
     </form>
 </dialog>
 <script>
-// Initialize TomSelects for the freshly inject modal since it bypasses DOMContentLoaded
-setTimeout(() => {
-    if (typeof initTomSelects === 'function') {
-        initTomSelects();
-    }
-}, 50);
+    // Initialize TomSelects for the freshly inject modal since it bypasses DOMContentLoaded
+    setTimeout(() => {
+        if (typeof initTomSelects === 'function') {
+            initTomSelects();
+        }
+    }, 50);
 </script>

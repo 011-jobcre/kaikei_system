@@ -65,8 +65,6 @@ class DashboardView(LoginRequiredMixin, View):
 
 
 class TestView(LoginRequiredMixin, View):
-    template_name = "accounts/test.html"
-
     def get(self, request):
         # Test view
         return render(request, self.template_name)

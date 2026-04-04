@@ -25,12 +25,21 @@ class KanjoKamokuForm(forms.ModelForm):
             "parent",
             "is_active",
         ]
+        help_texts = {
+            "parent": "親科目を選択してください。子科目は親科目の下に表示されます。",
+        }
         widgets = {
             "code": forms.TextInput(
-                attrs={"class": INPUT_CLASS, "placeholder": "例: 1110"}
+                attrs={
+                    "class": INPUT_CLASS,
+                    "placeholder": "例: 1110",
+                }
             ),
             "name": forms.TextInput(
-                attrs={"class": INPUT_CLASS, "placeholder": "例: 現金"}
+                attrs={
+                    "class": INPUT_CLASS,
+                    "placeholder": "例: 現金",
+                }
             ),
             "parent": forms.Select(attrs={"class": SELECT_CLASS}),
             "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),

@@ -11,4 +11,4 @@ def messages_partial(request):
     fmt = request.GET.get("format", "toast")
     if fmt == "inline":
         return render(request, "includes/messages_inline.html")
-    return render(request, "includes/messages.html")
+    return render(request, "includes/messages_toast.html")
