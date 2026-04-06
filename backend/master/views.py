@@ -25,11 +25,6 @@ class HtmxModalMixin:
                   so the user can correct them without losing the modal.
     """
 
-    modal_template = None
-
-    def get_modal_template(self):
-        return self.modal_template
-
     def form_valid(self, form):
         response = super().form_valid(form)
         if self.request.htmx:
@@ -47,7 +42,7 @@ class HtmxModalMixin:
             # Re-render the modal template with form errors visible
             return render(
                 self.request,
-                self.get_modal_template(),
+                self.template_name,
                 self.get_context_data(form=form),
             )
         return super().form_invalid(form)
@@ -119,7 +114,6 @@ class KanjoKamokuCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
     model = KanjoKamokuMaster
     form_class = KanjoKamokuForm
     template_name = "master/partials/form_modal.html"
-    modal_template = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:kanjo-list")
 
     def get_context_data(self, **kwargs):
@@ -135,7 +129,6 @@ class KanjoKamokuUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
     model = KanjoKamokuMaster
     form_class = KanjoKamokuForm
     template_name = "master/partials/form_modal.html"
-    modal_template = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:kanjo-list")
 
     def get_context_data(self, **kwargs):
@@ -177,7 +170,7 @@ class KanjoKamokuDeleteView(LoginRequiredMixin, DeleteView):
             # The account is linked to journal entries and cannot be deleted
             messages.error(self.request, "この科目はすでに仕訳に使用されているため削除できません。")
             if self.request.htmx:
-                return HttpResponse(status=409)
+                return render(self.request, self.template_name, self.get_context_data())
             return self.get(self.request)
 
 
@@ -209,7 +202,6 @@ class BumonCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
     model = BumonMaster
     form_class = BumonForm
     template_name = "master/partials/form_modal.html"
-    modal_template = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:bumon-list")
 
     def get_context_data(self, **kwargs):
@@ -225,7 +217,6 @@ class BumonUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
     model = BumonMaster
     form_class = BumonForm
     template_name = "master/partials/form_modal.html"
-    modal_template = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:bumon-list")
 
     def get_context_data(self, **kwargs):
@@ -263,7 +254,7 @@ class BumonDeleteView(LoginRequiredMixin, DeleteView):
             # The department is linked to journal entries and cannot be deleted
             messages.error(self.request, "この部門はすでに使用されているため削除できません。")
             if self.request.htmx:
-                return HttpResponse(status=409)
+                return render(self.request, self.template_name, self.get_context_data())
             return self.get(self.request)
 
 
@@ -288,7 +279,6 @@ class ZeiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
     model = ZeiMaster
     form_class = ZeiForm
     template_name = "master/partials/form_modal.html"
-    modal_template = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:zei-list")
 
     def get_context_data(self, **kwargs):
@@ -304,7 +294,6 @@ class ZeiUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
     model = ZeiMaster
     form_class = ZeiForm
     template_name = "master/partials/form_modal.html"
-    modal_template = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:zei-list")
 
     def get_context_data(self, **kwargs):
@@ -345,7 +334,7 @@ class ZeiDeleteView(LoginRequiredMixin, DeleteView):
                 "この税区分はすでに仕訳に使用されているため削除できません。",
             )
             if self.request.htmx:
-                return HttpResponse(status=409)
+                return render(self.request, self.template_name, self.get_context_data())
             return self.get(self.request)
 
 
@@ -377,7 +366,6 @@ class TorihikiSakiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
     model = TorihikiSakiMaster
     form_class = TorihikiSakiForm
     template_name = "master/partials/form_modal.html"
-    modal_template = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:torihiki-list")
 
     def get_context_data(self, **kwargs):
@@ -393,7 +381,6 @@ class TorihikiSakiUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
     model = TorihikiSakiMaster
     form_class = TorihikiSakiForm
     template_name = "master/partials/form_modal.html"
-    modal_template = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:torihiki-list")
 
     def get_context_data(self, **kwargs):
@@ -434,5 +421,5 @@ class TorihikiSakiDeleteView(LoginRequiredMixin, DeleteView):
                 "この取引先はすでに仕訳に使用されているため削除できません。",
             )
             if self.request.htmx:
-                return HttpResponse(status=409)
+                return render(self.request, self.template_name, self.get_context_data())
             return self.get(self.request)

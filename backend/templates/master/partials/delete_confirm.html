@@ -1,12 +1,15 @@
 <!-- Delete confirmation modal — injected into <body> via HTMX beforeend.
      'object' and 'delete_url' context variables must be provided by the view. -->
 <dialog id="htmx-modal" class="modal modal-open">
-    <div class="modal-box max-w-sm">
+    <div class="modal-box max-w-xl">
         <!-- Close button -->
         <button onclick="document.getElementById('htmx-modal').remove()"
                 class="btn-ghost-x-close">✕</button>
+        {% if messages %}
+            <div class="mt-8">{% include "includes/messages_inline.html" %}</div>
+        {% endif %}
         <!-- Warning illustration and message -->
-        <div class="flex flex-col items-center gap-3 py-4 text-center">
+        <div class="flex flex-col items-center gap-3 pt-4 text-center">
             <div class="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center">
                 <i class="fa-solid fa-triangle-exclamation text-error text-3xl"></i>
             </div>
@@ -24,7 +27,8 @@
             <form method="post"
                   action="{{ delete_url }}"
                   hx-post="{{ delete_url }}"
-                  hx-swap="none">
+                  hx-target="#htmx-modal"
+                  hx-swap="innerHTML">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-error min-w-24 gap-2">
                     <i class="fa-solid fa-trash-can"></i>
@@ -33,4 +37,8 @@
             </form>
         </div>
     </div>
+    <!-- Clicking the backdrop closes the modal -->
+    <form method="dialog" class="modal-backdrop">
+        <button onclick="document.getElementById('htmx-modal').remove()">閉じる</button>
+    </form>
 </dialog>

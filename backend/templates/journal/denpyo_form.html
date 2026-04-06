@@ -25,7 +25,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
                     <div class="form-control">
                         <label class="label pb-1">
-                            <span class="label-text font-medium">日付 <span class="text-error">*</span></span>
+                            <span class="label-text font-medium">日付 <span class="text-error ml-1">*</span></span>
                         </label>
                         {{ form.date }}
                         {% if form.date.errors %}
@@ -79,15 +79,15 @@
                             <thead class="bg-base-200/50">
                                 <tr>
                                     <th class="w-16 md:w-24 text-center">借/貸</th>
-                                    <th class="min-w-[160px] md:w-64">
-                                        勘定科目 <span class="text-error">*</span>
+                                    <th class="min-w-40 md:w-64">
+                                        勘定科目 <span class="text-error ml-1">*</span>
                                     </th>
-                                    <th class="min-w-[120px] md:w-40">部門</th>
-                                    <th class="min-w-[100px] md:w-32 text-right">
-                                        金額 <span class="text-error">*</span>
+                                    <th class="min-w-30 md:w-40">部門</th>
+                                    <th class="min-w-25 md:w-32 text-right">
+                                        金額 <span class="text-error ml-1">*</span>
                                     </th>
-                                    <th class="min-w-[140px] md:w-40">税区分</th>
-                                    <th class="min-w-[200px]">摘要</th>
+                                    <th class="min-w-35 md:w-40">税区分</th>
+                                    <th class="min-w-50">摘要</th>
                                     <th class="w-10"></th>
                                 </tr>
                             </thead>
@@ -132,7 +132,7 @@
                     <a href="{% url 'journal:denpyo-list' %}"
                        class="btn btn-ghost order-2 sm:order-1">キャンセル</a>
                     <button type="submit"
-                            class="btn btn-primary min-w-[120px] order-1 sm:order-2 gap-2"
+                            class="btn btn-primary min-w-30 order-1 sm:order-2 gap-2"
                             :disabled="!isBalanced()">保存する</button>
                 </div>
             </div>

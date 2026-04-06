@@ -10,7 +10,8 @@
         <form method="post"
               action="{{ action_url }}"
               hx-post="{{ action_url }}"
-              hx-swap="none"
+              hx-target="#htmx-modal"
+              hx-swap="innerHTML"
               id="modal-form"
               novalidate>
             {% csrf_token %}
@@ -36,6 +37,10 @@
             </div>
         </form>
     </div>
+    <!-- Clicking the backdrop closes the modal -->
+    <form method="dialog" class="modal-backdrop">
+        <button onclick="document.getElementById('htmx-modal').remove()">閉じる</button>
+    </form>
 </dialog>
 <script>
     // ── Client-side validation for master-data modal forms ──────────────────────────
@@ -54,7 +59,7 @@
          * @param {HTMLElement} el  The input/select/textarea element to validate.
          * @returns {boolean}       True when the field value is acceptable.
          */
-        function validateField(el) {
+/*        function validateField(el) {
             const wrapper = el.closest('.form-control');
             if (!wrapper) return true;
 
@@ -75,6 +80,21 @@
                     'この項目は必須です。</span>';
                 el.insertAdjacentElement('afterend', msg);
                 return false;
+            }
+            // Additional custom validation for 'code' fields: must be exactly 4 alphanumeric characters
+            if (el.name === 'code' && el.value) {
+                const codePattern = /^[A-Za-z0-9]{1,4}$/;
+                if (!codePattern.test(el.value)) {
+                    el.classList.add('border-error');
+                    const msg = document.createElement('div');
+                    msg.className = 'label pt-1 js-field-error';
+                    msg.innerHTML =
+                        '<span class="label-text-alt text-error flex items-center gap-1">' +
+                        '<i class="fa-solid fa-circle-exclamation text-sm"></i>' +
+                        'コードは半角英数字4文字で入力してください。</span>';
+                    el.insertAdjacentElement('afterend', msg);
+                    return false;
+                }
             }
             // Clear error styling once the field is valid
             el.classList.remove('border-error');
@@ -98,5 +118,6 @@
         form.addEventListener('submit', () => {
             form.querySelectorAll('input, select, textarea').forEach(el => validateField(el));
         });
+*/
     }());
 </script>

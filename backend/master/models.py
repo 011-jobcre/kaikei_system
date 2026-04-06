@@ -1,5 +1,7 @@
 from common.models import BaseModel
 from django.db import models
+import datetime
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class KanjoKamokuMaster(BaseModel):
@@ -95,9 +97,7 @@ class BumonMaster(BaseModel):
     code = models.CharField(max_length=10, unique=True, verbose_name="部門コード")
     name = models.CharField(max_length=100, verbose_name="部門名")
     manager_name = models.CharField(max_length=100, blank=True, verbose_name="担当者名")
-    annual_budget = models.DecimalField(
-        max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="年間予算"
-    )
+    annual_budget = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="年間予算")
     is_active = models.BooleanField(default=True, verbose_name="有効")
     order_no = models.PositiveIntegerField(default=0, verbose_name="表示順")
 
@@ -114,12 +114,20 @@ class ZeiMaster(BaseModel):
     """消費税率マスタ"""
 
     zei_name = models.CharField(max_length=100, verbose_name="税区分名")
-    tax_rate = models.DecimalField(
-        max_digits=5, decimal_places=2, default=0, verbose_name="税率(%)"
-    )
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="税率(%)")
     is_active = models.BooleanField(default=True, verbose_name="有効")
-    valid_from = models.DateField(null=True, blank=True, verbose_name="適用開始日")
-    valid_to = models.DateField(null=True, blank=True, verbose_name="適用終了日")
+    valid_from = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="適用開始日",
+        validators=[MinValueValidator(limit_value=datetime.date(1900, 1, 1))],
+    )
+    valid_to = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="適用終了日",
+        validators=[MaxValueValidator(limit_value=datetime.date(2100, 12, 31))],
+    )
     order_no = models.PositiveIntegerField(default=0, verbose_name="表示順")
 
     class Meta:
@@ -135,7 +143,7 @@ class TorihikiSakiMaster(BaseModel):
     """取引先マスタ（顧客・仕入先）"""
 
     code = models.CharField(max_length=10, unique=True, verbose_name="取引先コード")
-    name = models.CharField(max_length=200, verbose_name="取引先名")
+    name = models.CharField(max_length=100, verbose_name="取引先名")
     address = models.TextField(blank=True, verbose_name="住所")
     phone = models.CharField(max_length=20, blank=True, verbose_name="電話番号")
     email = models.EmailField(blank=True, verbose_name="メールアドレス")

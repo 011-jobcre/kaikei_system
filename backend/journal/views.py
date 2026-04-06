@@ -27,9 +27,7 @@ class DenpyoListView(LoginRequiredMixin, HtmxListMixin, ListView):
     paginate_by = 30
 
     def get_queryset(self):
-        qs = ShiwakeDenpyo.objects.select_related("created_by").prefetch_related(
-            "meisai__kamoku"
-        )
+        qs = ShiwakeDenpyo.objects.select_related("created_by").prefetch_related("meisai__kamoku")
         q = self.request.GET.get("q", "")
         date_from = self.request.GET.get("date_from", "")
         date_to = self.request.GET.get("date_to", "")
@@ -72,6 +70,12 @@ class DenpyoCreateView(LoginRequiredMixin, View):
     def post(self, request):
         form = ShiwakeDenpyoForm(request.POST)
         formset = MeisaiFormSet(request.POST)
+
+        print("Form valid:", form.is_valid())
+        print("Formset valid:", formset.is_valid())
+        print("Form errors:", form.errors)
+        print("Formset errors:", formset.errors)
+        print("Formset non_form_errors:", formset.non_form_errors())
 
         if form.is_valid() and formset.is_valid():
             with transaction.atomic():

@@ -19,9 +19,7 @@ class ShiwakeDenpyoForm(forms.ModelForm):
         fields = ["date", "memo"]
         widgets = {
             "date": forms.DateInput(attrs={"class": INPUT_CLASS, "type": "date"}),
-            "memo": forms.TextInput(
-                attrs={"class": INPUT_CLASS, "placeholder": "摘要・備考（全体）"}
-            ),
+            "memo": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "摘要・備考（全体）"}),
         }
 
 
@@ -39,11 +37,7 @@ class ShiwakeMeisaiForm(forms.ModelForm):
                 # Alpine.js event trigger to update live balance on user input
                 attrs={"class": SELECT_CLASS, "x-on:change": "calcBalance()"}
             ),
-            "kamoku": forms.Select(
-                attrs={
-                    "class": SELECT_CLASS,
-                }
-            ),
+            "kamoku": forms.Select(attrs={"class": SELECT_CLASS}),
             "bumon": forms.Select(attrs={"class": SELECT_CLASS}),
             "kingaku": forms.NumberInput(
                 attrs={
@@ -57,28 +51,20 @@ class ShiwakeMeisaiForm(forms.ModelForm):
                 }
             ),
             "zei_kubun": forms.Select(attrs={"class": SELECT_CLASS}),
-            "tekyou": forms.TextInput(
-                attrs={"class": INPUT_CLASS, "placeholder": "摘要"}
-            ),
+            "tekyou": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "摘要"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Limit accounts to detail-level (Level 4) and active accounts only
-        self.fields["kamoku"].queryset = KanjoKamokuMaster.objects.filter(
-            level=4, is_active=True
-        ).order_by("code")
+        self.fields["kamoku"].queryset = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
         self.fields["kamoku"].empty_label = "科目を選択"
 
         # Limit departments and tax rates to active records
-        self.fields["bumon"].queryset = BumonMaster.objects.filter(
-            is_active=True
-        ).order_by("order_no", "code")
+        self.fields["bumon"].queryset = BumonMaster.objects.filter(is_active=True).order_by("order_no", "code")
         self.fields["bumon"].empty_label = "部門（任意）"
 
-        self.fields["zei_kubun"].queryset = ZeiMaster.objects.filter(
-            is_active=True
-        ).order_by("order_no")
+        self.fields["zei_kubun"].queryset = ZeiMaster.objects.filter(is_active=True).order_by("order_no")
         self.fields["zei_kubun"].empty_label = "税区分（任意）"
 
 

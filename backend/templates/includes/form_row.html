@@ -19,9 +19,9 @@ Provides consistent label, input wrapper and error/help rendering.
             </span>
         </div>
     {% endif %}
-    {% if field.help_text %}
+    {% if field.field.help_text %}
         <div class="label pt-1">
-            <span class="label-text-alt text-info text-sm">{{ field.help_text }}</span>
+            <span class="label-text-alt text-info/50 text-sm">{{ field.field.help_text }}</span>
         </div>
     {% endif %}
 </div>
