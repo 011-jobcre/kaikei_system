@@ -8,37 +8,67 @@
     <td class="align-top py-2">
         {{ form.kari_kashi }}
         {% if form.kari_kashi.errors %}
-            <div class="text-error font-medium text-[10px] mt-1">{{ form.kari_kashi.errors.0 }}</div>
+            <div class="label pt-1 text-xs">
+                <span class="text-error flex items-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ form.kari_kashi.errors.0 }}
+                </span>
+            </div>
         {% endif %}
     </td>
     <td class="align-top py-2">
         {{ form.kamoku }}
         {% if form.kamoku.errors %}
-            <div class="text-error font-medium text-[10px] mt-1">{{ form.kamoku.errors.0 }}</div>
+            <div class="label pt-1 text-xs">
+                <span class="text-error flex items-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ form.kamoku.errors.0 }}
+                </span>
+            </div>
         {% endif %}
     </td>
     <td class="align-top py-2">
         {{ form.bumon }}
         {% if form.bumon.errors %}
-            <div class="text-error font-medium text-[10px] mt-1">{{ form.bumon.errors.0 }}</div>
+            <div class="label pt-1 text-xs">
+                <span class="text-error flex items-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ form.bumon.errors.0 }}
+                </span>
+            </div>
         {% endif %}
     </td>
     <td class="align-top py-2">
         {{ form.kingaku }}
         {% if form.kingaku.errors %}
-            <div class="text-error font-medium text-[10px] mt-1">{{ form.kingaku.errors.0 }}</div>
+            <div class="label pt-1 text-xs">
+                <span class="text-error flex items-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ form.kingaku.errors.0 }}
+                </span>
+            </div>
         {% endif %}
     </td>
     <td class="align-top py-2">
         {{ form.zei_kubun }}
         {% if form.zei_kubun.errors %}
-            <div class="text-error font-medium text-[10px] mt-1">{{ form.zei_kubun.errors.0 }}</div>
+            <div class="label pt-1 text-xs">
+                <span class="text-error flex items-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ form.zei_kubun.errors.0 }}
+                </span>
+            </div>
         {% endif %}
     </td>
     <td class="align-top py-2">
         {{ form.tekyou }}
         {% if form.tekyou.errors %}
-            <div class="text-error font-medium text-[10px] mt-1">{{ form.tekyou.errors.0 }}</div>
+            <div class="label pt-1 text-xs">
+                <span class="text-error flex items-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ form.tekyou.errors.0 }}
+                </span>
+            </div>
         {% endif %}
     </td>
     <td class="text-center">

@@ -1,7 +1,7 @@
 <!-- Delete confirmation modal — injected into <body> via HTMX beforeend.
      'object' and 'delete_url' context variables must be provided by the view. -->
 <dialog id="htmx-modal" class="modal modal-open">
-    <div class="modal-box max-w-2xl">
+    <div class="modal-box {% if not messages %}max-w-md{% else %}max-w-2xl{% endif %}">
         <!-- Close button -->
         <button onclick="document.getElementById('htmx-modal').remove()"
                 class="btn-ghost-x-close">✕</button>

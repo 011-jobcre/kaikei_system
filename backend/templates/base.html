@@ -27,7 +27,7 @@
         {% block extra_head %}
         {% endblock extra_head %}
     </head>
-    <body class="min-h-screen bg-base-100">
+    <body class="min-h-screen inset-0 z-0 bg-candy">
         {% block body %}
         {% endblock body %}
         <!-- HTMX: partial-page update engine for modals, list refreshes, balance bar -->
@@ -102,6 +102,11 @@
                     const modal = document.getElementById('htmx-modal');
                     if (modal) modal.remove();
                     updateMessages();
+                    
+                    // Clear search/filter by redirecting to clean URL (no query params)
+                    if (window.location.search) {
+                        window.location.href = window.location.pathname;
+                    }
                 });
             });            
         </script>

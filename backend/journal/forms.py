@@ -18,8 +18,8 @@ class ShiwakeDenpyoForm(forms.ModelForm):
         model = ShiwakeDenpyo
         fields = ["date", "memo"]
         widgets = {
-            "date": forms.DateInput(attrs={"class": INPUT_CLASS, "type": "date"}),
-            "memo": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "摘要・備考（全体）"}),
+            "date": forms.DateInput(attrs={"type": "date"}),
+            "memo": forms.TextInput(attrs={"placeholder": "摘要・備考（全体）"}),
         }
 
 

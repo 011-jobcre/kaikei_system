@@ -5,23 +5,23 @@ Provides consistent label, input wrapper and error/help rendering.
 {% endcomment %}
 <div class="form-control">
     <label class="label pb-2" for="{{ field.id_for_label }}">
-        <span class="label-text font-medium text-neutral">
+        <span class="font-medium text-neutral">
             {{ field.label }}
             {% if field.field.required %}<span class="text-error ml-1">*</span>{% endif %}
         </span>
     </label>
     {{ field }}
     {% if field.errors %}
-        <div class="label pt-1">
-            <span class="label-text-alt text-error flex items-center gap-1">
-                <i class="fa-solid fa-circle-exclamation text-xs"></i>
+        <div class="label pt-1 text-sm">
+            <span class="text-error flex items-center gap-1">
+                <i class="fa-solid fa-circle-exclamation"></i>
                 {{ field.errors|join:", " }}
             </span>
         </div>
     {% endif %}
     {% if field.field.help_text %}
         <div class="label pt-1">
-            <span class="label-text-alt text-info/50 text-sm">{{ field.field.help_text }}</span>
+            <span class="text-info/50 text-sm">{{ field.field.help_text }}</span>
         </div>
     {% endif %}
 </div>
