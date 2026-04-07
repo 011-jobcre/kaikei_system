@@ -6,6 +6,7 @@
     損益計算書 (Income Statement)
 {% endblock page_header %}
 {% block content %}
+    {% load number_filters %}
     <div class="space-y-4">
         <!-- ========= Filter / Print Toolbar ========= -->
         <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-base-100 p-4 rounded-box shadow-sm border border-base-300 print:hidden">
@@ -68,7 +69,7 @@
                                 {% for row in shueki_rows %}
                                     <tr class="hover:bg-info/5 transition-colors group">
                                         <td class="pl-4 md:pl-8 font-medium text-base-content">{{ row.kamoku.name }}</td>
-                                        <td class="text-right font-money pr-4 md:pr-8">{{ row.zandaka|floatformat:0 }}</td>
+                                        <td class="text-right font-money pr-4 md:pr-8">{{ row.zandaka|format_number }}</td>
                                     </tr>
                                 {% empty %}
                                     <tr>
@@ -81,7 +82,7 @@
                     <!-- Subtotal Revenues -->
                     <div class="flex justify-between items-center bg-info/5 border-t border-info/20 p-3 rounded font-bold mt-2">
                         <span class="pl-4 text-info">収益合計 (A)</span>
-                        <span class="font-money text-xl pr-4 text-info">{{ total_shueki|floatformat:0 }}</span>
+                        <span class="font-money text-xl pr-4 text-info">{{ total_shueki|format_number }}</span>
                     </div>
                 </div>
                 <!-- ========= Expenses ========= -->
@@ -95,7 +96,7 @@
                                 {% for row in hiyo_rows %}
                                     <tr class="hover:bg-warning/5 transition-colors group">
                                         <td class="pl-4 md:pl-8 font-medium text-base-content">{{ row.kamoku.name }}</td>
-                                        <td class="text-right font-money pr-4 md:pr-8">{{ row.zandaka|floatformat:0 }}</td>
+                                        <td class="text-right font-money pr-4 md:pr-8">{{ row.zandaka|format_number }}</td>
                                     </tr>
                                 {% empty %}
                                     <tr>
@@ -108,7 +109,7 @@
                     <!-- Subtotal Expenses -->
                     <div class="flex justify-between items-center bg-warning/5 border-t border-warning/20 p-3 rounded font-bold mt-2">
                         <span class="pl-4 text-warning">費用合計 (B)</span>
-                        <span class="font-money text-xl pr-4 text-warning">{{ total_hiyo|floatformat:0 }}</span>
+                        <span class="font-money text-xl pr-4 text-warning">{{ total_hiyo|format_number }}</span>
                     </div>
                 </div>
                 <!-- ========= Net Income (A - B) ========= -->
@@ -131,7 +132,7 @@
                         </span>
                         <span class="font-money text-3xl z-10 items-baseline flex gap-1 justify-end underline decoration-double underline-offset-8">
                             {% if rieki < 0 %}▲{% endif %}
-                            {{ rieki|floatformat:0|cut:"-" }}
+                            {{ rieki|format_number|cut:"-" }}
                         </span>
                     </div>
                 </div>

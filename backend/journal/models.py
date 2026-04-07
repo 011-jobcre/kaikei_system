@@ -111,7 +111,7 @@ class ShiwakeMeisai(BaseModel):
         verbose_name="部門",
         limit_choices_to={"is_active": True},
     )
-    kingaku = models.DecimalField(max_digits=15, decimal_places=2, verbose_name="金額")
+    kingaku = models.DecimalField(max_digits=15, decimal_places=0, verbose_name="金額")
     zei_kubun = models.ForeignKey(
         ZeiMaster,
         on_delete=models.PROTECT,

@@ -3,6 +3,7 @@
     Each Denpyo can have multiple line items (Meisai), which are displayed in separate rows.
     The table supports HTMX for dynamic updates when entries are added, edited, or deleted.
 -->
+{% load number_filters %}
 <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden"
      hx-get="{% url 'journal:denpyo-list' %}"
      hx-trigger="refreshList from:body"
@@ -39,14 +40,14 @@
                             <!-- Line item side logic (Debit / Credit) -->
                             {% if meisai.kari_kashi == 'KA' %}
                                 <td class="font-semibold text-info bg-info/30">{{ meisai.kamoku.name }}</td>
-                                <td class="text-right font-money bg-info/30">{{ meisai.kingaku|floatformat:0 }}</td>
+                                <td class="text-right font-money bg-info/30">{{ meisai.kingaku|format_number }}</td>
                                 <td></td>
                                 <td></td>
                             {% else %}
                                 <td></td>
                                 <td></td>
                                 <td class="font-semibold text-warning bg-warning/30">{{ meisai.kamoku.name }}</td>
-                                <td class="text-right font-money bg-warning/30">{{ meisai.kingaku|floatformat:0 }}</td>
+                                <td class="text-right font-money bg-warning/30">{{ meisai.kingaku|format_number }}</td>
                             {% endif %}
                             <td class="text-base-content/80 whitespace-normal truncate max-w-50">{{ meisai.tekyou }}</td>
                             <!-- Status and Actions align to the top of the entry span -->
@@ -61,13 +62,11 @@
                                 <td class="align-top text-center pr-4"
                                     rowspan="{{ denpyo.meisai.count }}">
                                     <div class="flex justify-center gap-1">
-                                        <button hx-get="{% url 'journal:denpyo-update' denpyo.pk %}"
-                                                hx-target="body"
-                                                hx-swap="beforeend"
-                                                class="btn btn-square btn-ghost btn-sm text-info hover:bg-info/10"
-                                                title="編集">
+                                        <a href="{% url 'journal:denpyo-update' denpyo.pk %}"
+                                           class="btn btn-square btn-ghost btn-sm text-info hover:bg-info/10"
+                                           title="編集">
                                             <i class="fa-solid fa-pen-to-square"></i>
-                                        </button>
+                                        </a>
                                         {% if not denpyo.is_locked %}
                                             <button hx-get="{% url 'journal:denpyo-delete' denpyo.pk %}"
                                                     hx-target="body"

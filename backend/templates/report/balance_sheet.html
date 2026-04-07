@@ -6,6 +6,7 @@
     貸借対照表 (Balance Sheet)
 {% endblock page_header %}
 {% block content %}
+    {% load number_filters %}
     <div class="space-y-4">
         <!-- ========= Filter / Print Toolbar ========= -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-base-100 p-4 rounded-box shadow-sm border border-base-300 print:hidden">
@@ -50,7 +51,7 @@
                                 {% for row in shisan_rows %}
                                     <tr class="hover:bg-info/5 transition-colors group">
                                         <td class="pl-6 md:pl-10 font-medium text-base-content/90">{{ row.kamoku.name }}</td>
-                                        <td class="text-right font-money pr-6 md:pr-10">{{ row.zandaka|floatformat:0 }}</td>
+                                        <td class="text-right font-money pr-6 md:pr-10">{{ row.zandaka|format_number }}</td>
                                     </tr>
                                 {% empty %}
                                     <tr>
@@ -64,7 +65,7 @@
                     <div class="border-t-[3px] border-base-300 p-5 bg-info/5 mt-auto">
                         <div class="flex justify-between items-center font-bold text-lg text-info px-2">
                             <span>資産合計</span>
-                            <span class="font-money text-xl underline decoration-double underline-offset-4">{{ total_shisan|floatformat:0 }}</span>
+                            <span class="font-money text-xl underline decoration-double underline-offset-4">{{ total_shisan|format_number }}</span>
                         </div>
                     </div>
                 </div>
@@ -80,7 +81,7 @@
                                 {% for row in fusai_rows %}
                                     <tr class="hover:bg-warning/5 transition-colors group">
                                         <td class="pl-6 md:pl-10 font-medium text-base-content/90">{{ row.kamoku.name }}</td>
-                                        <td class="text-right font-money pr-6 md:pr-10">{{ row.zandaka|floatformat:0 }}</td>
+                                        <td class="text-right font-money pr-6 md:pr-10">{{ row.zandaka|format_number }}</td>
                                     </tr>
                                 {% empty %}
                                     <tr>
@@ -91,7 +92,7 @@
                             <tfoot class="bg-base-200/50">
                                 <tr>
                                     <td class="text-center font-bold pl-6">負債合計</td>
-                                    <td class="text-right font-money font-bold pr-6 md:pr-10 border-t border-base-300">{{ total_fusai|floatformat:0 }}</td>
+                                    <td class="text-right font-money font-bold pr-6 md:pr-10 border-t border-base-300">{{ total_fusai|format_number }}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -106,7 +107,7 @@
                                 {% for row in junshisan_rows %}
                                     <tr class="hover:bg-accent/5 transition-colors group">
                                         <td class="pl-6 md:pl-10 font-medium text-base-content/90">{{ row.kamoku.name }}</td>
-                                        <td class="text-right font-money pr-6 md:pr-10">{{ row.zandaka|floatformat:0 }}</td>
+                                        <td class="text-right font-money pr-6 md:pr-10">{{ row.zandaka|format_number }}</td>
                                     </tr>
                                 {% empty %}
                                     <tr>
@@ -118,7 +119,7 @@
                                 <tr>
                                     <td class="text-center font-bold pl-6">純資産合計</td>
                                     <td class="text-right font-money font-bold pr-6 md:pr-10 border-t border-base-300">
-                                        {{ total_junshisan|floatformat:0 }}
+                                        {{ total_junshisan|format_number }}
                                     </td>
                                 </tr>
                             </tfoot>
@@ -128,7 +129,7 @@
                     <div class="border-t-[3px] border-base-300 p-5 bg-base-200/50 mt-auto">
                         <div class="flex justify-between items-center font-bold text-lg px-2">
                             <span>負債・純資産合計</span>
-                            <span class="font-money text-xl underline decoration-double underline-offset-4">{{ total_fusai_junshisan|floatformat:0 }}</span>
+                            <span class="font-money text-xl underline decoration-double underline-offset-4">{{ total_fusai_junshisan|format_number }}</span>
                         </div>
                     </div>
                 </div>
@@ -140,8 +141,8 @@
                     <div>
                         <p class="text-lg">貸借不一致エラー</p>
                         <p class="text-sm font-normal mt-1 text-error/80">
-                            資産合計 (<span class="font-money amount-positive">¥{{ total_shisan|floatformat:0 }}</span>) と
-                            負債・純資産合計 (<span class="font-money amount-positive">¥{{ total_fusai_junshisan|floatformat:0 }}</span>) が一致していません。
+                            資産合計 (<span class="font-money amount-positive">¥{{ total_shisan|format_number }}</span>) と
+                            負債・純資産合計 (<span class="font-money amount-positive">¥{{ total_fusai_junshisan|format_number }}</span>) が一致していません。
                             仕訳データまたはマスタの「貸借区分」に誤りがある可能性があります。
                         </p>
                     </div>

@@ -1,5 +1,6 @@
 <!-- Department (Bumon) data table partial.
      Reloaded automatically via HTMX when the 'refreshList' event fires. -->
+{% load number_filters %}
 <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden"
      hx-get="{% url 'master:bumon-list' %}"
      hx-trigger="refreshList from:body"
@@ -25,7 +26,7 @@
                         <!-- Budget formatted as monospace number; zero shown as em-dash -->
                         <td class="font-money text-right">
                             {% if obj.annual_budget %}
-                                {{ obj.annual_budget|floatformat:0 }}
+                                {{ obj.annual_budget|format_number }}
                             {% else %}
                                 —
                             {% endif %}

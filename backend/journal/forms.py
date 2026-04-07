@@ -42,6 +42,7 @@ class ShiwakeMeisaiForm(forms.ModelForm):
             "kingaku": forms.NumberInput(
                 attrs={
                     "class": INPUT_CLASS,
+                    "style": "text-align: right;",
                     "step": "1",
                     "min": "0",
                     "placeholder": "0",

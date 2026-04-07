@@ -38,9 +38,6 @@
             </form>
             <!-- Link to dedicated URL, but intercepted by HTMX to open in modal -->
             <a href="{% url 'journal:denpyo-create' %}"
-               hx-get="{% url 'journal:denpyo-create' %}"
-               hx-target="body"
-               hx-swap="beforeend"
                class="btn btn-primary gap-2 w-full md:w-auto">
                 <i class="fa-solid fa-plus"></i>振替伝票入力
             </a>
