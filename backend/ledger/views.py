@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import models
 from django.shortcuts import render
+from django.utils.dateparse import parse_date
 from django.views import View
 from django.views.generic import TemplateView
 
@@ -28,8 +29,11 @@ class SokanjoMotochoView(LoginRequiredMixin, View):
         zandaka = Decimal("0")
 
         kamoku_id = request.GET.get("kamoku_id", "")
-        date_from = request.GET.get("date_from", "")
-        date_to = request.GET.get("date_to", "")
+        date_from_str = request.GET.get("date_from", "")
+        date_to_str = request.GET.get("date_to", "")
+        
+        date_from = parse_date(date_from_str) if date_from_str else None
+        date_to = parse_date(date_to_str) if date_to_str else None
 
         if kamoku_id:
             try:
@@ -80,8 +84,10 @@ class SokanjoMotochoView(LoginRequiredMixin, View):
                 "kari_total": kari_total,
                 "kashi_total": kashi_total,
                 "zandaka": zandaka,
-                "date_from": date_from,
-                "date_to": date_to,
+                "date_from": date_from_str,
+                "date_to": date_to_str,
+                "date_from_obj": date_from,
+                "date_to_obj": date_to,
             },
         )
 
@@ -92,7 +98,8 @@ class ZandakaShisanhyouView(LoginRequiredMixin, View):
     template_name = "ledger/zandaka_shisanhyou.html"
 
     def get(self, request):
-        date_to = request.GET.get("date_to", "")
+        date_to_str = request.GET.get("date_to", "")
+        date_to = parse_date(date_to_str) if date_to_str else None
         kamoku_list = KanjoKamokuMaster.objects.filter(
             level=4, is_active=True
         ).order_by("code")
@@ -139,7 +146,8 @@ class ZandakaShisanhyouView(LoginRequiredMixin, View):
                 "rows": rows,
                 "total_kari": total_kari,
                 "total_kashi": total_kashi,
-                "date_to": date_to,
+                "date_to": date_to_str,
+                "date_to_obj": date_to,
                 "balanced": total_kari == total_kashi,
             },
         )

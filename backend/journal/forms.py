@@ -41,8 +41,7 @@ class ShiwakeMeisaiForm(forms.ModelForm):
             "bumon": forms.Select(attrs={"class": SELECT_CLASS}),
             "kingaku": forms.NumberInput(
                 attrs={
-                    "class": INPUT_CLASS,
-                    "style": "text-align: right;",
+                    "class": INPUT_CLASS + " pr-6 md:pr-3 text-right",
                     "step": "1",
                     "min": "0",
                     "placeholder": "0",
@@ -52,20 +51,35 @@ class ShiwakeMeisaiForm(forms.ModelForm):
                 }
             ),
             "zei_kubun": forms.Select(attrs={"class": SELECT_CLASS}),
-            "tekyou": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "摘要"}),
+            "tekyou": forms.TextInput(
+                attrs={"class": INPUT_CLASS, "placeholder": "摘要"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Change default "---------" empty choice for kari_kashi
+        # choices = list(self.fields["kari_kashi"].choices)
+        # if choices and choices[0][0] == "":
+        #     choices[0] = ("", "借方/貸方")
+        #     self.fields["kari_kashi"].choices = choices
+
         # Limit accounts to detail-level (Level 4) and active accounts only
-        self.fields["kamoku"].queryset = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
-        self.fields["kamoku"].empty_label = "科目を選択"
+        self.fields["kamoku"].queryset = KanjoKamokuMaster.objects.filter(
+            level=4, is_active=True
+        ).order_by("code")
+        self.fields["kamoku"].empty_label = "勘定科目（任意）"
 
         # Limit departments and tax rates to active records
-        self.fields["bumon"].queryset = BumonMaster.objects.filter(is_active=True).order_by("order_no", "code")
+        self.fields["bumon"].queryset = BumonMaster.objects.filter(
+            is_active=True
+        ).order_by("order_no", "code")
         self.fields["bumon"].empty_label = "部門（任意）"
 
-        self.fields["zei_kubun"].queryset = ZeiMaster.objects.filter(is_active=True).order_by("order_no")
+        self.fields["zei_kubun"].queryset = ZeiMaster.objects.filter(
+            is_active=True
+        ).order_by("order_no")
         self.fields["zei_kubun"].empty_label = "税区分（任意）"
 
 

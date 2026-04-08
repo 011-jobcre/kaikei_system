@@ -2,10 +2,10 @@
     {% load number_filters %}
     <div class="flex flex-wrap md:flex-nowrap gap-2">
         <div class="rounded-xl bg-base-300/40 px-4 py-1">
-            借方合計: <span class="font-money">{{ kari_total|format_number }}</span> 円
+            借方合計: <span class="amount-positive">{{ kari_total|format_number }}</span> 円
         </div>
         <div class="rounded-xl bg-base-300/40 px-4 py-1">
-            貸方合計: <span class="font-money">{{ kashi_total|format_number }}</span> 円
+            貸方合計: <span class="amount-negative">{{ kashi_total|format_number }}</span> 円
         </div>
     </div>
     {% if balanced and kari_total > 0 %}

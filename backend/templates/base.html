@@ -13,9 +13,8 @@
         <meta name="keywords" content="会計システム, 複式簿記, 勘定科目, 財務諸表, 日本基準" />
         <!-- Compiled Tailwind + DaisyUI stylesheet (built by npm run dev) -->
         <link rel="stylesheet" href="{% static 'css/output.css' %}" />
-        <!-- Tom Select: searchable dropdown library for account/subject pickers -->
-        <link rel="stylesheet"
-              href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.min.css" />
+        <!-- Tom Select CSS is intentionally not loaded here.
+             We use project-local styles in input.css to avoid DaisyUI conflicts. -->
         <!-- Google Fonts: Inter (Latin) + Noto Sans JP (Japanese) -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -109,6 +108,107 @@
                     }
                 });
             });            
+        </script>
+        <script>
+            // ── TomSelect Searchable Dropdown Initializer ────────────────────────
+            function initTomSelects() {
+                // Select all elements with class .tomselect that haven't been initialized yet
+                // Exclude empty form templates used for dynamic formsets
+                document.querySelectorAll('select.tomselect:not(.tomselected)').forEach(el => {
+                    // Skip if inside hidden formset template
+                    if (el.closest('.empty-form') || (el.id && el.id.includes('__prefix__'))) return;
+                    
+                    let pText = el.dataset.placeholder;
+                    if (!pText) {
+                        const emptyOpt = el.querySelector('option[value=""]');
+                        if (emptyOpt && emptyOpt.textContent.trim()) {
+                            pText = emptyOpt.textContent.trim();
+                        }
+                    }
+                    pText = pText || "選択...";
+
+                    const instance = new TomSelect(el, {
+                        create: false,
+                        maxItems: 1,
+                        allowEmptyOption: true,
+                        openOnFocus: true,
+                        closeAfterSelect: true,
+                        placeholder: pText,
+                        searchField: ["text"],
+                        dropdownClass: "ts-dropdown",
+                        optionClass: "option",
+                        dropdownParent: 'body',
+                        plugins: ['dropdown_input'],
+                        render: {
+                            option: function(data, escape) {
+                                return '<div>' + escape(data.text) + '</div>';
+                            }
+                        }
+                    });
+
+                    instance.on('change', () => {
+                        el.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+
+                    // Guard against DaisyUI select class leaking into TomSelect wrapper/control.
+                    el.classList.remove('select');
+                    if (instance.wrapper) {
+                        instance.wrapper.classList.remove('select');
+                    }
+                    if (instance.control) {
+                        instance.control.classList.remove('select');
+                    }
+
+                    const syncDropdownPosition = () => {
+                        if (!instance.dropdown || !instance.control) return;
+
+                        const controlRect = instance.control.getBoundingClientRect();
+                        instance.dropdown.style.position = 'fixed';
+                        instance.dropdown.style.left = `${controlRect.left}px`;
+                        instance.dropdown.style.top = `${controlRect.bottom + 4}px`;
+                        instance.dropdown.style.width = `${controlRect.width}px`;
+                        instance.dropdown.style.zIndex = '9999';
+                    };
+
+                    instance.on('dropdown_open', syncDropdownPosition);
+
+                    window.addEventListener('resize', syncDropdownPosition);
+                    window.addEventListener('scroll', syncDropdownPosition, true);
+
+                    instance.control.addEventListener('click', () => {
+                        if (!instance.isOpen) {
+                            instance.open();
+                        }
+                    });
+
+                    // Foolproof fix: completely remove placeholder from control input when an item is selected
+                    // to prevent any CSS edge cases from squishing the text.
+                    instance.on('item_add', () => {
+                        if (instance.control_input) {
+                            instance.control_input.removeAttribute('placeholder');
+                        }
+                    });
+                    instance.on('item_remove', () => {
+                        if (instance.control_input && instance.items.length === 0) {
+                            instance.control_input.setAttribute('placeholder', el.dataset.placeholder || "選択...");
+                        }
+                    });
+                    
+                    // Trigger initial state
+                    if (instance.items.length > 0 && instance.control_input) {
+                        instance.control_input.removeAttribute('placeholder');
+                    }
+                });
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                initTomSelects();
+            });
+
+            // For HTMX modals, we expose this globally
+            window.initTomSelectsInModal = function() {
+                initTomSelects();
+            }
         </script>
         {% block extra_scripts %}
         {% endblock extra_scripts %}

@@ -94,25 +94,7 @@ function incrementFormIndex() {
     }
 }
 
-// ── TomSelect Searchable Dropdown Initializer ────────────────────────
-function initTomSelects() {
-    document.querySelectorAll('select.tomselect:not(.tomselected)').forEach(el => {
-        new TomSelect(el, {
-            create: false,
-            sortField: { field: "text", direction: "asc" },
-            placeholder: "科目を選択..."
-        });
-    });
-}
 
-document.addEventListener("DOMContentLoaded", () => {
-    initTomSelects();
-});
-
-// For modals, we expose this globally
-function initTomSelectsInModal() {
-    initTomSelects();
-}
 
 // ── Row Deletion Handler ─────────────────────────────────────────────
 function removeRow(btn) {

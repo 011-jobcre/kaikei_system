@@ -4,7 +4,7 @@
     <div class="modal-box {% if not messages %}max-w-sm{% else %}max-w-xl{% endif %}">
         <!-- Close button -->
         <button onclick="document.getElementById('htmx-modal').remove()"
-                class="btn-ghost-x-close">✕</button>
+                class="btn-x-close">✕</button>
         {% if messages %}
             <div class="mt-8">{% include "includes/messages_inline.html" %}</div>
         {% endif %}
@@ -22,7 +22,7 @@
         <!-- Action buttons -->
         <div class="modal-action justify-center gap-3">
             <button onclick="document.getElementById('htmx-modal').remove()"
-                    class="btn-ghost-cancel min-w-24">キャンセル</button>
+                    class="btn-cancel min-w-24">キャンセル</button>
             <!-- Deletion form — HTMX POST so the list refreshes without a full reload -->
             <form method="post"
                   action="{{ delete_url }}"

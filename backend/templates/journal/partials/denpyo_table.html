@@ -27,12 +27,11 @@
                 {% for denpyo in denpyo_list %}
                     <!-- A single Journal Entry (Denpyo) spans multiple rows for each line item (Meisai) -->
                     {% for meisai in denpyo.meisai.all %}
-                        <tr class="hover:bg-base-200/50 {% if forloop.last %}border-b border-base-300{% else %}border-b-0{% endif %}">
+                        <tr>
                             <!-- Header data (Date & No) only prints on the first line item row -->
                             {% if forloop.first %}
-                                <td class="align-top font-mono" rowspan="{{ denpyo.meisai.count }}">{{ denpyo.date|date:"Y/m/d" }}</td>
-                                <td class="align-top font-mono text-primary"
-                                    rowspan="{{ denpyo.meisai.count }}">
+                                <td class="align-top" rowspan="{{ denpyo.meisai.count }}">{{ denpyo.date|date:"Y/m/d" }}</td>
+                                <td class="align-top amount-neutral" rowspan="{{ denpyo.meisai.count }}">
                                     <a href="{% url 'journal:denpyo-update' denpyo.pk %}"
                                        class="hover:text-accent">{{ denpyo.denpyo_no }}</a>
                                 </td>
@@ -40,16 +39,16 @@
                             <!-- Line item side logic (Debit / Credit) -->
                             {% if meisai.kari_kashi == 'KA' %}
                                 <td class="font-semibold text-info bg-info/30">{{ meisai.kamoku.name }}</td>
-                                <td class="text-right font-money bg-info/30">{{ meisai.kingaku|format_number }}</td>
+                                <td class="text-right amount-positive bg-info/30">{{ meisai.kingaku|format_number }}</td>
                                 <td></td>
                                 <td></td>
                             {% else %}
                                 <td></td>
                                 <td></td>
                                 <td class="font-semibold text-warning bg-warning/30">{{ meisai.kamoku.name }}</td>
-                                <td class="text-right font-money bg-warning/30">{{ meisai.kingaku|format_number }}</td>
+                                <td class="text-right amount-negative bg-warning/30">{{ meisai.kingaku|format_number }}</td>
                             {% endif %}
-                            <td class="text-base-content/80 whitespace-normal truncate max-w-50">{{ meisai.tekyou }}</td>
+                            <td class="max-w-60">{{ meisai.tekyou }}</td>
                             <!-- Status and Actions align to the top of the entry span -->
                             {% if forloop.first %}
                                 <td class="align-top text-center" rowspan="{{ denpyo.meisai.count }}">
@@ -59,11 +58,10 @@
                                         </div>
                                     {% endif %}
                                 </td>
-                                <td class="align-top text-center pr-4"
-                                    rowspan="{{ denpyo.meisai.count }}">
+                                <td class="align-top text-center" rowspan="{{ denpyo.meisai.count }}">
                                     <div class="flex justify-center gap-1">
                                         <a href="{% url 'journal:denpyo-update' denpyo.pk %}"
-                                           class="btn btn-square btn-ghost btn-sm text-info hover:bg-info/10"
+                                           class="btn-edit"
                                            title="編集">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
@@ -71,7 +69,7 @@
                                             <button hx-get="{% url 'journal:denpyo-delete' denpyo.pk %}"
                                                     hx-target="body"
                                                     hx-swap="beforeend"
-                                                    class="btn btn-square btn-ghost btn-sm text-error hover:bg-error/10"
+                                                    class="btn-delete"
                                                     title="削除">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>

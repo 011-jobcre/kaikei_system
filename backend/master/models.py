@@ -84,9 +84,9 @@ class KanjoKamokuMaster(BaseModel):
         keys = {
             "SHISAN": "primary",
             "FUSAI": "info",
-            "JUNSHISAN": "neutral",
+            "JUNSHISAN": "success",
             "SHUEKI": "error",
-            "HIYO": "accent",
+            "HIYO": "warning",
         }
         return keys.get(self.taisha_kubun, "neutral")
 

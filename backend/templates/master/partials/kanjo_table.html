@@ -20,7 +20,7 @@
             <tbody>
                 {% for obj in kamoku_list %}
                     <tr>
-                        <td class="font-mono">{{ obj.code }}</td>
+                        <td class="amount-neutral">{{ obj.code }}</td>
                         <td>
                             {% if obj.level == 1 %}
                                 <span class="text-primary font-semibold">{{ obj.name }}</span>
@@ -34,7 +34,7 @@
                         </td>
                         <!-- Hierarchy level badge -->
                         <td class="text-center">
-                            <span class="badge badge-info badge-outline font-semibold w-20">
+                            <span class="badge badge-outline badge-info font-semibold w-20">
                                 {% if obj.level == 1 %}
                                     大分類
                                 {% elif obj.level == 2 %}
@@ -55,9 +55,9 @@
                         <!-- Active / Inactive status badge -->
                         <td class="text-center">
                             {% if obj.is_active %}
-                                <span class="badge badge-success badge-outline font-semibold w-16">有効</span>
+                                <span class="btn-enable">有効</span>
                             {% else %}
-                                <span class="badge badge-error badge-outline font-semibold w-16 opacity-60">無効</span>
+                                <span class="btn-disable">無効</span>
                             {% endif %}
                         </td>
                         <!-- Row action buttons: Edit and Delete via HTMX modal -->
@@ -66,14 +66,14 @@
                                 <button hx-get="{% url 'master:kanjo-update' obj.pk %}"
                                         hx-target="body"
                                         hx-swap="beforeend"
-                                        class="btn btn-square btn-ghost btn-sm text-info hover:bg-info/10"
+                                        class="btn-edit"
                                         title="編集">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
                                 <button hx-get="{% url 'master:kanjo-delete' obj.pk %}"
                                         hx-target="body"
                                         hx-swap="beforeend"
-                                        class="btn btn-square btn-ghost btn-sm text-error hover:bg-error/10"
+                                        class="btn-delete"
                                         title="削除">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
