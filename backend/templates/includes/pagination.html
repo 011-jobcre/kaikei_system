@@ -13,7 +13,7 @@
             {% if page_obj.has_previous %}
                 <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&level={{ level_filter }}&taisha={{ taisha_filter }}"
                    class="join-item btn btn-md bg-base-100 hover:bg-base-200">
-                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                    <i class="fa-solid fa-chevron-left text-xs shrink-0"></i>
                 </a>
             {% endif %}
             <!-- Page number links (show max 3 pages around current) -->
@@ -29,7 +29,7 @@
             {% if page_obj.has_next %}
                 <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&level={{ level_filter }}&taisha={{ taisha_filter }}"
                    class="join-item btn btn-md bg-base-100 hover:bg-base-200">
-                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                    <i class="fa-solid fa-chevron-right text-xs shrink-0"></i>
                 </a>
             {% endif %}
         </div>

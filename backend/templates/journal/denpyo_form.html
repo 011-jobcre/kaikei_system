@@ -23,9 +23,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 w-full">
                     <div class="form-control w-full md:col-span-1">
                         <label class="input text-neutral w-full">
-                            <span class="label min-w-24">
-                                日付<span class="text-error ml-1">*</span>
-                            </span>
+                            <span class="label min-w-24 md:min-w-auto">日付<span class="text-error ml-1">*</span></span>
                             {{ form.date }}
                         </label>
                         {% if form.date.errors %}
@@ -39,7 +37,7 @@
                     </div>
                     <div class="form-control w-full md:col-span-3">
                         <label class="input text-neutral w-full">
-                            <span class="label min-w-24">摘要（全体）</span>
+                            <span class="label min-w-24 md:min-w-auto">摘要（全体）</span>
                             {{ form.memo }}
                         </label>
                         {% if form.memo.errors %}
@@ -64,7 +62,7 @@
             <!-- ── Line Items (Meisai) Container ────────────────────────────────── -->
             <div class="space-y-4">
                 <h4 class="font-semibold flex items-center gap-2">
-                    <i class="fa-solid fa-list ml-4"></i> 仕訳明細
+                    <i class="fa-solid fa-list ml-4"></i>仕訳明細
                 </h4>
                 <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
                     {{ formset.management_form }}

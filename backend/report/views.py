@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import models
 from django.shortcuts import render
+from django.utils.dateparse import parse_date
 from django.views import View
 
 from journal.models import ShiwakeMeisai
@@ -13,7 +14,7 @@ def _aggregate_by_kubun(kubun_list, date_to=None):
     """Aggregate debit/credit occurrences for the given account-type group and return balance (zandaka)."""
     qs = ShiwakeMeisai.objects.filter(kamoku__taisha_kubun__in=kubun_list)
     if date_to:
-        qs = qs.filter(denpyo__hiduke__lte=date_to)
+        qs = qs.filter(denpyo__date__lte=date_to)
     agg = qs.aggregate(
         kari=models.Sum("kingaku", filter=models.Q(kari_kashi="KA")),
         kashi=models.Sum("kingaku", filter=models.Q(kari_kashi="SHI")),
@@ -27,7 +28,8 @@ class BalanceSheetView(LoginRequiredMixin, View):
     template_name = "report/balance_sheet.html"
 
     def get(self, request):
-        date_to = request.GET.get("date_to", "")
+        date_to_str = request.GET.get("date_to", "")
+        date_to = parse_date(date_to_str) if date_to_str else None
 
         # Assets
         shisan_kamoku = KanjoKamokuMaster.objects.filter(
@@ -38,7 +40,7 @@ class BalanceSheetView(LoginRequiredMixin, View):
         for k in shisan_kamoku:
             qs = ShiwakeMeisai.objects.filter(kamoku=k)
             if date_to:
-                qs = qs.filter(denpyo__hiduke__lte=date_to)
+                qs = qs.filter(denpyo__date__lte=date_to)
             agg = qs.aggregate(
                 kari=models.Sum("kingaku", filter=models.Q(kari_kashi="KA")),
                 kashi=models.Sum("kingaku", filter=models.Q(kari_kashi="SHI")),
@@ -65,7 +67,8 @@ class BalanceSheetView(LoginRequiredMixin, View):
                 "total_junshisan": total_junshisan,
                 "total_fusai_junshisan": total_fusai + total_junshisan,
                 "balanced": total_shisan == total_fusai + total_junshisan,
-                "date_to": date_to,
+                "date_to": date_to_str,
+                "date_to_obj": date_to,
             },
         )
 
@@ -78,7 +81,7 @@ class BalanceSheetView(LoginRequiredMixin, View):
         for k in kamoku_qs:
             qs = ShiwakeMeisai.objects.filter(kamoku=k)
             if date_to:
-                qs = qs.filter(denpyo__hiduke__lte=date_to)
+                qs = qs.filter(denpyo__date__lte=date_to)
             agg = qs.aggregate(
                 kari=models.Sum("kingaku", filter=models.Q(kari_kashi="KA")),
                 kashi=models.Sum("kingaku", filter=models.Q(kari_kashi="SHI")),
@@ -96,8 +99,10 @@ class IncomeStatementView(LoginRequiredMixin, View):
     template_name = "report/income_statement.html"
 
     def get(self, request):
-        date_from = request.GET.get("date_from", "")
-        date_to = request.GET.get("date_to", "")
+        date_from_str = request.GET.get("date_from", "")
+        date_to_str = request.GET.get("date_to", "")
+        date_from = parse_date(date_from_str) if date_from_str else None
+        date_to = parse_date(date_to_str) if date_to_str else None
 
         def get_rows(taisha_kubun, is_kari_zandaka):
             qs_k = KanjoKamokuMaster.objects.filter(
@@ -108,9 +113,9 @@ class IncomeStatementView(LoginRequiredMixin, View):
             for k in qs_k:
                 qs = ShiwakeMeisai.objects.filter(kamoku=k)
                 if date_from:
-                    qs = qs.filter(denpyo__hiduke__gte=date_from)
+                    qs = qs.filter(denpyo__date__gte=date_from)
                 if date_to:
-                    qs = qs.filter(denpyo__hiduke__lte=date_to)
+                    qs = qs.filter(denpyo__date__lte=date_to)
                 agg = qs.aggregate(
                     kari=models.Sum("kingaku", filter=models.Q(kari_kashi="KA")),
                     kashi=models.Sum("kingaku", filter=models.Q(kari_kashi="SHI")),
@@ -136,7 +141,9 @@ class IncomeStatementView(LoginRequiredMixin, View):
                 "hiyo_rows": hiyo_rows,
                 "total_hiyo": total_hiyo,
                 "rieki": rieki,
-                "date_from": date_from,
-                "date_to": date_to,
+                "date_from": date_from_str,
+                "date_to": date_to_str,
+                "date_from_obj": date_from,
+                "date_to_obj": date_to,
             },
         )

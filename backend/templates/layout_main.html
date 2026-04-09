@@ -1,34 +1,33 @@
 {% extends "base.html" %}
 {% load static %}
 {% block body %}
-    <!-- DaisyUI Drawer: off-canvas sidebar on mobile, fixed sidebar on desktop (lg+) -->
-    <div class="drawer lg:drawer-open">
+    <!-- DaisyUI Drawer: off-canvas sidebar on mobile, fixed sidebar on desktop -->
+    <div class="drawer md:drawer-open">
         <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
         <!-- ── Main content column ──────────────────────────────────────────────── -->
         <div class="drawer-content flex flex-col min-h-screen">
             <!-- Sticky top navigation bar -->
-            <header class="navbar bg-base-100 border-b border-base-300 sticky top-0 z-10 h-16 min-h-16 px-4 md:px-6 shadow-sm">
+            <header class="navbar sticky top-0 z-10 px-4 h-auto min-h-20 shadow-xl bg-base-100 md:bg-transparent border-b border-base-300">
                 <!-- Mobile only: hamburger that opens the sidebar drawer -->
-                <div class="flex-none lg:hidden">
-                    <label for="drawer-toggle" class="btn btn-square btn-ghost btn-sm">
+                <div class="flex-none md:hidden">
+                    <label for="drawer-toggle" class="btn btn-square btn-ghost">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </label>
                 </div>
                 <!-- Page title / breadcrumb — populated by child template blocks -->
-                <div class="flex-1 px-4 text-base-content text-lg md:text-2xl font-bold tracking-tight truncate overflow-hidden">
+                <div class="flex-1 px-4 text-primary font-bold text-xl md:text-2xl tracking-tight truncate overflow-hidden">
                     {% block page_header %}
                     {% endblock page_header %}
                 </div>
                 <!-- Right side: quick actions + loading indicator + user avatar -->
-                <div class="flex-none flex items-center gap-3 md:gap-4">
+                <div class="flex flex-none items-center gap-4">
+                    <!-- HTMX global loading spinner (visible during any HTMX request) -->
+                    <span class="htmx-indicator loading loading-spinner loading-md"></span>
                     <!-- Quick journal-entry shortcut, hidden on small screens -->
                     <a href="{% url 'journal:denpyo-create' %}"
                        class="btn btn-primary gap-2 w-full md:w-auto hidden md:flex">
-                        <i class="fa-solid fa-plus"></i>
-                        伝票入力
+                        <i class="fa-solid fa-plus"></i>伝票入力
                     </a>
-                    <!-- HTMX global loading spinner (visible during any HTMX request) -->
-                    <span class="htmx-indicator loading loading-spinner loading-md text-primary"></span>
                     <!-- User initials avatar — safe fallback that never crashes.
                          Full user info is shown in the sidebar on desktop.        -->
                     <div class="avatar placeholder md:hidden">
@@ -39,14 +38,14 @@
                 </div>
             </header>
             <!-- Page content area -->
-            <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+            <main class="flex-1 p-4 md:p-6 overflow-auto">
                 <!-- Django flash messages — refreshed via HTMX after successful saves -->
                 <div class="space-y-2 mb-2" id="flash-messages">{% include "includes/messages_inline.html" %}</div>
                 {% block content %}
                 {% endblock content %}
             </main>
-            <footer class="footer footer-center p-3 bg-base-200 text-base-content/50 text-xs">
-                <span>© 2026 社内会計システム — 全ての権利を保有します</span>
+            <footer class="footer footer-center p-2 bg-base-100 md:bg-transparent border-t border-base-300">
+                <span>© 2026 会計システム — 全ての権利を保有します</span>
             </footer>
         </div>
         <!-- ── Sidebar (off-canvas on mobile, always visible on lg+) ────────────── -->

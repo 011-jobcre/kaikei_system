@@ -1,103 +1,90 @@
 {% load static %}
-<aside class="w-64 bg-base-200 min-h-screen flex flex-col shadow-xl border-r border-base-300">
+<aside class="w-64 min-h-screen flex flex-col shadow-xl bg-base-100 md:bg-transparent border-r border-base-300">
     <!-- ── Brand / Logo ──────────────────────────────────────────────────────── -->
-    <div class="p-5 border-b border-base-300 bg-base-100/50">
+    <div class="h-auto min-h-20 p-4 border-b border-base-300">
         <a href="{% url 'account:dashboard' %}"
-           class="flex items-center gap-3 group">
-            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200">
+           class="flex items-center justify-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
                 <i class="fa-solid fa-calculator text-primary-content text-xl"></i>
             </div>
-            <div class="flex flex-col">
-                <p class="font-bold text-lg leading-none tracking-tight">会計システム</p>
-                <p class="text-[10px] uppercase font-bold text-base-content/40 mt-1">Kaikei System v1.0</p>
-            </div>
+            <p class="font-bold text-xl text-primary leading-none tracking-tight">会計システム</p>
         </a>
     </div>
     <!-- ── Navigation ────────────────────────────────────────────────────────── -->
-    <nav class="flex-1 p-3 overflow-y-auto flex flex-col gap-1">
+    <nav class="flex-1 p-2 flex flex-col gap-2 overflow-y-auto">
         <!-- Dashboard -->
         <a href="{% url 'account:dashboard' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-            <i class="fa-solid fa-gauge-high"></i>
-            <span>ダッシュボード</span>
+            <i class="fa-solid fa-gauge-high"></i>ダッシュボード
         </a>
         <!-- Master Data section header -->
-        <p class="px-4 text-xs font-bold text-base-content/40 tracking-widest mt-4 mb-1">マスタ管理</p>
+        <p class="px-4 mt-4 mb-2 text-sm font-bold text-base-content/40 tracking-widest">マスタ管理</p>
         <a href="{% url 'master:kanjo-list' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'kanjo-list' %}active{% endif %}">
-            <i class="fa-solid fa-list-check"></i>
-            <span>勘定科目設定</span>
+            <i class="fa-solid fa-list-check"></i>勘定科目設定
         </a>
         <a href="{% url 'master:bumon-list' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'bumon-list' %}active{% endif %}">
-            <i class="fa-solid fa-sitemap"></i>
-            <span>部門管理</span>
+            <i class="fa-solid fa-sitemap"></i>部門管理
         </a>
         <a href="{% url 'master:zei-list' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'zei-list' %}active{% endif %}">
-            <i class="fa-solid fa-percent"></i>
-            <span>消費税率設定</span>
+            <i class="fa-solid fa-percent"></i>消費税率設定
         </a>
         <a href="{% url 'master:torihiki-list' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'torihiki-list' %}active{% endif %}">
-            <i class="fa-solid fa-handshake"></i>
-            <span>取引先管理</span>
+            <i class="fa-solid fa-handshake"></i>取引先管理
         </a>
         <!-- Journal / Voucher section header -->
-        <p class="px-4 text-xs font-bold text-base-content/40 tracking-widest mt-4 mb-1">仕訳・伝票</p>
+        <p class="px-4 mt-4 mb-2 text-sm font-bold text-base-content/40 tracking-widest">仕訳・伝票</p>
         <a href="{% url 'journal:denpyo-list' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'denpyo-list' %}active{% endif %}">
-            <i class="fa-solid fa-book"></i>
-            <span>仕訳日記帳</span>
+            <i class="fa-solid fa-book"></i>仕訳日記帳
         </a>
         <a href="{% url 'journal:denpyo-create' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'denpyo-create' %}active{% endif %}">
-            <i class="fa-solid fa-file-invoice-dollar"></i>
-            <span>振替伝票入力</span>
+            <i class="fa-solid fa-file-invoice-dollar"></i>振替伝票入力
         </a>
-        <!-- Ledger & Reports section header -->
-        <p class="px-4 text-xs font-bold text-base-content/40 tracking-widest mt-4 mb-1">帳簿・レポート</p>
+        <!-- Ledger section header -->
+        <p class="px-4 mt-4 mb-2 text-sm font-bold text-base-content/40 tracking-widest">帳簿</p>
         <a href="{% url 'ledger:sokanjo' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'sokanjo' %}active{% endif %}">
-            <i class="fa-solid fa-layer-group"></i>
-            <span>総勘定元帳</span>
+            <i class="fa-solid fa-layer-group"></i>総勘定元帳
         </a>
         <a href="{% url 'ledger:zandaka' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'zandaka' %}active{% endif %}">
-            <i class="fa-solid fa-chart-line"></i>
-            <span>残高試算表</span>
+            <i class="fa-solid fa-chart-line"></i>残高試算表
         </a>
-        <div class="divider my-1 opacity-30"></div>
+        <!-- Reports section header -->
+        <p class="px-4 mt-4 mb-2 text-sm font-bold text-base-content/40 tracking-widest">レポート</p>
         <a href="{% url 'report:balance-sheet' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'balance-sheet' %}active{% endif %}">
-            <i class="fa-solid fa-scale-balanced"></i>
-            <span>貸借対照表 (B/S)</span>
+            <i class="fa-solid fa-scale-balanced"></i>貸借対照表 (B/S)
         </a>
         <a href="{% url 'report:income-statement' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'income-statement' %}active{% endif %}">
-            <i class="fa-solid fa-chart-pie"></i>
-            <span>損益計算書 (P/L)</span>
+            <i class="fa-solid fa-chart-pie"></i>損益計算書 (P/L)
         </a>
     </nav>
     <!-- ── User info + Logout ─────────────────────────────────────────────────── -->
-    <div class="p-4 border-t border-base-300 bg-base-100/30">
+    <div class="h-auto min-h-20 p-4 border-t border-base-300">
         <div class="flex items-center gap-3 px-2 py-1">
             <!-- Initials avatar: uses the first character of the username.
                  Avoids crashes caused by missing profile image files.       -->
             <div class="avatar placeholder">
-                <div class="bg-primary text-primary-content rounded-full w-10 text-sm font-bold flex items-center justify-center">
+                <div class="bg-primary text-primary-content rounded-full w-9 text-sm font-bold flex items-center justify-center">
                     <span>{{ request.user.username|slice:":1"|upper }}</span>
                 </div>
             </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold truncate">{{ request.user.username }}</p>
-                <p class="text-[11px] text-base-content/50 truncate font-mono">{{ request.user.email }}</p>
+            <div class="flex-1">
+                <p class="text-md font-bold text-primary truncate">{{ request.user.username }}</p>
+                <p class="text-sm text-neutral truncate">{{ request.user.email }}</p>
             </div>
             <!-- Logout form — uses POST to satisfy Django's CSRF requirement -->
             <form action="{% url 'account:logout' %}" method="post" class="flex-none">
                 {% csrf_token %}
                 <button type="submit"
-                        class="btn btn-ghost btn-circle btn-sm text-primary hover:text-primary-content hover:bg-primary"
+                        class="btn btn-ghost btn-primary btn-square"
                         title="ログアウト">
                     <i class="fa-solid fa-arrow-right-from-bracket text-xl"></i>
                 </button>

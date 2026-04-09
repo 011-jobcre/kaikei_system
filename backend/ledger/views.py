@@ -31,7 +31,7 @@ class SokanjoMotochoView(LoginRequiredMixin, View):
         kamoku_id = request.GET.get("kamoku_id", "")
         date_from_str = request.GET.get("date_from", "")
         date_to_str = request.GET.get("date_to", "")
-        
+
         date_from = parse_date(date_from_str) if date_from_str else None
         date_to = parse_date(date_to_str) if date_to_str else None
 
