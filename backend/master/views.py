@@ -81,7 +81,7 @@ class KanjoKamokuListView(LoginRequiredMixin, HtmxListMixin, ListView):
     template_name = "master/kanjo_list.html"
     partial_template_name = "master/partials/kanjo_table.html"
     context_object_name = "kamoku_list"
-    paginate_by = 10
+    paginate_by = 20
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -186,7 +186,7 @@ class BumonListView(LoginRequiredMixin, HtmxListMixin, ListView):
     template_name = "master/bumon_list.html"
     partial_template_name = "master/partials/bumon_table.html"
     context_object_name = "bumon_list"
-    paginate_by = 10
+    paginate_by = 20
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -270,7 +270,7 @@ class ZeiListView(LoginRequiredMixin, HtmxListMixin, ListView):
     template_name = "master/zei_list.html"
     partial_template_name = "master/partials/zei_table.html"
     context_object_name = "zei_list"
-    paginate_by = 10
+    paginate_by = 20
 
 
 class ZeiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
@@ -350,7 +350,7 @@ class TorihikiSakiListView(LoginRequiredMixin, HtmxListMixin, ListView):
     template_name = "master/torihiki_list.html"
     partial_template_name = "master/partials/torihiki_table.html"
     context_object_name = "torihiki_list"
-    paginate_by = 10
+    paginate_by = 20
 
     def get_queryset(self):
         qs = super().get_queryset()

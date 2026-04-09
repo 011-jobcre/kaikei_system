@@ -15,8 +15,8 @@ class BaseMasterForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         code = cleaned_data.get("code")
-        if code and len(code) > 4:
-            raise forms.ValidationError({"code": "コードは半角英数字4文字で入力してください。"})
+        if code and len(code) > 6:
+            raise forms.ValidationError({"code": "コードは半角英数字6文字で入力してください。"})
         name = cleaned_data.get("name")
         if name and len(name) > 50:
             raise forms.ValidationError({"name": "名称は50文字以内で入力してください。"})
