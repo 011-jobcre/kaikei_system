@@ -10,12 +10,12 @@ COPY package*.json ./
 # install tailwind and daisyui
 RUN npm install tailwindcss @tailwindcss/cli daisyui@latest @tailwindcss/typography
 
-# Copy source code and build CSS
-COPY backend/static/ ./backend/static/
+# Copy source files for Tailwind build
+COPY backend/css_src/ ./backend/css_src/
 COPY backend/templates ./backend/templates/
 
 # Build CSS (Tailwind will find daisyui in node_modules)
-RUN npx tailwindcss -i ./backend/static/css/input.css -o ./output.css --minify
+RUN npx tailwindcss -i ./backend/css_src/input.css -o ./output.css --minify
 
 # ==========================================
 # STAGE 2: Runtime (Using Python)
