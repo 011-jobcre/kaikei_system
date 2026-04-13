@@ -35,5 +35,5 @@ else
     # collect static files (required for Production)
     python manage.py collectstatic --noinput
     # run Gunicorn (using $PORT or 8000)
-    exec gunicorn main:app
+    exec gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3
 fi
