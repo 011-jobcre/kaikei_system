@@ -23,8 +23,15 @@ if [ "$DEBUG" = "True" ] || [ "$DEBUG" = "1" ]; then
     # python manage.py collectstatic --noinput
     # run runserver default command of Django
     exec python manage.py runserver 0.0.0.0:8000
+    
 else
     echo "Running in PRODUCTION mode"
+    if [ "$CREATE_SUPERUSER" = "True" ] || [ "$CREATE_SUPERUSER" = "1" ]; then
+        echo "Updating Database & Seeding..."
+        python seed.py || echo "Seeding skipped or already done."
+        echo "Creating superuser (if not exists)..."
+        python manage.py createsuperuser --noinput || echo "Superuser creation skipped (might already exist)."
+    fi
     # collect static files (required for Production)
     python manage.py collectstatic --noinput
     # run Gunicorn (using $PORT or 8000)
