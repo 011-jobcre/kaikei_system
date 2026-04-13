@@ -11,11 +11,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1,*.railway.app").split(",")
+ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="https://*.railway.app").split(",")
 
 # Support for proxy-based HTTPS
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+ 
+# WhiteNoise stability: prevent crash on missing static files
+WHITENOISE_MANIFEST_STRICT = False
 
 INSTALLED_APPS = [
     "django.contrib.admin",
