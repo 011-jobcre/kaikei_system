@@ -1,0 +1,118 @@
+{% extends "layout_main.html" %}
+{% block title %}
+    月次締処理 | 会計システム
+{% endblock title %}
+{% block page_header %}
+    月次締処理
+{% endblock page_header %}
+{% block content %}
+    <div class="space-y-4">
+        <!-- Info Banner -->
+        <div class="alert alert-info shadow-sm">
+            <i class="fa-solid fa-circle-info text-2xl"></i>
+            <div class="w-full px-2">
+                <p class="font-semibold text-lg text-center md:text-left">月次締処理について</p>
+                <p class="mt-1 opacity-80">
+                    「締める」を実行すると、その月の全伝票が編集・削除不可になります。
+                    解除はシステム管理者のみ可能です。
+                </p>
+            </div>
+        </div>
+        <!-- Month List -->
+        <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
+            <div class="p-4 border-b border-base-300 flex items-center justify-between">
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-primary"></i>締め状況一覧
+                </h2>
+                <span class="badge badge-outline badge-primary">{{ months|length }} ヶ月</span>
+            </div>
+            {% if months %}
+                <div class="overflow-x-auto">
+                    <table class="table table-accounting">
+                        <thead>
+                            <tr>
+                                <th class="text-center w-8">#</th>
+                                <th>対象月</th>
+                                <th class="text-center">伝票数</th>
+                                <th class="text-center">ロック済</th>
+                                <th class="text-center">状態</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in months %}
+                                <tr class="{% if m.is_fully_locked %}bg-success/10{% endif %}">
+                                    <td class="text-center text-sm">{{ forloop.counter }}</td>
+                                    <td class="font-bold text-neutral">{{ m.label }}</td>
+                                    <td class="text-center font-mono">{{ m.denpyo_count }} 件</td>
+                                    <td class="text-center font-mono">
+                                        {% if m.locked_count > 0 %}
+                                            <span class="text-warning">{{ m.locked_count }} 件</span>
+                                        {% else %}
+                                            <span class="text-base-content/40">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if m.is_fully_locked %}
+                                            <span class="badge badge-outline badge-success font-semibold w-24 shrink-0">
+                                                <i class="fa-solid fa-lock"></i>締済
+                                            </span>
+                                        {% elif m.locked_count > 0 %}
+                                            <span class="badge badge-outline badge-warning font-semibold w-24 shrink-0">
+                                                <i class="fa-solid fa-lock-open"></i>一部締
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-outline badge-error font-semibold w-24 shrink-0">
+                                                <i class="fa-solid fa-unlock"></i>未締め
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if is_admin %}
+                                            {% if m.is_fully_locked %}
+                                                <!-- Unlock — Admin only -->
+                                                <form method="post"
+                                                      action="{% url 'journal:getsuji-shime-toggle' %}"
+                                                      onsubmit="return confirm('{{ m.label }} のロックを解除しますか？\n（全伝票が再び編集可能になります）')">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="month_str" value="{{ m.month_str }}" />
+                                                    <input type="hidden" name="action" value="unlock" />
+                                                    <button type="submit"
+                                                            class="btn btn-warning w-24"
+                                                            id="unlock-btn-{{ m.month_str }}">
+                                                        <i class="fa-solid fa-lock-open"></i>解除
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <!-- Lock -->
+                                                <form method="post"
+                                                      action="{% url 'journal:getsuji-shime-toggle' %}"
+                                                      onsubmit="return confirm('{{ m.label }} を締めますか？\n締め後は伝票の編集・削除ができなくなります。')">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="month_str" value="{{ m.month_str }}" />
+                                                    <input type="hidden" name="action" value="lock" />
+                                                    <button type="submit"
+                                                            class="btn btn-primary w-24"
+                                                            id="lock-btn-{{ m.month_str }}">
+                                                        <i class="fa-solid fa-lock"></i>締める
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-sm">システム管理者のみ</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-6">
+                    <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
+                    データがありません
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock content %}

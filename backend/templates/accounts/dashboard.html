@@ -1,64 +1,249 @@
 {% extends "layout_main.html" %}
-{% block title %}
-    ダッシュボード | 会計システム
-{% endblock title %}
-{% block page_title %}
+{% block extra_head %}
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock extra_head %}
+{% block page_header %}
     ダッシュボード
-{% endblock page_title %}
+{% endblock page_header %}
 {% block content %}
+    {% load number_filters %}
     <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h2 class="text-xl font-bold">{{ current_month }} の統計概要</h2>
-            <span class="text-sm text-base-content/60">最終更新: いま</span>
-        </div>
+        <!-- ── Financial KPI Top Row ────────────────────────────────────────── -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- This month's vouchers -->
-            <div class="stat bg-base-100 rounded-box shadow py-6">
-                <div class="stat-figure text-primary opacity-80">
-                    <i class="fa-solid fa-file-invoice text-4xl"></i>
+            <!-- Revenue -->
+            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300">
+                <div class="stat-figure text-success">
+                    <i class="fa-solid fa-arrow-trend-up text-3xl"></i>
                 </div>
-                <div class="stat-title font-bold text-xs uppercase tracking-wider">今月の伝票数</div>
-                <div class="stat-value text-primary font-black">{{ denpyo_count }}</div>
+                <div class="stat-title text-xs font-bold opacity-60">今月の売上 (収益)</div>
+                <div class="stat-value text-success text-2xl">¥{{ monthly_revenue|format_number }}</div>
+                <div class="stat-desc">当月累計</div>
             </div>
-            <!-- Locked vouchers (all time) -->
-            <div class="stat bg-base-100 rounded-box shadow py-6">
-                <div class="stat-figure text-secondary opacity-80">
-                    <i class="fa-solid fa-lock text-4xl"></i>
+            <!-- Expenses -->
+            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300">
+                <div class="stat-figure text-error">
+                    <i class="fa-solid fa-receipt text-3xl"></i>
                 </div>
-                <div class="stat-title font-bold text-xs uppercase tracking-wider">ロック済伝票 (全期間)</div>
-                <div class="stat-value text-secondary font-black">{{ locked_count }}</div>
+                <div class="stat-title text-xs font-bold opacity-60">今月の費用</div>
+                <div class="stat-value text-error text-2xl">¥{{ monthly_expense|format_number }}</div>
+                <div class="stat-desc">当月累計</div>
             </div>
-            <!-- Registered account titles -->
-            <div class="stat bg-base-100 rounded-box shadow py-6">
-                <div class="stat-figure text-accent opacity-80">
-                    <i class="fa-solid fa-list-ol text-4xl"></i>
+            <!-- Profit -->
+            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300">
+                <div class="stat-figure text-primary">
+                    <i class="fa-solid fa-piggy-bank text-3xl"></i>
                 </div>
-                <div class="stat-title font-bold text-xs uppercase tracking-wider">登録勘定科目</div>
-                <div class="stat-value font-black">{{ kamoku_count }}</div>
+                <div class="stat-title text-xs font-bold opacity-60">当期利益</div>
+                <div class="stat-value text-primary text-2xl">¥{{ net_income|format_number }}</div>
+                <div class="stat-desc {% if net_income >= 0 %}text-success{% else %}text-error{% endif %}">
+                    {% if net_income >= 0 %}
+                        黒字経営
+                    {% else %}
+                        赤字傾向
+                    {% endif %}
+                </div>
             </div>
-            <!-- Registered business partners -->
-            <div class="stat bg-base-100 rounded-box shadow py-6">
-                <div class="stat-figure text-info opacity-80">
-                    <i class="fa-solid fa-users text-4xl"></i>
+            <!-- Cash Balance -->
+            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300">
+                <div class="stat-figure text-warning">
+                    <i class="fa-solid fa-coins text-3xl"></i>
                 </div>
-                <div class="stat-title font-bold text-xs uppercase tracking-wider">登録取引先</div>
-                <div class="stat-value font-black">{{ torihiki_count }}</div>
+                <div class="stat-title text-xs font-bold opacity-60">現預金残高</div>
+                <div class="stat-value text-warning text-2xl">¥{{ cash_balance|format_number }}</div>
+                <div class="stat-desc">手元流動性</div>
             </div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <!-- Quick Actions -->
-            <div class="card bg-base-100 shadow">
-                <div class="card-body">
-                    <h2 class="card-title text-base">クイックアクセス</h2>
-                    <div class="divider mt-0 mb-2"></div>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{% url 'journal:denpyo-create' %}"
-                           class="btn btn-primary btn-sm">振替伝票を入力する</a>
-                        <a href="{% url 'journal:denpyo-list' %}" class="btn btn-outline btn-sm">仕訳日記帳を見る</a>
-                        <a href="{% url 'ledger:zandaka' %}" class="btn btn-outline btn-sm">残高試算表を確認</a>
+        <!-- ── Middle Row: Chart & Stats ────────────────────────────────────── -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Trend Chart -->
+            <div class="lg:col-span-2 card bg-base-100 shadow-sm border border-base-300">
+                <div class="card-body p-4 md:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="card-title text-sm font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-primary"></i>収支推移 (過去6ヶ月)
+                        </h2>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <!-- Quick Stats & Actions -->
+            <div class="space-y-6">
+                <!-- System Counters -->
+                <div class="card bg-base-100 shadow-sm border border-base-300">
+                    <div class="card-body p-5">
+                        <h2 class="text-sm font-bold mb-3">システム状況</h2>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="opacity-70">未ロック伝票 (今月)</span>
+                                <span class="badge badge-warning font-bold">{{ unlocked_in_month }} 件</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="opacity-70">登録勘定科目</span>
+                                <span class="badge bg-base-200 border-none">{{ kamoku_count }}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="opacity-70">登録取引先</span>
+                                <span class="badge bg-base-200 border-none">{{ torihiki_count }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Quick Actions -->
+                <div class="card bg-primary text-primary-content shadow-sm">
+                    <div class="card-body p-5">
+                        <h2 class="text-sm font-bold mb-4">クイックアクセス</h2>
+                        <div class="grid grid-cols-1 gap-2">
+                            <a href="{% url 'journal:denpyo-create' %}"
+                               class="btn btn-sm btn-secondary gap-2 normal-case">
+                                <i class="fa-solid fa-plus"></i>伝票入力
+                            </a>
+                            <a href="{% url 'ledger:genkin' %}"
+                               class="btn btn-sm btn-ghost bg-white/10 hover:bg-white/20 gap-2 normal-case">
+                                <i class="fa-solid fa-coins"></i>現金出納帳
+                            </a>
+                            <a href="{% url 'ledger:zandaka' %}"
+                               class="btn btn-sm btn-ghost bg-white/10 hover:bg-white/20 gap-2 normal-case">
+                                <i class="fa-solid fa-chart-pie"></i>残高試算表
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- ── Bottom Row: Recent Vouchers ──────────────────────────────────── -->
+        <div class="card bg-base-100 shadow-sm border border-base-300">
+            <div class="card-body p-0">
+                <div class="p-6 pb-2">
+                    <h2 class="card-title text-sm font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-neutral"></i>最近の登録伝票
+                    </h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="table table-sm md:table-md w-full">
+                        <thead class="bg-base-200/50">
+                            <tr>
+                                <th>日付</th>
+                                <th>伝票番号</th>
+                                <th>摘要</th>
+                                <th class="text-right">金額</th>
+                                <th class="text-center">状態</th>
+                                <th class="text-right">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for v in recent_vouchers %}
+                                <tr class="hover">
+                                    <td class="whitespace-nowrap">{{ v.date|date:"Y/m/d" }}</td>
+                                    <td class="font-mono text-xs">{{ v.denpyo_no }}</td>
+                                    <td class="max-w-xs truncate">{{ v.memo|default:"-" }}</td>
+                                    <td class="text-right font-bold">¥{{ v.total_kingaku|format_number }}</td>
+                                    <td class="text-center">
+                                        {% if v.is_locked %}
+                                            <span class="badge badge-success badge-sm p-1" title="締切済">
+                                                <i class="fa-solid fa-lock text-[10px]"></i>
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-ghost badge-sm p-1" title="未締切">
+                                                <i class="fa-solid fa-lock-open text-[10px] opacity-40"></i>
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-right">
+                                        <a href="{% url 'journal:denpyo-update' v.pk %}"
+                                           class="btn btn-ghost btn-xs text-primary">
+                                            詳細<i class="fa-solid fa-chevron-right ml-1"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-8 opacity-40">伝票がまだありません</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
+    <!-- Chart Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            const data = {
+                labels: {{ chart_labels|safe }},
+                datasets: [
+                    {
+                        label: '売上 (収益)',
+                        data: {{ revenue_trend|safe }},
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: '費用',
+                        data: {{ expense_trend|safe }},
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            };
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: "'Noto Sans JP', sans-serif",
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += '¥' + new Intl.NumberFormat('ja-JP').format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '¥' + new Intl.NumberFormat('ja-JP', { notation: 'compact' }).format(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 {% endblock content %}

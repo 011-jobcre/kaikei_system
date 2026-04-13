@@ -14,7 +14,7 @@
                     <th class="w-28 text-center">分類</th>
                     <th class="w-40 text-center">貸借区分</th>
                     <th class="w-28 text-center">有効</th>
-                    <th class="w-28 text-center">操作</th>
+                    {% if is_admin %}<th class="w-28 text-center">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -55,36 +55,38 @@
                         <!-- Active / Inactive status badge -->
                         <td class="text-center">
                             {% if obj.is_active %}
-                                <span class="btn-enable">有効</span>
+                                <span class="badg-enable">有効</span>
                             {% else %}
-                                <span class="btn-disable">無効</span>
+                                <span class="badg-disable">無効</span>
                             {% endif %}
                         </td>
                         <!-- Row action buttons: Edit and Delete via HTMX modal -->
-                        <td class="text-center">
-                            <div class="flex justify-center gap-1">
-                                <button hx-get="{% url 'master:kanjo-update' obj.pk %}"
-                                        hx-target="body"
-                                        hx-swap="beforeend"
-                                        class="btn-edit"
-                                        title="編集">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
-                                <button hx-get="{% url 'master:kanjo-delete' obj.pk %}"
-                                        hx-target="body"
-                                        hx-swap="beforeend"
-                                        class="btn-delete"
-                                        title="削除">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>
-                        </td>
+                        {% if is_admin %}
+                            <td class="text-center">
+                                <div class="flex justify-center gap-1">
+                                    <button hx-get="{% url 'master:kanjo-update' obj.pk %}"
+                                            hx-target="body"
+                                            hx-swap="beforeend"
+                                            class="btn-edit"
+                                            title="編集">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button hx-get="{% url 'master:kanjo-delete' obj.pk %}"
+                                            hx-target="body"
+                                            hx-swap="beforeend"
+                                            class="btn-delete"
+                                            title="削除">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        {% endif %}
                     </tr>
                 {% empty %}
                     <tr>
                         <td colspan="6" class="text-center">
                             <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
-                            データがありません。
+                            データがありません
                         </td>
                     </tr>
                 {% endfor %}

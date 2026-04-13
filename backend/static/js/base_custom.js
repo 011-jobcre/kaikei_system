@@ -37,20 +37,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // After a modal save succeeds, refetch Django's flash messages and
     // inject them into the page without a full reload.
     function updateMessages() {
-        // Inline messages panel (persistent, inside page content)
+        // Fetch combined messages (inline + toast)
         fetch("/_messages/?format=inline")
             .then((r) => r.text())
             .then((html) => {
                 const flash = document.getElementById("flash-messages");
                 if (flash) flash.innerHTML = html;
-            });
-        // Transient toast notifications (appended to <body>)
-        fetch("/_messages/?format=toast")
-            .then((r) => r.text())
-            .then((html) => {
-                if (html && html.trim()) {
-                    document.body.insertAdjacentHTML("beforeend", html);
-                }
             });
     }
 

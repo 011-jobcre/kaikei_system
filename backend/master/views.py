@@ -6,6 +6,8 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
+from common.permissions import AdminRequiredMixin
+
 from .forms import BumonForm, KanjoKamokuForm, TorihikiSakiForm, ZeiForm
 from .models import BumonMaster, KanjoKamokuMaster, TorihikiSakiMaster, ZeiMaster
 
@@ -28,7 +30,8 @@ class HtmxModalMixin:
     def form_valid(self, form):
         response = super().form_valid(form)
         if self.request.htmx:
-            messages.success(self.request, f"「{self.object}」を保存しました。")
+            action = getattr(self, "action_name", "保存")
+            messages.success(self.request, f"「{self.object}」を{action}しました。")
             # Empty body + HX-Trigger tells the list partial to refresh itself
             return HttpResponse(
                 "",
@@ -108,13 +111,14 @@ class KanjoKamokuListView(LoginRequiredMixin, HtmxListMixin, ListView):
         return ctx
 
 
-class KanjoKamokuCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
+class KanjoKamokuCreateView(AdminRequiredMixin, HtmxModalMixin, CreateView):
     """Modal form to create a new account code entry."""
 
     model = KanjoKamokuMaster
     form_class = KanjoKamokuForm
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:kanjo-list")
+    action_name = "新規登録"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -123,13 +127,14 @@ class KanjoKamokuCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
         return ctx
 
 
-class KanjoKamokuUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
+class KanjoKamokuUpdateView(AdminRequiredMixin, HtmxModalMixin, UpdateView):
     """Modal form to edit an existing account code entry."""
 
     model = KanjoKamokuMaster
     form_class = KanjoKamokuForm
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:kanjo-list")
+    action_name = "更新"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -138,7 +143,7 @@ class KanjoKamokuUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
         return ctx
 
 
-class KanjoKamokuDeleteView(LoginRequiredMixin, DeleteView):
+class KanjoKamokuDeleteView(AdminRequiredMixin, DeleteView):
     """
     Confirms and processes deletion of an account code.
     Returns HTTP 409 if the account is already referenced by journal entries.
@@ -196,13 +201,14 @@ class BumonListView(LoginRequiredMixin, HtmxListMixin, ListView):
         return qs
 
 
-class BumonCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
+class BumonCreateView(AdminRequiredMixin, HtmxModalMixin, CreateView):
     """Modal form to create a new department."""
 
     model = BumonMaster
     form_class = BumonForm
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:bumon-list")
+    action_name = "新規登録"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -211,13 +217,14 @@ class BumonCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
         return ctx
 
 
-class BumonUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
+class BumonUpdateView(AdminRequiredMixin, HtmxModalMixin, UpdateView):
     """Modal form to edit an existing department."""
 
     model = BumonMaster
     form_class = BumonForm
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:bumon-list")
+    action_name = "更新"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -226,7 +233,7 @@ class BumonUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
         return ctx
 
 
-class BumonDeleteView(LoginRequiredMixin, DeleteView):
+class BumonDeleteView(AdminRequiredMixin, DeleteView):
     """
     Confirms and processes deletion of a department.
     Returns HTTP 409 if the department is already referenced by journal entries.
@@ -273,13 +280,14 @@ class ZeiListView(LoginRequiredMixin, HtmxListMixin, ListView):
     paginate_by = 20
 
 
-class ZeiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
+class ZeiCreateView(AdminRequiredMixin, HtmxModalMixin, CreateView):
     """Modal form to create a new tax rate entry."""
 
     model = ZeiMaster
     form_class = ZeiForm
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:zei-list")
+    action_name = "新規登録"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -288,13 +296,14 @@ class ZeiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
         return ctx
 
 
-class ZeiUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
+class ZeiUpdateView(AdminRequiredMixin, HtmxModalMixin, UpdateView):
     """Modal form to edit an existing tax rate entry."""
 
     model = ZeiMaster
     form_class = ZeiForm
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:zei-list")
+    action_name = "更新"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -303,7 +312,7 @@ class ZeiUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
         return ctx
 
 
-class ZeiDeleteView(LoginRequiredMixin, DeleteView):
+class ZeiDeleteView(AdminRequiredMixin, DeleteView):
     """
     Confirms and processes deletion of a tax rate.
     Returns HTTP 409 if it is already referenced by journal entries.
@@ -360,13 +369,14 @@ class TorihikiSakiListView(LoginRequiredMixin, HtmxListMixin, ListView):
         return qs
 
 
-class TorihikiSakiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
+class TorihikiSakiCreateView(AdminRequiredMixin, HtmxModalMixin, CreateView):
     """Modal form to create a new business partner."""
 
     model = TorihikiSakiMaster
     form_class = TorihikiSakiForm
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:torihiki-list")
+    action_name = "新規登録"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -375,13 +385,14 @@ class TorihikiSakiCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
         return ctx
 
 
-class TorihikiSakiUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
+class TorihikiSakiUpdateView(AdminRequiredMixin, HtmxModalMixin, UpdateView):
     """Modal form to edit an existing business partner."""
 
     model = TorihikiSakiMaster
     form_class = TorihikiSakiForm
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:torihiki-list")
+    action_name = "更新"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -390,7 +401,7 @@ class TorihikiSakiUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
         return ctx
 
 
-class TorihikiSakiDeleteView(LoginRequiredMixin, DeleteView):
+class TorihikiSakiDeleteView(AdminRequiredMixin, DeleteView):
     """
     Confirms and processes deletion of a business partner.
     Returns HTTP 409 if it is already referenced by journal entries.

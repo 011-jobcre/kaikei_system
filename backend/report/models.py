@@ -1,3 +1,5 @@
-from django.db import models
+# =========================================================
+# Report Models
+# =========================================================
 
-# Create your models here.
+from django.db import models

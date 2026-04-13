@@ -40,6 +40,17 @@
         {% endif %}
     </td>
     <td class="align-top py-2">
+        {{ form.torihikisaki }}
+        {% if form.torihikisaki.errors %}
+            <div class="label pt-1 text-xs">
+                <span class="text-error flex items-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ form.torihikisaki.errors.0 }}
+                </span>
+            </div>
+        {% endif %}
+    </td>
+    <td class="align-top py-2">
         {{ form.kingaku }}
         {% if form.kingaku.errors %}
             <div class="label pt-1 text-xs">

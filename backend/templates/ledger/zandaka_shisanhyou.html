@@ -8,7 +8,7 @@
 {% block content %}
     {% load number_filters %}
     <div class="space-y-4">
-        <!-- ── Toolbar ──────────────────────────────────────────────────────────── -->
+        <!-- Toolbar -->
         <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-base-100 p-4 rounded-box shadow-sm border border-base-300 print:hidden">
             <form method="get"
                   class="flex flex-wrap md:flex-nowrap items-center gap-2 w-full">
@@ -24,15 +24,16 @@
                 </button>
                 <a href="{% url 'ledger:zandaka' %}" class="btn-clear">クリア</a>
             </form>
-            <button onclick="window.print()" class="btn-print">
-                <i class="fa-solid fa-print"></i>印刷
-            </button>
+            <!-- Export dropdown -->
+            {% url 'ledger:zandaka-export' 'csv' as csv_base %}
+            {% url 'ledger:zandaka-export' 'excel' as excel_base %}
+            {% include "includes/export_dropdown.html" with csv_url=csv_base|add:"?date_to="|add:date_to excel_url=excel_base|add:"?date_to="|add:date_to %}
         </div>
-        <!-- ── Trial Balance Report ─────────────────────────────────────────────── -->
+        <!-- Trial Balance Report -->
         <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden print:shadow-none print:border-none">
-            <div class="text-center py-6 border-b border-base-300 print:pb-4">
+            <div class="text-center py-6 border-b border-base-300">
                 <h2 class="text-2xl font-bold tracking-tight">合計残高試算表</h2>
-                <p class="text-base-content/60 mt-2">
+                <p class="text-base-content/40 mt-2">
                     {% if date_to_obj %}
                         期首 〜 <strong class="text-neutral">{{ date_to_obj|date:"Y年m月d日" }}</strong>
                     {% else %}
@@ -41,13 +42,13 @@
                 </p>
             </div>
             <div class="overflow-x-auto">
-                <table class="table table-accounting print:text-xs">
+                <table class="table table-accounting">
                     <thead>
                         <tr>
                             <th class="w-40 text-right text-secondary bg-secondary/20 font-bold text-xl">借方 残高</th>
-                            <th class="w-40 text-right text-secondary bg-secondary/20 border-r border-base-200 font-bold text-xl">借方 発生</th>
+                            <th class="w-40 text-right text-secondary bg-secondary/20 border-r border-base-300 font-bold text-xl">借方 発生</th>
                             <th class="min-w-40 text-warning bg-warning/20 text-center font-bold text-xl">勘定科目</th>
-                            <th class="w-40 text-right text-accent bg-accent/20 border-l border-base-200 font-bold text-xl">貸方 発生</th>
+                            <th class="w-40 text-right text-accent bg-accent/20 border-l border-base-300 font-bold text-xl">貸方 発生</th>
                             <th class="w-40 text-right text-accent bg-accent/20 font-bold text-xl">貸方 残高</th>
                         </tr>
                     </thead>
@@ -59,7 +60,7 @@
                                     {% if row.kamoku.is_kari_zandaka and row.zandaka > 0 %}{{ row.zandaka|format_number }}{% endif %}
                                 </td>
                                 <!-- Debit Occurrence -->
-                                <td class="text-right amount-positive text-secondary bg-secondary/10 border-r border-base-200">
+                                <td class="text-right amount-positive text-secondary bg-secondary/10 border-r border-base-300">
                                     {% if row.kari_hassei > 0 %}{{ row.kari_hassei|format_number }}{% endif %}
                                 </td>
                                 <!-- Account Subject (Link to Ledger) -->
@@ -68,7 +69,7 @@
                                        class="hover:text-accent transition-colors block">{{ row.kamoku.name }}</a>
                                 </td>
                                 <!-- Credit Occurrence -->
-                                <td class="text-right amount-negative text-accent bg-accent/10 border-l border-base-200">
+                                <td class="text-right amount-negative text-accent bg-accent/10 border-l border-base-300">
                                     {% if row.kashi_hassei > 0 %}{{ row.kashi_hassei|format_number }}{% endif %}
                                 </td>
                                 <!-- Credit Balance -->
@@ -90,7 +91,7 @@
                     </tfoot>
                 </table>
             </div>
-            <!-- ── Balance Validation ───────────────────────────────────────────────── -->
+            <!-- Balance Validation -->
             <div class="bg-base-100 text-center py-6 border-t border-base-300 print:hidden">
                 {% if balanced %}
                     <div class="text-success font-bold text-lg flex flex-col md:flex-row items-center justify-center gap-2">

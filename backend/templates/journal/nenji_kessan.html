@@ -1,0 +1,73 @@
+{% extends "layout_main.html" %}
+{% block title %}
+    年次決算・繰越処理 | 会計システム
+{% endblock title %}
+{% block page_header %}
+    年次決算・繰越処理
+{% endblock page_header %}
+{% block content %}
+    <div class="space-y-4 max-w-5xl mx-auto">
+        <!-- Info Banner -->
+        <div class="alert alert-info shadow-sm">
+            <i class="fa-solid fa-circle-info text-2xl"></i>
+            <div class="w-full px-2">
+                <p class="font-bold text-lg text-center md:text-left">決算振替仕訳について</p>
+                <p class="mt-1 opacity-80">
+                    指定した年度の収益・費用科目の残高を集計し、ゼロにするための相殺仕訳（決算振替仕訳）を自動生成します。
+                    <br />
+                    当期純利益（または純損失）は「繰越利益剰余金」へ振り替えられます。
+                </p>
+            </div>
+        </div>
+        <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
+            <div class="p-4 border-b border-base-300">
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-primary"></i>対象年度を選択
+                </h2>
+            </div>
+            <div class="p-6">
+                <!-- Action Form -->
+                {% if is_admin %}
+                    <form method="post"
+                          action="{% url 'journal:nenji-kessan' %}"
+                          class="space-y-6"
+                          onsubmit="return confirm('決算振替仕訳を作成します。よろしいですか？')">
+                        {% csrf_token %}
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label min-w-auto mb-1">会計年度 (開始年) <span class="text-error ml-1">*</span></span>
+                            </label>
+                            <select name="fiscal_year" class="select w-full cursor-pointer" required>
+                                <option value="" disabled selected>年度を選択してください</option>
+                                {% for year in fiscal_year_list %}
+                                    <option value="{{ year }}">{{ year }}年度 ({{ year }}/04/01 ~ {{ year|add:1 }}/03/31)</option>
+                                {% endfor %}
+                            </select>
+                            <p class="text-base-content/40 mt-2">※日本の標準的な会計期間 (4月始まり) となります。</p>
+                        </div>
+                        <div class="alert alert-warning alert-soft flex flex-col items-center">
+                            <h3 class="font-bold text-xl">
+                                <i class="fa-solid fa-triangle-exclamation"></i> 注意事項
+                            </h3>
+                            <ul class="list-disc list-inside space-y-1 w-full">
+                                <li>実行後、期末日付（3月31日）で決算振替伝票が1件作成されます。</li>
+                                <li>すでに実行済みの年度で再度実行すると、更新された残高に対する差額のみが振替されます。</li>
+                                <li>作成された伝票は「仕訳日記帳」から確認・編集可能です。</li>
+                            </ul>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="submit" class="btn btn-primary gap-2">
+                                <i class="fa-solid fa-rotate"></i> 決算振替を実行
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="text-center py-10 opacity-60">
+                        <i class="fa-solid fa-lock text-4xl mb-4"></i>
+                        <p>年次決算・繰越処理はシステム管理者のみ実行可能です。</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}

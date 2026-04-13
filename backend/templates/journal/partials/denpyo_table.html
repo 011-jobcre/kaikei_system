@@ -20,7 +20,7 @@
                     <th class="w-32 text-right">金額</th>
                     <th class="min-w-48">摘要</th>
                     <th class="w-28 text-center">状態</th>
-                    <th class="w-28 text-center">操作</th>
+                    {% if is_accountant %}<th class="w-28 text-center">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -32,8 +32,12 @@
                             {% if forloop.first %}
                                 <td class="align-top" rowspan="{{ denpyo.meisai.count }}">{{ denpyo.date|date:"Y/m/d" }}</td>
                                 <td class="align-top amount-neutral" rowspan="{{ denpyo.meisai.count }}">
-                                    <a href="{% url 'journal:denpyo-update' denpyo.pk %}"
-                                       class="hover:text-accent">{{ denpyo.denpyo_no }}</a>
+                                    {% if is_accountant %}
+                                        <a href="{% url 'journal:denpyo-update' denpyo.pk %}"
+                                           class="hover:text-accent">{{ denpyo.denpyo_no }}</a>
+                                    {% else %}
+                                        <span>{{ denpyo.denpyo_no }}</span>
+                                    {% endif %}
                                 </td>
                             {% endif %}
                             <!-- Line item side logic (Debit / Credit) -->
@@ -58,32 +62,35 @@
                                         </div>
                                     {% endif %}
                                 </td>
-                                <td class="align-top text-center" rowspan="{{ denpyo.meisai.count }}">
-                                    <div class="flex justify-center gap-1">
-                                        <a href="{% url 'journal:denpyo-update' denpyo.pk %}"
-                                           class="btn-edit"
-                                           title="編集">
-                                            <i class="fa-solid fa-pen-to-square"></i>
-                                        </a>
-                                        {% if not denpyo.is_locked %}
-                                            <button hx-get="{% url 'journal:denpyo-delete' denpyo.pk %}"
-                                                    hx-target="body"
-                                                    hx-swap="beforeend"
-                                                    class="btn-delete"
-                                                    title="削除">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        {% endif %}
-                                    </div>
-                                </td>
+                                {% if is_accountant %}
+                                    <td class="align-top text-center" rowspan="{{ denpyo.meisai.count }}">
+                                        <div class="flex justify-center gap-1">
+                                            <a href="{% url 'journal:denpyo-update' denpyo.pk %}"
+                                               class="btn-edit"
+                                               title="編集">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </a>
+                                            {% if not denpyo.is_locked %}
+                                                <button hx-get="{% url 'journal:denpyo-delete' denpyo.pk %}"
+                                                        hx-target="body"
+                                                        hx-swap="beforeend"
+                                                        class="btn-delete"
+                                                        title="削除">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                {% endif %}
                             {% endif %}
                         </tr>
                     {% endfor %}
                 {% empty %}
                     <tr>
-                        <td colspan="9" class="text-center">
+                        <td colspan="{% if is_accountant %}9{% else %}8{% endif %}"
+                            class="text-center">
                             <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
-                            データがありません。
+                            データがありません
                         </td>
                     </tr>
                 {% endfor %}

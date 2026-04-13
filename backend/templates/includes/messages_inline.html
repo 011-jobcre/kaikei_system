@@ -1,17 +1,39 @@
 {% if messages %}
-    {% for message in messages %}
-        <div role="alert"
-             x-data="{}"
-             x-init="setTimeout(() => $el.remove(), 4000)"
-             class="alert {{ message.tags }} flex items-center mb-4 gap-2 shadow-sm">
-            {% if message.tags == 'alert-success' %}
-                <i class="fa-solid fa-circle-check text-lg shrink-0"></i>
-            {% elif message.tags == 'alert-error' %}
-                <i class="fa-solid fa-circle-xmark text-lg shrink-0"></i>
-            {% else %}
-                <i class="fa-solid fa-circle-info text-lg shrink-0"></i>
-            {% endif %}
-            <span>{{ message }}</span>
-        </div>
-    {% endfor %}
+    <!-- Inline Messages -->
+    <div class="space-y-2">
+        {% for message in messages %}
+            <div role="alert"
+                 x-data="{}"
+                 x-init="setTimeout(() => $el.remove(), 4000)"
+                 class="alert {{ message.tags }} flex items-center gap-2 shadow-sm">
+                {% if message.tags == 'alert-success' %}
+                    <i class="fa-solid fa-circle-check text-lg shrink-0"></i>
+                {% elif message.tags == 'alert-error' %}
+                    <i class="fa-solid fa-circle-xmark text-lg shrink-0"></i>
+                {% else %}
+                    <i class="fa-solid fa-circle-info text-lg shrink-0"></i>
+                {% endif %}
+                <span">{{ message }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    <!-- Toast Messages -->
+    <div id="toast-container"
+         class="toast toast-end z-9999 pointer-events-none">
+        {% for message in messages %}
+            <div class="alert {{ message.tags }} shadow-lg max-w-sm pointer-events-auto"
+                 x-data="{}"
+                 x-init="setTimeout(() => { $el.style.opacity=0; setTimeout(()=>$el.remove(),300) }, 4000)"
+                 style="transition: opacity 0.3s ease-in-out">
+                {% if message.tags == 'alert-success' %}
+                    <i class="fa-solid fa-circle-check shrink-0"></i>
+                {% elif message.tags == 'alert-error' %}
+                    <i class="fa-solid fa-circle-xmark shrink-0"></i>
+                {% else %}
+                    <i class="fa-solid fa-circle-info shrink-0"></i>
+                {% endif %}
+                <span class="text-sm">{{ message }}</span>
+            </div>
+        {% endfor %}
+    </div>
 {% endif %}

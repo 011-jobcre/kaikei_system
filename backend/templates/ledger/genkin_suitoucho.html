@@ -1,9 +1,9 @@
 {% extends "layout_main.html" %}
 {% block title %}
-    総勘定元帳 | 会計システム
+    現金出納帳 | 会計システム
 {% endblock title %}
 {% block page_header %}
-    総勘定元帳
+    現金出納帳
 {% endblock page_header %}
 {% block content %}
     {% load number_filters %}
@@ -12,19 +12,16 @@
         <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
             <form method="get"
                   class="flex flex-wrap md:flex-nowrap items-center gap-2 w-full">
-                <!-- Select search for Kamoku -->
-                <label class="select cursor-pointer w-full md:w-1/5">
-                    <span class="label min-w-auto">勘定科目 <span class="text-error ml-1">*</span></span>
-                    <select name="kamoku_id" class="tomselect" required>
-                        <option value="">科目を選択...</option>
-                        {% for k in kamoku_list %}
-                            <option value="{{ k.pk }}"
-                                    {% if selected_kamoku_id == k.pk|stringformat:"s" %}selected{% endif %}>
-                                {{ k.code }} {{ k.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </label>
+                <!-- Selected Kamoku display (Fixed for Cash Book) -->
+                <div class="px-3 border-r border-base-300">
+                    <span class="font-bold whitespace-nowrap text-primary">
+                        {% if selected_kamoku %}
+                            現金出納帳（{{ selected_kamoku.name }}）
+                        {% else %}
+                            <span class="text-error">現金科目が未設定</span>
+                        {% endif %}
+                    </span>
+                </div>
                 <!-- Date range filters -->
                 <div class="flex items-center gap-1">
                     <input type="date"
@@ -40,22 +37,22 @@
                 <button type="submit" class="btn-save flex-1 md:flex-none">
                     <i class="fa-solid fa-list-check"></i>表示
                 </button>
-                <a href="{% url 'ledger:sokanjo' %}" class="btn-clear">クリア</a>
+                <a href="{% url 'ledger:genkin' %}" class="btn-clear">クリア</a>
             </form>
         </div>
         {% if selected_kamoku %}
             <!-- Summary Statistics -->
             <div class="stats stats-vertical md:stats-horizontal shadow-sm w-full gap-2">
                 <div class="stat place-items-center">
-                    <div class="stat-title text-success text-base">借方発生額</div>
+                    <div class="stat-title text-success text-base">入金額</div>
                     <div class="stat-value text-success text-2xl amount-positive">¥{{ kari_total|format_number }}</div>
                 </div>
                 <div class="stat place-items-center">
-                    <div class="stat-title text-error text-base">貸方発生額</div>
+                    <div class="stat-title text-error text-base">出金額</div>
                     <div class="stat-value text-error text-2xl amount-negative">¥{{ kashi_total|format_number }}</div>
                 </div>
                 <div class="stat place-items-center">
-                    <div class="stat-title text-primary text-base">現在の残高 ({{ selected_kamoku.get_taisha_kubun_display }})</div>
+                    <div class="stat-title text-primary text-base">現在の残高 (手元現金)</div>
                     <div class="stat-value text-primary text-2xl font-money">¥{{ zandaka|format_number }}</div>
                 </div>
             </div>
@@ -69,9 +66,9 @@
                                 <th class="min-w-36 md:w-36">伝票No</th>
                                 <th class="min-w-48">摘要 / [相手科目]</th>
                                 <th class="w-36">部門</th>
-                                <th class="text-right w-36 border-l border-base-300">借方 (増加)</th>
-                                <th class="text-right w-36 border-r border-base-300">貸方 (減少)</th>
-                                <th class="text-right w-36">差引残高</th>
+                                <th class="text-right w-36 border-l border-base-300">入金</th>
+                                <th class="text-right w-36 border-r border-base-300">出金</th>
+                                <th class="text-right w-36">残高</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -120,10 +117,12 @@
             <!-- Empty State -->
             <div class="hero bg-base-100 rounded-box shadow-sm border border-base-300 py-8">
                 <div class="hero-content text-center text-base-content/40">
-                    <div class="max-w-2xl space-y-2">
-                        <i class="fa-solid fa-magnifying-glass-chart text-6xl"></i>
-                        <h1 class="text-xl font-bold">勘定科目を選択してください</h1>
-                        <p class="text-sm">上のフィルタから科目を選ぶと、全仕訳履歴と差引残高が表示されます。</p>
+                    <div class="max-w-lg space-y-2">
+                        <div class="text-primary/50">
+                            <i class="fa-solid fa-magnifying-glass-chart text-6xl"></i>
+                        </div>
+                        <h1 class="text-xl font-bold">現金科目が見つかりません</h1>
+                        <p class="text-sm">名称に「現金」を含む有効な勘定科目がマスタに登録されているか確認してください。</p>
                     </div>
                 </div>
             </div>

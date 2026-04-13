@@ -1,0 +1,140 @@
+{% extends "layout_main.html" %}
+{% block title %}
+    消費税集計表 | 会計システム
+{% endblock title %}
+{% block page_header %}
+    消費税集計表
+{% endblock page_header %}
+{% block content %}
+    {% load number_filters %}
+    <div class="space-y-4">
+        <!-- Filter Toolbar -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-3 bg-base-100 p-4 rounded-box shadow-sm border border-base-300 print:hidden">
+            <form method="get"
+                  class="flex flex-wrap md:flex-nowrap items-center gap-2 w-full">
+                <label class="input w-full md:w-auto">
+                    <span class="label min-w-auto">対象期間</span>
+                    <input type="date"
+                           name="date_from"
+                           value="{{ date_from }}"
+                           class="text-neutral w-full md:w-40" />
+                </label>
+                <span class="text-base-content/40 font-bold w-full md:w-auto text-center">〜</span>
+                <label class="input w-full md:w-auto">
+                    <input type="date"
+                           name="date_to"
+                           value="{{ date_to }}"
+                           class="text-neutral w-full md:w-40" />
+                </label>
+                <button type="submit" class="btn-save flex-1 md:flex-none">
+                    <i class="fa-solid fa-calculator"></i>集計
+                </button>
+                <a href="{% url 'report:zei-summary' %}" class="btn-clear">クリア</a>
+            </form>
+            <!-- Export dropdown -->
+            {% url 'report:zei-export' 'csv' as csv_base %}
+            {% url 'report:zei-export' 'excel' as excel_base %}
+            {% include "includes/export_dropdown.html" with csv_url=csv_base|add:"?date_from="|add:date_from|add:"&date_to="|add:date_to excel_url=excel_base|add:"?date_from="|add:date_from|add:"&date_to="|add:date_to %}
+        </div>
+        <!-- Report Body -->
+        <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden print:shadow-none print:border-none">
+            <div class="text-center py-6 border-b border-base-300">
+                <h2 class="text-2xl font-bold tracking-tight">消費税集計表</h2>
+                <p class="text-base-content/40 mt-2">
+                    対象期間:
+                    <strong>
+                        {% if date_from_obj %}{{ date_from_obj|date:"Y年m月d日" }}{% endif %}
+                        {% if date_from_obj and date_to_obj %}〜{% endif %}
+                        {% if date_to_obj %}{{ date_to_obj|date:"Y年m月d日" }}{% endif %}
+                        {% if not date_from_obj and not date_to_obj %}全期間{% endif %}
+                    </strong>
+                </p>
+            </div>
+            {% if rows %}
+                <div class="overflow-x-auto">
+                    <table class="table table-accounting print:table-fixed print:text-xs print:border-t print:border-base-300">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="text-center align-middle">税区分</th>
+                                <th rowspan="2" class="text-center align-middle">税率</th>
+                                <th colspan="3" class="text-center bg-info/10 text-info">課税売上（税込）</th>
+                                <th colspan="3" class="text-center bg-warning/10 text-warning">課税仕入（税込）</th>
+                            </tr>
+                            <tr>
+                                <th class="text-right">税込金額</th>
+                                <th class="text-right">税抜金額</th>
+                                <th class="text-right">消費税額</th>
+                                <th class="text-right">税込金額</th>
+                                <th class="text-right">税抜金額</th>
+                                <th class="text-right">消費税額</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr>
+                                    <td class="font-medium">{{ row.zei.zei_name }}</td>
+                                    <td class="text-center font-bold">
+                                        <span class="badge badge-outline badge-success font-semibold w-20">{{ row.zei.tax_rate }}%</span>
+                                    </td>
+                                    <!-- 売上側 -->
+                                    <td class="text-right font-money">{{ row.uriage_zeikomi|format_number }}</td>
+                                    <td class="text-right font-money text-base-content/40">{{ row.uriage_honai|format_number }}</td>
+                                    <td class="text-right font-money text-info font-bold">{{ row.uriage_zeigaku|format_number }}</td>
+                                    <!-- 仕入側 -->
+                                    <td class="text-right font-money">{{ row.shiire_zeikomi|format_number }}</td>
+                                    <td class="text-right font-money text-base-content/40">{{ row.shiire_honai|format_number }}</td>
+                                    <td class="text-right font-money text-warning font-bold">{{ row.shiire_zeigaku|format_number }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" class="text-center">合計</td>
+                                <td class="text-right font-money">{{ total_uriage_zeikomi|format_number }}</td>
+                                <td></td>
+                                <td class="text-right font-money text-info">{{ total_zei_uke|format_number }}</td>
+                                <td class="text-right font-money">{{ total_shiire_zeikomi|format_number }}</td>
+                                <td></td>
+                                <td class="text-right font-money text-warning">{{ total_zei_shiharai|format_number }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <!-- Tax Due Summary -->
+                <div class="p-6 border-t border-base-300">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1 bg-info/10 rounded-xl p-4 text-center">
+                            <p class="text-xs text-info font-bold tracking-widest mb-1">受取消費税 (売上)</p>
+                            <p class="text-2xl font-money font-bold text-info">{{ total_zei_uke|format_number }}</p>
+                        </div>
+                        <div class="flex items-center justify-center text-2xl text-base-content/40 font-bold">−</div>
+                        <div class="flex-1 bg-warning/10 rounded-xl p-4 text-center">
+                            <p class="text-xs text-warning font-bold tracking-widest mb-1">支払消費税 (仕入)</p>
+                            <p class="text-2xl font-money font-bold text-warning">{{ total_zei_shiharai|format_number }}</p>
+                        </div>
+                        <div class="flex items-center justify-center text-2xl text-base-content/40 font-bold">=</div>
+                        <div class="flex-1 {% if nofu_zei >= 0 %}bg-error/10{% else %}bg-success/10{% endif %} rounded-xl p-4 text-center">
+                            <p class="text-xs {% if nofu_zei >= 0 %}text-error{% else %}text-success{% endif %} font-bold tracking-widest mb-1">
+                                {% if nofu_zei >= 0 %}
+                                    納付税額
+                                {% else %}
+                                    還付税額
+                                {% endif %}
+                            </p>
+                            <p class="text-2xl font-money font-bold {% if nofu_zei >= 0 %}text-error{% else %}text-success{% endif %}">
+                                {{ nofu_zei|format_number|cut:"-" }}
+                            </p>
+                        </div>
+                    </div>
+                    <p class="text-center text-xs text-base-content/40 mt-4 print:hidden">※ 消費税額は税込金額から逆算した概算値です。申告書作成時は税務専門家にご確認ください。</p>
+                </div>
+            {% else %}
+                <div class="text-center text-base-content/40 space-y-2 p-8">
+                    <i class="fa-solid fa-receipt text-6xl"></i>
+                    <h1 class="text-xl font-bold">指定期間に消費税が記録された仕訳がありません</h1>
+                    <p class="text-sm">期間と税区分が正しく設定されているか確認してください。</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock content %}

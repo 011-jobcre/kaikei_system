@@ -7,7 +7,7 @@
         <!-- ── Main content column ──────────────────────────────────────────────── -->
         <div class="drawer-content flex flex-col min-h-screen">
             <!-- Sticky top navigation bar -->
-            <header class="navbar sticky top-0 z-10 px-4 h-auto min-h-20 shadow-xl bg-base-100 md:bg-transparent border-b border-base-300">
+            <header class="navbar sticky top-0 z-10 px-4 h-auto min-h-20 shadow-xl bg-base-100 md:bg-transparent border-b border-base-300 print:hidden print:shadow-none print:border-none">
                 <!-- Mobile only: hamburger that opens the sidebar drawer -->
                 <div class="flex-none md:hidden">
                     <label for="drawer-toggle" class="btn btn-square btn-ghost">
@@ -44,7 +44,7 @@
                 {% block content %}
                 {% endblock content %}
             </main>
-            <footer class="footer footer-center p-2 bg-base-100 md:bg-transparent border-t border-base-300">
+            <footer class="footer footer-center p-2 bg-base-100 md:bg-transparent border-t border-base-300 print:hidden">
                 <span>© 2026 会計システム — 全ての権利を保有します</span>
             </footer>
         </div>

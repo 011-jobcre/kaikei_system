@@ -1,3 +1,7 @@
+# =========================================================
+# Journal Models
+# =========================================================
+
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -12,14 +16,10 @@ User = get_user_model()
 
 
 def generate_denpyo_no():
-    """伝票番号を YYYYMMDD-NNNN 形式で自動生成"""
+    """Automatically generate voucher number in YYYYMMDD-NNNN format"""
     today = timezone.localdate()
     prefix = today.strftime("%Y%m%d")
-    last = (
-        ShiwakeDenpyo.objects.filter(denpyo_no__startswith=prefix)
-        .order_by("denpyo_no")
-        .last()
-    )
+    last = ShiwakeDenpyo.objects.filter(denpyo_no__startswith=prefix).order_by("denpyo_no").last()
     if last:
         seq = int(last.denpyo_no[-4:]) + 1
     else:
@@ -28,11 +28,9 @@ def generate_denpyo_no():
 
 
 class ShiwakeDenpyo(BaseModel):
-    """仕訳伝票ヘッダー"""
+    """Voucher (Journal Entry Header)"""
 
-    denpyo_no = models.CharField(
-        max_length=20, unique=True, verbose_name="伝票番号", editable=False
-    )
+    denpyo_no = models.CharField(max_length=20, unique=True, verbose_name="伝票番号", editable=False)
     date = models.DateField(verbose_name="日付")
     memo = models.CharField(max_length=200, blank=True, verbose_name="摘要")
     created_by = models.ForeignKey(
@@ -57,31 +55,26 @@ class ShiwakeDenpyo(BaseModel):
         super().save(*args, **kwargs)
 
     def get_kari_total(self):
-        """借方合計金額"""
-        return self.meisai.filter(kari_kashi="KA").aggregate(
-            total=models.Sum("kingaku")
-        )["total"] or Decimal("0")
+        """Total Debit Amount"""
+        return self.meisai.filter(kari_kashi="KA").aggregate(total=models.Sum("kingaku"))["total"] or Decimal("0")
 
     def get_kashi_total(self):
-        """貸方合計金額"""
-        return self.meisai.filter(kari_kashi="SHI").aggregate(
-            total=models.Sum("kingaku")
-        )["total"] or Decimal("0")
+        """Total Credit Amount"""
+        return self.meisai.filter(kari_kashi="SHI").aggregate(total=models.Sum("kingaku"))["total"] or Decimal("0")
 
     def validate_taisha_itchi(self):
-        """貸借一致チェック: 借方合計 = 貸方合計"""
+        """Balance Check: Total Debit == Total Credit"""
         kari = self.get_kari_total()
         kashi = self.get_kashi_total()
         if kari != kashi:
             diff = kari - kashi
             raise ValidationError(
-                f"貸借が一致していません。差額: {diff:,.0f}円"
-                f" (借方: {kari:,.0f} / 貸方: {kashi:,.0f})"
+                f"貸借が一致していません。差額: {diff:,.0f}円 (借方: {kari:,.0f} / 貸方: {kashi:,.0f})"
             )
 
 
 class ShiwakeMeisai(BaseModel):
-    """仕訳明細（明細行）"""
+    """Voucher Detail (Journal Entry Line Item)"""
 
     KARI_KASHI_CHOICES = [
         ("KA", "借方"),
@@ -94,9 +87,7 @@ class ShiwakeMeisai(BaseModel):
         related_name="meisai",
         verbose_name="伝票",
     )
-    kari_kashi = models.CharField(
-        max_length=3, choices=KARI_KASHI_CHOICES, verbose_name="借/貸"
-    )
+    kari_kashi = models.CharField(max_length=3, choices=KARI_KASHI_CHOICES, verbose_name="借/貸")
     kamoku = models.ForeignKey(
         KanjoKamokuMaster,
         on_delete=models.PROTECT,
@@ -109,6 +100,14 @@ class ShiwakeMeisai(BaseModel):
         null=True,
         blank=True,
         verbose_name="部門",
+        limit_choices_to={"is_active": True},
+    )
+    torihikisaki = models.ForeignKey(
+        "master.TorihikiSakiMaster",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="取引先",
         limit_choices_to={"is_active": True},
     )
     kingaku = models.DecimalField(max_digits=15, decimal_places=0, verbose_name="金額")

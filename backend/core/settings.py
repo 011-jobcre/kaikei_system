@@ -1,6 +1,6 @@
-"""
-Django settings for core project.
-"""
+# =========================================================
+# Core Project Settings
+# =========================================================
 
 from pathlib import Path
 
@@ -54,6 +54,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "common.context_processors.rbac",
             ],
         },
     },

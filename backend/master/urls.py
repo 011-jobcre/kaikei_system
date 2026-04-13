@@ -1,3 +1,7 @@
+# =========================================================
+# Master URLs
+# =========================================================
+
 from django.urls import path
 
 from . import views
@@ -20,7 +24,7 @@ urlpatterns = [
     path("zei/new/", views.ZeiCreateView.as_view(), name="zei-create"),
     path("zei/<int:pk>/edit/", views.ZeiUpdateView.as_view(), name="zei-update"),
     path("zei/<int:pk>/delete/", views.ZeiDeleteView.as_view(), name="zei-delete"),
-    # Partner Master
+    # Business Partner Master
     path("torihiki/", views.TorihikiSakiListView.as_view(), name="torihiki-list"),
     path("torihiki/new/", views.TorihikiSakiCreateView.as_view(), name="torihiki-create"),
     path("torihiki/<int:pk>/edit/", views.TorihikiSakiUpdateView.as_view(), name="torihiki-update"),

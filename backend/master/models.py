@@ -1,3 +1,7 @@
+# =========================================================
+# Master Models
+# =========================================================
+
 from common.models import BaseModel
 from django.db import models
 import datetime
@@ -5,7 +9,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class KanjoKamokuMaster(BaseModel):
-    """勘定科目マスタ"""
+    """Chart of Accounts (Account Master)"""
 
     TAISHA_KUBUN_CHOICES = [
         ("SHISAN", "資産"),
@@ -48,7 +52,7 @@ class KanjoKamokuMaster(BaseModel):
         return f"{self.code} {self.name}"
 
     def save(self, *args, **kwargs):
-        """保存時にレベルと貸借区分を自動設定"""
+        """Automatically sets level and debit/credit status on save"""
         if self.parent:
             # If parent exists, set level = parent.level + 1
             self.level = self.parent.level + 1
@@ -75,7 +79,7 @@ class KanjoKamokuMaster(BaseModel):
 
     @property
     def is_kari_zandaka(self):
-        """借方残高科目かどうか（資産・費用）"""
+        """Returns true if the account is a debit-balance account (Assets/Expenses)"""
         return self.taisha_kubun in self.KARI_ZANDAKA
 
     @property
@@ -92,7 +96,7 @@ class KanjoKamokuMaster(BaseModel):
 
 
 class BumonMaster(BaseModel):
-    """部門マスタ"""
+    """Department Master"""
 
     code = models.CharField(max_length=10, unique=True, verbose_name="部門コード")
     name = models.CharField(max_length=100, verbose_name="部門名")
@@ -111,7 +115,7 @@ class BumonMaster(BaseModel):
 
 
 class ZeiMaster(BaseModel):
-    """消費税率マスタ"""
+    """Consumption Tax Rate Master"""
 
     zei_name = models.CharField(max_length=100, verbose_name="税区分名")
     tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="税率(%)")
@@ -140,7 +144,7 @@ class ZeiMaster(BaseModel):
 
 
 class TorihikiSakiMaster(BaseModel):
-    """取引先マスタ（顧客・仕入先）"""
+    """Business Partner Master (Customers / Suppliers)"""
 
     code = models.CharField(max_length=10, unique=True, verbose_name="取引先コード")
     name = models.CharField(max_length=100, verbose_name="取引先名")
