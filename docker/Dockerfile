@@ -22,7 +22,7 @@ RUN npx tailwindcss -i ./backend/static/css/input.css -o ./output.css --minify
 # ==========================================
 FROM python:3.12-slim
 
-WORKDIR /app/backend
+WORKDIR /app
 
 # 1. Install system libraries needed for Django & PDF/Image
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -40,13 +40,14 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 3. COPY FROM STAGE 1
-# Only copy the single CSS file, exclude node_modules
-COPY --from=css-builder /build/output.css ./static/css/output.css
+# Copy the compiled CSS into the correct backend static folder
+COPY --from=css-builder /build/output.css ./backend/static/css/output.css
 
 # 4. Copy Django project code
 COPY . .
 
 # 5. Set up User and Permissions
+WORKDIR /app/backend
 RUN useradd -m appuser && chown -R appuser /app
 COPY --chown=appuser:appuser docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
