@@ -10,8 +10,6 @@ ENV
 
 # exclude node_modules
 node_modules
-package-lock.json
-package.json
 
 # exclude Python log and temp files
 __pycache__

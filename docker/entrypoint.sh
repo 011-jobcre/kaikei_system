@@ -27,6 +27,6 @@ else
     echo "Running in PRODUCTION mode"
     # collect static files (required for Production)
     python manage.py collectstatic --noinput
-    # run Gunicorn (replace 'config' with the name of the directory containing wsgi.py)
-    exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    # run Gunicorn (replace 'core' with the name of the directory containing wsgi.py)
+    exec gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3
 fi
