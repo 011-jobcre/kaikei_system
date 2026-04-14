@@ -71,17 +71,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-if DEBUG:
-    DB_USER = config("POSTGRES_USER")
-    DB_PASS = config("POSTGRES_PASSWORD")
-    DB_HOST = config("POSTGRES_HOST")
-    DB_PORT = config("POSTGRES_PORT")
-    DB_NAME = config("POSTGRES_DB")
-    DEFAULT_DATABASE_URL = f"postgres://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# if DEBUG:
+#     DB_USER = config("POSTGRES_USER")
+#     DB_PASS = config("POSTGRES_PASSWORD")
+#     DB_HOST = config("POSTGRES_HOST")
+#     DB_PORT = config("POSTGRES_PORT")
+#     DB_NAME = config("POSTGRES_DB")
+#     DEFAULT_DATABASE_URL = f"postgres://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 DATABASES = {
     "default": dj_database_url.config(
-        default=config("DATABASE_URL", default=DEFAULT_DATABASE_URL),
+        default=config("DATABASE_URL", default="postgres://kaikei_user:kaikei_password@db:5432/kaikei_db"),
         conn_max_age=600,
     )
 }
