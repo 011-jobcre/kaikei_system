@@ -77,8 +77,7 @@ if DEBUG:
     DB_HOST = config("POSTGRES_HOST")
     DB_PORT = config("POSTGRES_PORT")
     DB_NAME = config("POSTGRES_DB")
-
-DEFAULT_DATABASE_URL = f"postgres://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    DEFAULT_DATABASE_URL = f"postgres://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 DATABASES = {
     "default": dj_database_url.config(
