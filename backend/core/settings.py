@@ -5,17 +5,20 @@
 from pathlib import Path
 
 import dj_database_url
-import os
+from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-DEBUG = os.getenv("DEBUG", default=False, cast=bool)
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", default="http://localhost:8000").split(",")
+SECRET_KEY = config("SECRET_KEY")
+DEBUG = config("DEBUG", default=False, cast=bool)
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", "").split(",")
+# CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="https://*.up.railway.app").split(",")
 
 # Support for proxy-based HTTPS
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# WhiteNoise stability: prevent crash on missing static files
+WHITENOISE_MANIFEST_STRICT = False
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -68,9 +71,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
+DB_USER = config("POSTGRES_USER")
+DB_PASS = config("POSTGRES_PASSWORD")
+DB_HOST = config("POSTGRES_HOST")
+DB_PORT = config("POSTGRES_PORT")
+DB_NAME = config("POSTGRES_DB")
+
+DEFAULT_DATABASE_URL = f"postgres://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL", default="postgres://postgres:postgres@db:5432/postgres"),
+        default=config("DATABASE_URL", default=DEFAULT_DATABASE_URL),
         conn_max_age=600,
     )
 }
