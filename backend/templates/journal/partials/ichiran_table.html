@@ -1,0 +1,87 @@
+<!-- Unified voucher list for both 仕訳 and 振替 entries. -->
+{% load number_filters %}
+<div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden"
+     hx-get="{% url 'journal:shiwake-list' %}"
+     hx-trigger="refreshList from:body"
+     hx-swap="outerHTML">
+    <div class="overflow-x-auto">
+        <table class="table table-accounting">
+            <thead>
+                <tr>
+                    <th class="w-28">日付</th>
+                    <th class="w-24">計上日</th>
+                    <th class="min-w-36">伝票No</th>
+                    <th class="w-16 text-center">種別</th>
+                    <th class="min-w-44">摘要</th>
+                    <th class="w-32 text-right">借方合計</th>
+                    <th class="w-32 text-right">貸方合計</th>
+                    <th class="w-20 text-center">明細数</th>
+                    <th class="w-20 text-center">状態</th>
+                    {% if is_accountant %}<th class="w-24 text-center">操作</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for denpyo in denpyo_list %}
+                    <tr>
+                        <td>{{ denpyo.date|date:"Y/m/d" }}</td>
+                        <td class="text-xs text-base-content/60">{{ denpyo.keijo_date|date:"Y/m/d"|default:"—" }}</td>
+                        <td class="amount-neutral">
+                            {% if is_accountant %}
+                                <a href="{{ denpyo.get_edit_url }}" class="hover:text-accent">{{ denpyo.denpyo_no }}</a>
+                            {% else %}
+                                {{ denpyo.denpyo_no }}
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if denpyo.denpyo_type == "SHIWAKE" %}
+                                <span class="badge badge-primary badge-sm">仕訳</span>
+                            {% else %}
+                                <span class="badge badge-accent badge-sm">振替</span>
+                            {% endif %}
+                        </td>
+                        <td class="max-w-64">{{ denpyo.memo|default:"—" }}</td>
+                        <td class="text-right amount-positive">{{ denpyo.kari_total|default:0|format_number }}</td>
+                        <td class="text-right amount-negative">{{ denpyo.kashi_total|default:0|format_number }}</td>
+                        <td class="text-center">{{ denpyo.meisai_count }}</td>
+                        <td class="text-center">
+                            {% if denpyo.is_locked %}
+                                <div class="tooltip" data-tip="ロック済">
+                                    <i class="fa-solid fa-lock text-error"></i>
+                                </div>
+                            {% else %}
+                                <span class="text-base-content/50">未締</span>
+                            {% endif %}
+                        </td>
+                        {% if is_accountant %}
+                            <td class="text-center">
+                                <div class="flex justify-center gap-1">
+                                    <a href="{{ denpyo.get_edit_url }}" class="btn-edit" title="編集">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    {% if not denpyo.is_locked %}
+                                        <button hx-get="{% url 'journal:denpyo-delete' denpyo.pk %}"
+                                                hx-target="body"
+                                                hx-swap="beforeend"
+                                                class="btn-delete"
+                                                title="削除">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="{% if is_accountant %}10{% else %}9{% endif %}"
+                            class="text-center py-8">
+                            <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
+                            データがありません
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "includes/pagination.html" %}
+</div>

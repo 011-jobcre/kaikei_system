@@ -76,7 +76,7 @@
                                 <tr>
                                     <td>{{ row.meisai.denpyo.date|date:"Y/m/d" }}</td>
                                     <td class="amount-neutral">
-                                        <a href="{% url 'journal:denpyo-update' row.meisai.denpyo.pk %}"
+                                        <a href="{{ row.meisai.denpyo.get_edit_url }}"
                                            class="hover:text-accent">{{ row.meisai.denpyo.denpyo_no }}</a>
                                     </td>
                                     <td class="whitespace-normal">

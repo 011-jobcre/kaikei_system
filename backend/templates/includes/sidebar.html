@@ -23,6 +23,10 @@
            class="sidebar-link {% if request.resolver_match.url_name == 'kanjo-list' %}active{% endif %}">
             <i class="fa-solid fa-list-check"></i>勘定科目設定
         </a>
+        <a href="{% url 'master:hojo-list' %}"
+           class="sidebar-link {% if request.resolver_match.url_name == 'hojo-list' %}active{% endif %}">
+            <i class="fa-solid fa-code-branch"></i>補助科目マスタ
+        </a>
         <a href="{% url 'master:bumon-list' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'bumon-list' %}active{% endif %}">
             <i class="fa-solid fa-sitemap"></i>部門管理
@@ -37,13 +41,17 @@
         </a>
         <!-- Journal / Voucher section header -->
         <p class="px-4 mt-4 mb-2 text-sm font-bold text-base-content/40 tracking-widest">仕訳・伝票</p>
-        <a href="{% url 'journal:denpyo-list' %}"
-           class="sidebar-link {% if request.resolver_match.url_name == 'denpyo-list' %}active{% endif %}">
-            <i class="fa-solid fa-book"></i>仕訳日記帳
+        <a href="{% url 'journal:shiwake-list' %}"
+           class="sidebar-link {% if request.resolver_match.url_name == 'shiwake-list' %}active{% endif %}">
+            <i class="fa-solid fa-table-list"></i>仕訳一覧
         </a>
-        <a href="{% url 'journal:denpyo-create' %}"
-           class="sidebar-link {% if request.resolver_match.url_name == 'denpyo-create' %}active{% endif %}">
-            <i class="fa-solid fa-file-invoice-dollar"></i>振替伝票入力
+        <a href="{% url 'journal:shiwake-create' %}"
+           class="sidebar-link {% if request.resolver_match.url_name == 'shiwake-create' %}active{% endif %}">
+            <i class="fa-solid fa-book"></i>仕訳日記帳（入力）
+        </a>
+        <a href="{% url 'journal:furikae-create' %}"
+           class="sidebar-link {% if request.resolver_match.url_name == 'furikae-create' %}active{% endif %}">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>振替伝票（入力）
         </a>
         <a href="{% url 'journal:getsuji-shime' %}"
            class="sidebar-link {% if request.resolver_match.url_name == 'getsuji-shime' %}active{% endif %}">

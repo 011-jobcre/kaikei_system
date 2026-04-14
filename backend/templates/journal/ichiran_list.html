@@ -1,23 +1,23 @@
 {% extends "layout_main.html" %}
 {% block title %}
-    仕訳日記帳 | 会計システム
+    仕訳一覧 | 会計システム
 {% endblock title %}
 {% block page_header %}
-    仕訳日記帳
+    仕訳一覧
 {% endblock page_header %}
 {% block content %}
     <div class="space-y-4" x-data>
-        <!-- Toolbar: filters + create action -->
+        <!-- Toolbar: filters + create actions -->
         <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
             <form method="get"
                   class="flex flex-wrap md:flex-nowrap items-center gap-2 w-full">
-                <!-- Keyword search for Denpyo No or Memo -->
+                <!-- Keyword search -->
                 <input type="text"
                        name="q"
                        value="{{ q }}"
                        placeholder="伝票No・摘要検索"
                        class="input text-neutral w-full md:w-1/5" />
-                <!-- Date range filters -->
+                <!-- Date range -->
                 <div class="flex items-center gap-1">
                     <input type="date"
                            name="date_from"
@@ -29,25 +29,34 @@
                            value="{{ date_to }}"
                            class="input text-neutral w-full md:w-40" />
                 </div>
+                <!-- Voucher type filter -->
+                <select name="denpyo_type" class="select text-neutral w-full md:w-32">
+                    <option value=""        {% if not denpyo_type %}selected{% endif %}>全種別</option>
+                    <option value="SHIWAKE" {% if denpyo_type == "SHIWAKE" %}selected{% endif %}>仕訳</option>
+                    <option value="FURIKAE" {% if denpyo_type == "FURIKAE" %}selected{% endif %}>振替</option>
+                </select>
                 <div class="flex items-center gap-2 w-full md:w-auto justify-end md:justify-start">
                     <button type="submit" class="btn-search">
                         <i class="fa-solid fa-magnifying-glass"></i>検索
                     </button>
-                    <a href="{% url 'journal:denpyo-list' %}" class="btn-clear">クリア</a>
+                    <a href="{% url 'journal:shiwake-list' %}" class="btn-clear">クリア</a>
                 </div>
             </form>
-            <!-- Open the create modal via HTMX -->
+            <!-- Create buttons -->
             {% if is_accountant %}
-                <a href="{% url 'journal:denpyo-create' %}"
-                   class="btn btn-primary gap-2 w-full md:w-auto">
-                    <i class="fa-solid fa-plus"></i>振替伝票入力
-                </a>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <a href="{% url 'journal:shiwake-create' %}"
+                       class="btn btn-primary gap-2 flex-1 md:flex-none">
+                        <i class="fa-solid fa-plus"></i>仕訳日記帳
+                    </a>
+                    <a href="{% url 'journal:furikae-create' %}"
+                       class="btn btn-accent btn-outline gap-2 flex-1 md:flex-none">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>振替伝票
+                    </a>
+                </div>
             {% endif %}
         </div>
-        <!-- Journal Data Table -->
-        {% include "journal/partials/denpyo_table.html" %}
+        <!-- Data Table -->
+        {% include "journal/partials/ichiran_table.html" %}
     </div>
-    {% block extra_scripts %}
-        {% include "journal/partials/denpyo_scripts.html" %}
-    {% endblock extra_scripts %}
 {% endblock content %}

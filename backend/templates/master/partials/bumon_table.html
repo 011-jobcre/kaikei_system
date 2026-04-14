@@ -11,7 +11,7 @@
                 <tr>
                     <th class="w-28">コード</th>
                     <th class="min-w-44">部門名</th>
-                    <th class="w-40">担当者名</th>
+                    <th class="min-w-44">担当者名</th>
                     <th class="w-44 text-right">年間予算</th>
                     <th class="w-28 text-center">ステータス</th>
                     {% if is_admin %}<th class="w-28 text-center">操作</th>{% endif %}
@@ -21,8 +21,8 @@
                 {% for obj in bumon_list %}
                     <tr>
                         <td class="amount-neutral">{{ obj.code }}</td>
-                        <td class="font-semibold">{{ obj.name }}</td>
-                        <td class="font-semibold">{{ obj.manager_name|default:"—" }}</td>
+                        <td>{{ obj.name }}</td>
+                        <td>{{ obj.manager_name|default:"—" }}</td>
                         <!-- Budget formatted as monospace number; zero shown as em-dash -->
                         <td class="amount-neutral text-right">
                             {% if obj.annual_budget %}
@@ -63,7 +63,8 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center">
+                        <td colspan="{% if is_admin %}6{% else %}5{% endif %}"
+                            class="text-center">
                             <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
                             データがありません
                         </td>

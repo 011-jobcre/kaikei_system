@@ -1,6 +1,5 @@
 from django import forms
-
-from .models import BumonMaster, KanjoKamokuMaster, TorihikiSakiMaster, ZeiMaster
+from .models import BumonMaster, HojoKamokuMaster, KanjoKamokuMaster, TorihikiSakiMaster, ZeiMaster
 from common.forms_widgets import (
     INPUT_CLASS,
     SELECT_CLASS,
@@ -25,7 +24,7 @@ class BaseMasterForm(forms.ModelForm):
 
 class KanjoKamokuForm(BaseMasterForm):
     """
-    Form for creating / editing a Chart-of-Accounts entry (勘定科目).
+    Form for creating / editing an account (勘定科目) record.
 
     'level' and 'taisha_kubun' are intentionally excluded — they are computed
     automatically in KanjoKamokuMaster.save() from the parent account hierarchy.
@@ -36,7 +35,7 @@ class KanjoKamokuForm(BaseMasterForm):
         fields = ["code", "name", "parent", "is_active"]
         help_texts = {"parent": "親科目を選択してください。子科目は親科目の下に表示されます。"}
         widgets = {
-            "code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: 1110"}),
+            "code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: 111010"}),
             "name": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: 現金"}),
             "parent": forms.Select(attrs={"class": SELECT_CLASS}),
             "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
@@ -56,38 +55,30 @@ class BumonForm(BaseMasterForm):
 
     class Meta:
         model = BumonMaster
-        fields = ["code", "name", "manager_name", "annual_budget", "is_active", "order_no"]
+        fields = ["code", "name", "manager_name", "annual_budget", "is_active"]
         widgets = {
             "code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: D001"}),
             "name": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: 営業部"}),
             "manager_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
-            "annual_budget": forms.NumberInput(attrs={"class": INPUT_CLASS, "step": "0.01"}),
+            "annual_budget": forms.NumberInput(attrs={"class": INPUT_CLASS}),
             "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
-            "order_no": forms.NumberInput(attrs={"class": INPUT_CLASS}),
         }
         error_messages = {"code": {"unique": "このコードは既に存在しています。別のコードを入力してください。"}}
 
 
 class ZeiForm(forms.ModelForm):
-    """Form for creating / editing a tax rate entry (消費税率 マスタ)."""
+    """Form for creating / editing a tax rate entry (税) record."""
 
     class Meta:
         model = ZeiMaster
-        fields = [
-            "zei_name",
-            "tax_rate",
-            "valid_from",
-            "valid_to",
-            "order_no",
-            "is_active",
-        ]
+        fields = ["zei_name", "tax_rate", "valid_from", "valid_to", "order_no", "is_active"]
         widgets = {
             "zei_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
             "tax_rate": forms.NumberInput(attrs={"class": INPUT_CLASS, "step": "0.01", "min": "0", "max": "100"}),
-            "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
             "valid_from": forms.DateInput(attrs={"class": INPUT_CLASS, "type": "date"}),
             "valid_to": forms.DateInput(attrs={"class": INPUT_CLASS, "type": "date"}),
             "order_no": forms.NumberInput(attrs={"class": INPUT_CLASS}),
+            "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
         }
         error_messages = {
             "valid_from": {"min_value": "適用開始日は1900/01/01以降の日付を入力してください。"},
@@ -103,7 +94,7 @@ class ZeiForm(forms.ModelForm):
 
 
 class TorihikiSakiForm(BaseMasterForm):
-    """Form for creating / editing a business partner — customer or supplier (取引先)."""
+    """Form for creating / editing a business partner — customer or supplier (取引先) record."""
 
     class Meta:
         model = TorihikiSakiMaster
@@ -111,7 +102,7 @@ class TorihikiSakiForm(BaseMasterForm):
         widgets = {
             "code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: T001"}),
             "name": forms.TextInput(attrs={"class": INPUT_CLASS}),
-            "address": forms.Textarea(attrs={"class": TEXTAREA_CLASS, "rows": 3}),
+            "address": forms.Textarea(attrs={"class": TEXTAREA_CLASS, "rows": 2}),
             "phone": forms.TextInput(attrs={"class": INPUT_CLASS, "type": "tel"}),
             "email": forms.EmailInput(attrs={"class": INPUT_CLASS}),
             "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
@@ -123,3 +114,28 @@ class TorihikiSakiForm(BaseMasterForm):
         if phone and not phone.replace("-", "").isdigit():
             raise forms.ValidationError("電話番号は数字とハイフンのみで入力してください。")
         return phone
+
+
+class HojoKamokuForm(forms.ModelForm):
+    """Form for creating / editing a Sub-account (補助科目) record.
+
+    Sub-accounts are tied to a single Level-4 main account (kamoku).
+    The code must be unique within the same parent account.
+    """
+
+    class Meta:
+        model = HojoKamokuMaster
+        fields = ["kamoku", "code", "name", "is_active"]
+        widgets = {
+            "kamoku": forms.Select(attrs={"class": SELECT_CLASS}),
+            "code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: H100"}),
+            "name": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: みずほ銀行"}),
+            "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
+        }
+        error_messages = {"__all__": {"unique_together": "この科目コードの組み合わせは既に存在しています。"}}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only Level-4 (detail/leaf) active accounts can have sub-accounts
+        self.fields["kamoku"].queryset = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
+        self.fields["kamoku"].empty_label = "勘定科目を選択"

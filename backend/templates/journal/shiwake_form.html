@@ -1,15 +1,13 @@
 {% extends "layout_main.html" %}
 {% block title %}
-    振替伝票入力 | 会計システム
+    {{ title }} | 会計システム
 {% endblock title %}
 {% block page_header %}
     {{ title }}
 {% endblock page_header %}
-{% block extra_head %}
-{% endblock extra_head %}
 {% block content %}
     <div class="space-y-4" x-data="denpyoForm()">
-        <!-- Global Server-Side Validation Notice -->
+        <!-- Server-Side Validation Notice -->
         {% if form.errors or formset.errors %}
             <div class="alert alert-error text-sm shadow-sm gap-2">
                 <i class="fa-solid fa-triangle-exclamation shrink-0"></i>
@@ -20,35 +18,41 @@
             {% csrf_token %}
             <!-- Header Section -->
             <div class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 w-full">
-                    <div class="form-control w-full md:col-span-1">
+                <div class="grid grid-cols-1 sm:grid-cols-6 gap-2 w-full">
+                    <!-- Document Date -->
+                    <div class="form-control col-span-1">
                         <label class="input text-neutral w-full">
-                            <span class="label min-w-24 md:min-w-auto">日付<span class="text-error ml-1">*</span></span>
+                            <span class="label min-w-24">伝票日付<span class="text-error ml-1">*</span></span>
                             {{ form.date }}
                         </label>
                         {% if form.date.errors %}
                             <div class="label pt-1 text-sm">
-                                <span class="text-error flex items-center gap-1">
-                                    <i class="fa-solid fa-circle-exclamation"></i>
-                                    {{ form.date.errors.0 }}
-                                </span>
+                                <span class="text-error text-xs">{{ form.date.errors.0 }}</span>
                             </div>
                         {% endif %}
                     </div>
-                    <div class="form-control w-full md:col-span-3">
+                    <!-- Accounting Date (Keijo) -->
+                    <div class="form-control col-span-1">
                         <label class="input text-neutral w-full">
-                            <span class="label min-w-24 md:min-w-auto">摘要（全体）</span>
-                            {{ form.memo }}
+                            <span class="label min-w-24">計上日付</span>
+                            {{ form.keijo_date }}
                         </label>
-                        {% if form.memo.errors %}
-                            <div class="label pt-1 text-sm pb-0">
-                                <span class="text-error">{{ form.memo.errors.0 }}</span>
+                        {% if form.keijo_date.errors %}
+                            <div class="label pt-1 text-sm">
+                                <span class="text-error text-xs">{{ form.keijo_date.errors.0 }}</span>
                             </div>
                         {% endif %}
+                    </div>
+                    <!-- Memo -->
+                    <div class="form-control col-span-4">
+                        <label class="input text-neutral w-full">
+                            <span class="label min-w-20">摘要</span>
+                            {{ form.memo }}
+                        </label>
                     </div>
                 </div>
             </div>
-            <!-- Live Balance Tracker (HTMX) -->
+            <!-- Live Balance Tracker -->
             <div id="balance-container"
                  class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
                 <div class="flex flex-col md:flex-row items-center justify-center">
@@ -59,14 +63,13 @@
                 </div>
                 <div id="balance-bar"></div>
             </div>
-            <!-- Line Items (Meisai) Container -->
+            <!-- Line Items (Meisai) -->
             <div class="space-y-4">
                 <h4 class="font-semibold flex items-center gap-2">
                     <i class="fa-solid fa-list ml-4"></i>仕訳明細
                 </h4>
                 <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
                     {{ formset.management_form }}
-                    <!-- Formset-level validation errors (e.g. out of balance) -->
                     {% if formset.non_form_errors %}
                         <div class="bg-error/10 text-error p-3 text-sm font-bold border-b border-error/20 flex gap-2 items-center">
                             <i class="fa-solid fa-circle-exclamation"></i>
@@ -77,18 +80,19 @@
                         <table class="table table-accounting" id="meisai-table">
                             <thead>
                                 <tr>
-                                    <th class="min-w-40 md:w-36">借/貸</th>
-                                    <th class="min-w-60 md:w-60">
-                                        勘定科目 <span class="text-error ml-1">*</span>
+                                    <th class="min-w-36 md:w-32">借/貸</th>
+                                    <th class="min-w-56 md:w-56">
+                                        勘定科目<span class="text-error ml-1">*</span>
                                     </th>
-                                    <th class="min-w-48 md:w-48">部門</th>
-                                    <th class="min-w-48 md:w-48">取引先</th>
+                                    <th class="min-w-44 md:w-44">補助科目</th>
+                                    <th class="min-w-44 md:w-44">部門</th>
+                                    <th class="min-w-44 md:w-44">取引先</th>
                                     <th class="min-w-32 md:w-32 text-right">
-                                        金額 <span class="text-error ml-1">*</span>
+                                        金額<span class="text-error ml-1">*</span>
                                     </th>
-                                    <th class="min-w-56 md:w-56">税区分</th>
-                                    <th class="min-w-56 md:w-56">摘要</th>
-                                    <th class="w-14">操作</th>
+                                    <th class="min-w-48 md:w-48">税区分</th>
+                                    <th class="min-w-48 md:w-48">摘要</th>
+                                    <th class="w-12">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="meisai-rows" class="divide-y divide-base-200/50">
@@ -98,7 +102,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- Add Row Trigger (HTMX) -->
+                    <!-- Add Row -->
                     <div class="bg-base-100 p-4 border-t border-base-300">
                         <button type="button"
                                 hx-get="{% url 'journal:add-row' %}"
@@ -114,20 +118,17 @@
             </div>
             <!-- Action Buttons -->
             <div class="mt-4 flex items-center justify-end">
-                <!-- Delete Button (Only visible when editing an existing entry) -->
                 <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                    <!-- After deleting action, close the modal and redirect to the denpyo list page -->
                     {% if not is_new %}
                         <button type="button"
                                 hx-get="{% url 'journal:denpyo-delete' denpyo.pk %}"
                                 hx-target="body"
                                 hx-swap="beforeend"
-                                class="btn btn-error btn-outline gap-2 px-4 w-auto">
-                            <i class="fa-solid fa-trash-can"></i>
-                            伝票を削除
+                                class="btn btn-error btn-outline gap-2">
+                            <i class="fa-solid fa-trash-can"></i>伝票を削除
                         </button>
                     {% endif %}
-                    <a href="{% url 'journal:denpyo-list' %}" class="btn-cancel">キャンセル</a>
+                    <a href="{% url 'journal:shiwake-list' %}" class="btn-cancel">キャンセル</a>
                     <button type="submit" class="btn-save" :disabled="!isBalanced()">
                         <i class="fa-regular fa-floppy-disk"></i>保存
                     </button>
@@ -136,6 +137,6 @@
         </form>
     </div>
     {% block extra_scripts %}
-        {% include "journal/partials/denpyo_scripts.html" %}
+        {% include "journal/partials/shiwake_scripts.html" %}
     {% endblock extra_scripts %}
 {% endblock content %}

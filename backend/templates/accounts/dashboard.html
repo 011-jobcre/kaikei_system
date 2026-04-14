@@ -96,9 +96,13 @@
                     <div class="card-body p-5">
                         <h2 class="text-sm font-bold mb-4">クイックアクセス</h2>
                         <div class="grid grid-cols-1 gap-2">
-                            <a href="{% url 'journal:denpyo-create' %}"
+                            <a href="{% url 'journal:shiwake-create' %}"
                                class="btn btn-sm btn-secondary gap-2 normal-case">
-                                <i class="fa-solid fa-plus"></i>伝票入力
+                                <i class="fa-solid fa-book"></i>仕訳日記帳（入力）
+                            </a>
+                            <a href="{% url 'journal:furikae-create' %}"
+                               class="btn btn-sm btn-secondary gap-2 normal-case">
+                                <i class="fa-solid fa-arrow-right-arrow-left"></i>振替伝票（入力）
                             </a>
                             <a href="{% url 'ledger:genkin' %}"
                                class="btn btn-sm btn-ghost bg-white/10 hover:bg-white/20 gap-2 normal-case">
@@ -152,7 +156,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="text-right">
-                                        <a href="{% url 'journal:denpyo-update' v.pk %}"
+                                        <a href="{{ v.get_edit_url }}"
                                            class="btn btn-ghost btn-xs text-primary">
                                             詳細<i class="fa-solid fa-chevron-right ml-1"></i>
                                         </a>

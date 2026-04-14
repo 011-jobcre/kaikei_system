@@ -9,7 +9,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class KanjoKamokuMaster(BaseModel):
-    """Chart of Accounts (Account Master)"""
+    """Account Master"""
 
     TAISHA_KUBUN_CHOICES = [
         ("SHISAN", "資産"),
@@ -19,32 +19,28 @@ class KanjoKamokuMaster(BaseModel):
         ("HIYO", "費用"),
     ]
 
-    # Debit-balance accounts: Assets & Expenses
-    # Credit-balance accounts: Liabilities, Equity & Revenue
+    # Debit-balance accounts: 資産: Assets, 費用: Expenses
+    # Credit-balance accounts: 負債: Liabilities, 純資産: Equity, 収益: Revenue
     KARI_ZANDAKA = {"SHISAN", "HIYO"}
     KASHI_ZANDAKA = {"FUSAI", "JUNSHISAN", "SHUEKI"}
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="科目コード")
-    name = models.CharField(max_length=100, verbose_name="科目名")
+    code = models.CharField(verbose_name="勘定科目コード", max_length=10, unique=True)
+    name = models.CharField(verbose_name="勘定科目名", max_length=100)
+    # search_name = models.CharField(verbose_name="検索名", max_length=100, blank=True)
     level = models.PositiveSmallIntegerField(verbose_name="レベル", blank=True)
     parent = models.ForeignKey(
         "self",
-        null=True,
-        blank=True,
+        verbose_name="親勘定科目",
         on_delete=models.CASCADE,
         related_name="children",
-        verbose_name="親科目",
-    )
-    taisha_kubun = models.CharField(
-        max_length=20,
-        choices=TAISHA_KUBUN_CHOICES,
-        verbose_name="科目属性（貸借区分）",
+        null=True,
         blank=True,
     )
-    is_active = models.BooleanField(default=True, verbose_name="有効")
+    taisha_kubun = models.CharField(verbose_name="貸借区分", max_length=20, choices=TAISHA_KUBUN_CHOICES, blank=True)
+    is_active = models.BooleanField(verbose_name="有効", default=True)
 
     class Meta:
-        verbose_name = "勘定科目"
+        verbose_name = "勘定科目マスタ"
         verbose_name_plural = "勘定科目マスタ"
         ordering = ["code"]
 
@@ -95,20 +91,48 @@ class KanjoKamokuMaster(BaseModel):
         return keys.get(self.taisha_kubun, "neutral")
 
 
+class HojoKamokuMaster(BaseModel):
+    """Sub-account Master — provides finer detail beneath a main account.
+    Examples:
+        - Bank account: 普通預金 → みずほ銀行, 三菱UFJ銀行
+        - Expense type: 旅費交通費 → 電車代, タクシー代
+    """
+
+    kamoku = models.ForeignKey(
+        KanjoKamokuMaster,
+        verbose_name="勘定科目",
+        on_delete=models.CASCADE,
+        related_name="hojo_set",
+        limit_choices_to={"level": 4, "is_active": True},
+    )
+    code = models.CharField(verbose_name="補助科目コード", max_length=10)
+    name = models.CharField(verbose_name="補助科目名", max_length=100)
+    is_active = models.BooleanField(verbose_name="有効", default=True)
+
+    class Meta:
+        verbose_name = "補助科目マスタ"
+        verbose_name_plural = "補助科目マスタ"
+        ordering = ["kamoku__code", "code"]
+        # Code must be unique within the parent account
+        unique_together = [["kamoku", "code"]]
+
+    def __str__(self):
+        return f"{self.kamoku.code}-{self.code} {self.name}"
+
+
 class BumonMaster(BaseModel):
     """Department Master"""
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="部門コード")
-    name = models.CharField(max_length=100, verbose_name="部門名")
-    manager_name = models.CharField(max_length=100, blank=True, verbose_name="担当者名")
-    annual_budget = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="年間予算")
-    is_active = models.BooleanField(default=True, verbose_name="有効")
-    order_no = models.PositiveIntegerField(default=0, verbose_name="表示順")
+    code = models.CharField(verbose_name="部門コード", max_length=10, unique=True)
+    name = models.CharField(verbose_name="部門名", max_length=100)
+    manager_name = models.CharField(verbose_name="担当者名", max_length=100, blank=True)
+    annual_budget = models.DecimalField(verbose_name="年間予算", max_digits=15, decimal_places=2, null=True, blank=True)
+    is_active = models.BooleanField(verbose_name="有効", default=True)
 
     class Meta:
-        verbose_name = "部門"
+        verbose_name = "部門マスタ"
         verbose_name_plural = "部門マスタ"
-        ordering = ["order_no", "code"]
+        ordering = ["code"]
 
     def __str__(self):
         return f"{self.code} {self.name}"
@@ -117,26 +141,26 @@ class BumonMaster(BaseModel):
 class ZeiMaster(BaseModel):
     """Consumption Tax Rate Master"""
 
-    zei_name = models.CharField(max_length=100, verbose_name="税区分名")
-    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name="税率(%)")
-    is_active = models.BooleanField(default=True, verbose_name="有効")
+    zei_name = models.CharField(verbose_name="税区分名", max_length=100)
+    tax_rate = models.DecimalField(verbose_name="税率（%）", max_digits=5, decimal_places=2, default=0)
+    is_active = models.BooleanField(verbose_name="有効", default=True)
     valid_from = models.DateField(
-        null=True,
-        blank=True,
         verbose_name="適用開始日",
         validators=[MinValueValidator(limit_value=datetime.date(1900, 1, 1))],
-    )
-    valid_to = models.DateField(
         null=True,
         blank=True,
+    )
+    valid_to = models.DateField(
         verbose_name="適用終了日",
         validators=[MaxValueValidator(limit_value=datetime.date(2100, 12, 31))],
+        null=True,
+        blank=True,
     )
-    order_no = models.PositiveIntegerField(default=0, verbose_name="表示順")
+    order_no = models.PositiveIntegerField(verbose_name="表示順", default=0)
 
     class Meta:
-        verbose_name = "税区分"
-        verbose_name_plural = "消費税率マスタ"
+        verbose_name = "税マスタ"
+        verbose_name_plural = "税マスタ"
         ordering = ["order_no"]
 
     def __str__(self):
@@ -146,15 +170,15 @@ class ZeiMaster(BaseModel):
 class TorihikiSakiMaster(BaseModel):
     """Business Partner Master (Customers / Suppliers)"""
 
-    code = models.CharField(max_length=10, unique=True, verbose_name="取引先コード")
-    name = models.CharField(max_length=100, verbose_name="取引先名")
-    address = models.TextField(blank=True, verbose_name="住所")
-    phone = models.CharField(max_length=20, blank=True, verbose_name="電話番号")
-    email = models.EmailField(blank=True, verbose_name="メールアドレス")
-    is_active = models.BooleanField(default=True, verbose_name="有効")
+    code = models.CharField(verbose_name="取引先コード", max_length=10, unique=True)
+    name = models.CharField(verbose_name="取引先名", max_length=100)
+    address = models.TextField(verbose_name="住所", blank=True)
+    phone = models.CharField(verbose_name="電話番号", max_length=20, blank=True)
+    email = models.EmailField(verbose_name="メールアドレス", blank=True)
+    is_active = models.BooleanField(verbose_name="有効", default=True)
 
     class Meta:
-        verbose_name = "取引先"
+        verbose_name = "取引先マスタ"
         verbose_name_plural = "取引先マスタ"
         ordering = ["code"]
 

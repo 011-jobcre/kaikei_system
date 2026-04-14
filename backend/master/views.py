@@ -8,8 +8,8 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from common.permissions import AdminRequiredMixin
 
-from .forms import BumonForm, KanjoKamokuForm, TorihikiSakiForm, ZeiForm
-from .models import BumonMaster, KanjoKamokuMaster, TorihikiSakiMaster, ZeiMaster
+from .forms import BumonForm, HojoKamokuForm, KanjoKamokuForm, TorihikiSakiForm, ZeiForm
+from .models import BumonMaster, HojoKamokuMaster, KanjoKamokuMaster, TorihikiSakiMaster, ZeiMaster
 
 
 # =========================================================
@@ -430,6 +430,101 @@ class TorihikiSakiDeleteView(AdminRequiredMixin, DeleteView):
             messages.error(
                 self.request,
                 "この取引先はすでに仕訳に使用されているため削除できません。",
+            )
+            if self.request.htmx:
+                return render(self.request, self.template_name, self.get_context_data())
+            return self.get(self.request)
+
+
+# =========================================================
+# Sub-account Master (補助科目マスタ)
+# =========================================================
+
+
+class HojoKamokuListView(LoginRequiredMixin, HtmxListMixin, ListView):
+    """List all sub-accounts with optional filters by parent account or keyword."""
+
+    model = HojoKamokuMaster
+    template_name = "master/hojo_list.html"
+    partial_template_name = "master/partials/hojo_table.html"
+    context_object_name = "hojo_list"
+    paginate_by = 30
+
+    def get_queryset(self):
+        qs = HojoKamokuMaster.objects.select_related("kamoku")
+        q = self.request.GET.get("q", "")
+        kamoku_id = self.request.GET.get("kamoku", "")
+        if q:
+            qs = qs.filter(code__icontains=q) | qs.filter(name__icontains=q)
+        if kamoku_id:
+            qs = qs.filter(kamoku_id=kamoku_id)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["q"] = self.request.GET.get("q", "")
+        ctx["kamoku_id"] = self.request.GET.get("kamoku", "")
+        ctx["kamoku_choices"] = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
+        return ctx
+
+
+class HojoKamokuCreateView(AdminRequiredMixin, HtmxModalMixin, CreateView):
+    """Modal form to create a new sub-account."""
+
+    model = HojoKamokuMaster
+    form_class = HojoKamokuForm
+    template_name = "master/partials/form_modal.html"
+    success_url = reverse_lazy("master:hojo-list")
+    action_name = "新規登録"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["title"] = "補助科目 新規登録"
+        ctx["action_url"] = reverse_lazy("master:hojo-create")
+        return ctx
+
+
+class HojoKamokuUpdateView(AdminRequiredMixin, HtmxModalMixin, UpdateView):
+    """Modal form to edit an existing sub-account."""
+
+    model = HojoKamokuMaster
+    form_class = HojoKamokuForm
+    template_name = "master/partials/form_modal.html"
+    success_url = reverse_lazy("master:hojo-list")
+    action_name = "更新"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["title"] = "補助科目 編集"
+        ctx["action_url"] = reverse_lazy("master:hojo-update", args=[self.object.pk])
+        return ctx
+
+
+class HojoKamokuDeleteView(AdminRequiredMixin, DeleteView):
+    """Confirms and processes deletion of a sub-account."""
+
+    model = HojoKamokuMaster
+    template_name = "master/partials/delete_confirm.html"
+    success_url = reverse_lazy("master:hojo-list")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["delete_url"] = reverse_lazy("master:hojo-delete", args=[self.object.pk])
+        return ctx
+
+    def form_valid(self, form):
+        try:
+            obj = self.get_object()
+            name = str(obj)
+            obj.delete()
+            messages.success(self.request, f"「{name}」を削除しました。")
+            if self.request.htmx:
+                return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
+            return redirect(self.success_url)
+        except ProtectedError:
+            messages.error(
+                self.request,
+                "この補助科目はすでに仕訳に使用されているため削除できません。",
             )
             if self.request.htmx:
                 return render(self.request, self.template_name, self.get_context_data())

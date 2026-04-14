@@ -1,6 +1,5 @@
-<!-- Kanjo (Chart of Accounts) data table partial.
-     Reloaded automatically via HTMX when the 'refreshList' event fires
-     (e.g. after a modal create/edit/delete succeeds).                    -->
+<!-- Account (Kanjo Kamoku) data table partial.
+     Reloaded automatically via HTMX when the 'refreshList' event fires. -->
 <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden"
      hx-get="{% url 'master:kanjo-list' %}"
      hx-trigger="refreshList from:body"
@@ -10,10 +9,10 @@
             <thead>
                 <tr>
                     <th class="w-28">コード</th>
-                    <th class="min-w-44">科目名</th>
+                    <th class="min-w-44">勘定科目名</th>
                     <th class="w-28 text-center">分類</th>
                     <th class="w-40 text-center">貸借区分</th>
-                    <th class="w-28 text-center">有効</th>
+                    <th class="w-28 text-center">ステータス</th>
                     {% if is_admin %}<th class="w-28 text-center">操作</th>{% endif %}
                 </tr>
             </thead>
@@ -25,11 +24,11 @@
                             {% if obj.level == 1 %}
                                 <span class="text-primary font-semibold">{{ obj.name }}</span>
                             {% elif obj.level == 2 %}
-                                <span class="pl-5 text-secondary font-semibold">{{ obj.name }}</span>
+                                <span class="pl-4 text-secondary font-semibold">{{ obj.name }}</span>
                             {% elif obj.level == 3 %}
-                                <span class="pl-10 text-accent font-semibold">{{ obj.name }}</span>
+                                <span class="pl-8 text-accent font-semibold">{{ obj.name }}</span>
                             {% else %}
-                                <span class="pl-14 text-neutral">{{ obj.name }}</span>
+                                <span class="pl-12">{{ obj.name }}</span>
                             {% endif %}
                         </td>
                         <!-- Hierarchy level badge -->
@@ -84,7 +83,8 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center">
+                        <td colspan="{% if is_admin %}6{% else %}5{% endif %}"
+                            class="text-center">
                             <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
                             データがありません
                         </td>
