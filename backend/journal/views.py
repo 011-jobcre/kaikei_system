@@ -38,8 +38,8 @@ class ShiwakeIchiranView(LoginRequiredMixin, HtmxListMixin, ListView):
     """
 
     model = ShiwakeDenpyo
-    template_name = "journal/ichiran_list.html"
-    partial_template_name = "journal/partials/ichiran_table.html"
+    template_name = "journal/shiwake_list.html"
+    partial_template_name = "journal/partials/shiwake_table.html"
     context_object_name = "denpyo_list"
     paginate_by = 30
 

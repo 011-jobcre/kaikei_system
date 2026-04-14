@@ -30,11 +30,14 @@
                            class="input text-neutral w-full md:w-40" />
                 </div>
                 <!-- Voucher type filter -->
-                <select name="denpyo_type" class="select text-neutral w-full md:w-32">
-                    <option value=""        {% if not denpyo_type %}selected{% endif %}>全種別</option>
-                    <option value="SHIWAKE" {% if denpyo_type == "SHIWAKE" %}selected{% endif %}>仕訳</option>
-                    <option value="FURIKAE" {% if denpyo_type == "FURIKAE" %}selected{% endif %}>振替</option>
-                </select>
+                <label class="select cursor-pointer w-full md:w-1/5">
+                    <span class="label min-w-20">伝票種別</span>
+                    <select name="denpyo_type">
+                        <option value="">全種別</option>
+                        <option value="SHIWAKE" {% if denpyo_type == "SHIWAKE" %}selected{% endif %}>仕訳</option>
+                        <option value="FURIKAE" {% if denpyo_type == "FURIKAE" %}selected{% endif %}>振替</option>
+                    </select>
+                </label>
                 <div class="flex items-center gap-2 w-full md:w-auto justify-end md:justify-start">
                     <button type="submit" class="btn-search">
                         <i class="fa-solid fa-magnifying-glass"></i>検索
@@ -44,19 +47,19 @@
             </form>
             <!-- Create buttons -->
             {% if is_accountant %}
-                <div class="flex gap-2 w-full md:w-auto">
+                <div class="flex gap-2 items-center justify-end">
                     <a href="{% url 'journal:shiwake-create' %}"
                        class="btn btn-primary gap-2 flex-1 md:flex-none">
-                        <i class="fa-solid fa-plus"></i>仕訳日記帳
+                        <i class="fa-solid fa-book"></i>仕訳日記帳
                     </a>
                     <a href="{% url 'journal:furikae-create' %}"
-                       class="btn btn-accent btn-outline gap-2 flex-1 md:flex-none">
+                       class="btn btn-primary gap-2 flex-1 md:flex-none">
                         <i class="fa-solid fa-arrow-right-arrow-left"></i>振替伝票
                     </a>
                 </div>
             {% endif %}
         </div>
-        <!-- Data Table -->
-        {% include "journal/partials/ichiran_table.html" %}
+        <!-- Data Table: HTMX-enabled for dynamic updates -->
+        {% include "journal/partials/shiwake_table.html" %}
     </div>
 {% endblock content %}
