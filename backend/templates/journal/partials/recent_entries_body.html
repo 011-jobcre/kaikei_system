@@ -1,0 +1,16 @@
+{% load number_filters %}
+{% for d in recent_shiwake %}
+    <tr class="opacity-70 hover:opacity-100 transition-opacity">
+        <td class="whitespace-nowrap">{{ d.date|date:"Y/m/d" }}</td>
+        <td class="font-mono">{{ d.denpyo_no }}</td>
+        <td>{{ d.meisai.all.0.kamoku.name }}</td>
+        <td>{{ d.meisai.all.1.kamoku.name }}</td>
+        <td class="text-right font-bold">¥{{ d.meisai.all.0.kingaku|format_number }}</td>
+        <td class="text-right font-bold">¥{{ d.meisai.all.1.kingaku|format_number }}</td>
+        <td class="truncate max-w-xs">{{ d.memo }}</td>
+    </tr>
+{% empty %}
+    <tr>
+        <td colspan="7" class="text-center py-4 opacity-50 italic">登録された仕訳はありません</td>
+    </tr>
+{% endfor %}

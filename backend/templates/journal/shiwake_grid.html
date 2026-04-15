@@ -1,107 +1,152 @@
 {% extends "layout_main.html" %}
 {% load static %}
 {% load number_filters %}
-
 {% block page_header %}
     仕訳日記帳
 {% endblock page_header %}
-
 {% block content %}
-<div class="h-full flex flex-col space-y-4" x-data="shiwakeGrid()">
-    
-    <!-- ── Grid Header / Info ────────────────────────────────────────────────── -->
-    <div class="flex items-center justify-between bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
-        <div class="flex items-center gap-4">
-            <div class="badge badge-primary font-bold">Yayoi Logic</div>
-            <p class="text-sm opacity-70">標準は1:1入力です。必要に応じて複式モードへ切り替えできます。</p>
+    <div class="space-y-4" x-data="shiwakeGrid()">
+        <!-- ── Grid Header / Info ────────────────────────────────────────────────── -->
+        <div class="flex justify-end bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
+            <div class="flex gap-2 items-center justify-end">
+                <button type="button"
+                        hx-get="{% url 'journal:add-grid-row' %}"
+                        hx-vals="js:{row_index: getNextRowIndex()}"
+                        hx-target="#grid-rows"
+                        hx-swap="beforeend"
+                        class="btn btn-primary btn-outline gap-2">
+                    <i class="fa-solid fa-plus"></i>行追加
+                </button>
+                <a href="{% url 'journal:furikae-create' %}"
+                   class="btn btn-primary btn-outline gap-2">
+                    <i class="fa-solid fa-toggle-on"></i>伝票へ切替
+                </a>
+            </div>
         </div>
-        <div class="flex gap-2">
-            <a href="{% url 'journal:furikae-create' %}" class="btn btn-sm btn-secondary">
-                <i class="fa-solid fa-toggle-on mr-1"></i>複式仕訳へ切替
-            </a>
+        <div x-show="globalError"
+             x-cloak
+             class="alert alert-error text-sm shadow-sm">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span x-text="globalError"></span>
         </div>
-    </div>
-
-    <!-- ── The Grid ──────────────────────────────────────────────────────────── -->
-    <div class="flex-1 overflow-auto bg-base-100 rounded-box shadow-lg border border-base-300">
-        <table class="table table-xs table-pin-rows table-pin-cols w-full border-collapse">
-            <thead class="bg-base-200">
-                <tr class="text-center font-bold text-base-content/70">
-                    <th class="w-32 border-r border-base-300">日付</th>
-                    <th class="w-36 border-r border-base-300">伝票No</th>
-                    <th class="w-48 border-r border-base-300 bg-info/5">借方科目</th>
-                    <th class="w-40 border-r border-base-300 bg-info/5">借方補助</th>
-                    <th class="w-32 border-r border-base-300">借方金額</th>
-                    <th class="w-40 border-r border-base-300">借方税区分</th>
-                    <th class="w-48 border-r border-base-300 bg-warning/5">貸方科目</th>
-                    <th class="w-40 border-r border-base-300 bg-warning/5">貸方補助</th>
-                    <th class="w-32 border-r border-base-300">貸方金額</th>
-                    <th class="w-40 border-r border-base-300">貸方税区分</th>
-                    <th class="border-base-300">摘要(明細)</th>
-                    <th class="w-16">操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for form in rows %}
-                    <tr class="hover:bg-base-200/50 transition-colors border-b border-base-200"
-                        id="row-{{ forloop.index0 }}"
-                        hx-target="#row-{{ forloop.index0 }}"
-                        hx-swap="outerHTML">
-                        {% include "journal/partials/grid_row_form.html" with form=form row_index=forloop.index0 %}
+        <!-- ── The Grid ──────────────────────────────────────────────────────────── -->
+        <div class="flex-1 overflow-auto bg-base-100 rounded-box shadow-lg border border-base-300">
+            <table class="table table-xs table-pin-rows table-pin-cols w-full border-collapse">
+                <thead class="bg-base-200">
+                    <tr class="text-center font-bold text-base-content/70">
+                        <th class="w-32 border-r border-base-300">日付</th>
+                        <th class="w-48 border-r border-base-300 bg-info/5">借方科目</th>
+                        <th class="w-40 border-r border-base-300 bg-info/5">借方補助</th>
+                        <th class="w-32 border-r border-base-300">借方金額</th>
+                        <th class="w-40 border-r border-base-300">借方税区分</th>
+                        <th class="w-48 border-r border-base-300 bg-warning/5">貸方科目</th>
+                        <th class="w-40 border-r border-base-300 bg-warning/5">貸方補助</th>
+                        <th class="w-32 border-r border-base-300">貸方金額</th>
+                        <th class="w-40 border-r border-base-300">貸方税区分</th>
+                        <th class="border-base-300">摘要(明細)</th>
+                        <th class="w-16">操作</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- ── Recent History (Peek) ──────────────────────────────────────────────── -->
-    <div class="card bg-base-100 shadow-sm border border-base-300">
-        <div class="card-body p-0">
-            <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between">
-                <h3 class="text-xs font-bold uppercase tracking-wider opacity-60">最近の登録内容</h3>
-                <span class="text-[10px] opacity-40">最新10件を表示</span>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="table table-xs w-full">
-                    <thead>
-                        <tr>
-                            <th>日付</th>
-                            <th>No</th>
-                            <th>借方</th>
-                            <th>貸方</th>
-                            <th class="text-right">借方金額</th>
-                            <th class="text-right">貸方金額</th>
-                            <th>摘要</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recent-entries-tbody">
-                        {% for d in recent_shiwake %}
-                            <tr class="opacity-70 hover:opacity-100">
-                                <td class="whitespace-nowrap">{{ d.date|date:"Y/m/d" }}</td>
-                                <td class="font-mono">{{ d.denpyo_no }}</td>
-                                <td>{{ d.meisai.all.0.kamoku.name }}</td>
-                                <td>{{ d.meisai.all.1.kamoku.name }}</td>
-                                <td class="text-right font-bold">¥{{ d.meisai.all.0.kingaku|format_number }}</td>
-                                <td class="text-right font-bold">¥{{ d.meisai.all.1.kingaku|format_number }}</td>
-                                <td class="truncate max-w-xs">{{ d.memo }}</td>
+                </thead>
+                <tbody id="grid-rows">
+                    {% for form in rows %}
+                        {% include "journal/partials/grid_row_wrap.html" with form=form row_index=forloop.index0 %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- ── Recent History (Peek) ──────────────────────────────────────────────── -->
+        <div class="card bg-base-100 shadow-sm border border-base-300">
+            <div class="card-body p-0">
+                <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between">
+                    <h3 class="text-xs font-bold uppercase tracking-wider opacity-60">最近の登録内容</h3>
+                    <span class="text-[10px] opacity-40">最新10件を表示</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="table table-xs w-full">
+                        <thead>
+                            <tr>
+                                <th>日付</th>
+                                <th>No</th>
+                                <th>借方</th>
+                                <th>貸方</th>
+                                <th class="text-right">借方金額</th>
+                                <th class="text-right">貸方金額</th>
+                                <th>摘要</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody id="recent-entries-tbody"
+                               hx-get="{% url 'journal:recent-shiwake-entries' %}"
+                               hx-trigger="refreshRecentEntries from:body"
+                               hx-swap="innerHTML">
+                            {% include "journal/partials/recent_entries_body.html" %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-
-</div>
-
-<script>
+    <script>
 function shiwakeGrid() {
     return {
+        validationTick: 0,
+        globalError: "",
+        deleteRow(rowIdx) {
+            const row = document.getElementById(`row-${rowIdx}`);
+            if (row) {
+                row.remove();
+                this.updateGlobalError();
+            }
+        },
+        getNextRowIndex() {
+            // Find max index to avoid collisions
+            const rows = document.querySelectorAll('#grid-rows > tr[id^="row-"]');
+            let maxIdx = -1;
+            rows.forEach(r => {
+                const idx = parseInt(r.id.replace('row-', ''));
+                if (!isNaN(idx) && idx > maxIdx) maxIdx = idx;
+            });
+            return maxIdx + 1;
+        },
         init() {
+            if (typeof initTomSelects === 'function') {
+                initTomSelects();
+            }
+            this.applyDefaultDate();
+            this.updateGlobalError();
             // Focus the first input on load
             this.$nextTick(() => {
                 const firstInput = document.querySelector('.grid-input, .grid-select');
                 if (firstInput) firstInput.focus();
+            });
+            document.body.addEventListener('htmx:afterSwap', (evt) => {
+                if (typeof initTomSelects === 'function') {
+                    initTomSelects();
+                }
+                this.applyDefaultDate();
+                const target = evt.detail && evt.detail.target ? evt.detail.target : null;
+                if (target && target.id && target.id.startsWith('row-')) {
+                    const serverErr = target.querySelector('.server-row-error')?.textContent?.trim();
+                    this.globalError = serverErr || this.getFirstRowError();
+                } else if (target && (target.id === 'grid-rows' || target.id === 'recent-entries-tbody')) {
+                    this.globalError = this.getFirstRowError();
+                }
+                this.validationTick++;
+            });
+            document.body.addEventListener('input', (e) => {
+                this.validationTick++;
+            });
+            document.body.addEventListener('change', (e) => {
+                this.validationTick++;
+            });
+            // Handle specific refresh event from server
+            document.body.addEventListener('refreshHistory', () => {
+                htmx.trigger('#recent-entries-tbody', 'refreshRecentEntries');
+            });
+        },
+        applyDefaultDate() {
+            const today = new Date().toISOString().slice(0, 10);
+            document.querySelectorAll('#grid-rows input[name$="-date"]').forEach((el) => {
+                if (!el.value) el.value = today;
             });
         },
         handleKey(e, rowIdx, colIdx) {
@@ -127,12 +172,77 @@ function shiwakeGrid() {
         focusCell(row, col) {
             const el = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
             if (el) el.focus();
+        },
+        isRowBalanced(rowIdx) {
+            const row = document.getElementById(`row-${rowIdx}`);
+            if (!row) return false;
+            const kari = parseFloat(row.querySelector('input[name$="-kari_kingaku"]')?.value || "0");
+            const kashi = parseFloat(row.querySelector('input[name$="-kashi_kingaku"]')?.value || "0");
+            return kari > 0 && kashi > 0 && kari === kashi;
+        },
+        rowHasAnyInput(row) {
+            if (!row) return false;
+            const selectors = [
+                'select[name$="-kari_kamoku"]',
+                'select[name$="-kashi_kamoku"]',
+                'input[name$="-kari_kingaku"]',
+                'input[name$="-kashi_kingaku"]',
+                'input[name$="-tekiyou"]'
+            ];
+            return selectors.some((selector) => {
+                const el = row.querySelector(selector);
+                return el && `${el.value || ''}`.trim() !== '';
+            });
+        },
+        getRowError(rowIdx, enforceRequired = false) {
+            const row = document.getElementById(`row-${rowIdx}`);
+            if (!row) return "";
+            if (!enforceRequired && !this.rowHasAnyInput(row)) return "";
+            const date = row.querySelector('input[name$="-date"]')?.value;
+            const kariKamoku = row.querySelector('select[name$="-kari_kamoku"]')?.value;
+            const kashiKamoku = row.querySelector('select[name$="-kashi_kamoku"]')?.value;
+            const kariRaw = row.querySelector('input[name$="-kari_kingaku"]')?.value;
+            const kashiRaw = row.querySelector('input[name$="-kashi_kingaku"]')?.value;
+            const kari = parseFloat(kariRaw || "0");
+            const kashi = parseFloat(kashiRaw || "0");
+
+            if (!date || !kariKamoku || !kashiKamoku) return `行 ${rowIdx + 1}: 必須項目を入力してください。`;
+            if (!kariRaw || !kashiRaw || kari <= 0 || kashi <= 0) return `行 ${rowIdx + 1}: 借方金額・貸方金額は0より大きい値が必要です。`;
+            if (kari !== kashi) return `行 ${rowIdx + 1}: 借方金額と貸方金額が一致していません。`;
+            return "";
+        },
+        getFirstRowError() {
+            const rows = document.querySelectorAll('#grid-rows > tr[id^="row-"]');
+            for (const row of rows) {
+                const rowIdx = parseInt(row.id.replace('row-', ''), 10);
+                const errorMsg = this.getRowError(rowIdx);
+                if (errorMsg) return errorMsg;
+            }
+            return "";
+        },
+        updateGlobalError() {
+            this.globalError = this.getFirstRowError();
+        },
+        rowHasError(rowIdx) {
+            return this.getRowError(rowIdx) !== "";
+        },
+        validateBeforeSubmit(e, rowIdx) {
+            const errorMsg = this.getRowError(rowIdx, true);
+            this.globalError = errorMsg;
+            if (errorMsg) {
+                e.preventDefault();
+                return false;
+            }
+            return true;
         }
     }
 }
-</script>
 
-<style>
+function getNextGridRowIndex() {
+    return document.querySelectorAll('#grid-rows > tr[id^="row-"]').length;
+}
+    </script>
+    <style>
 /* spreadsheet-like input styling */
 .grid-input, .grid-select {
     @apply w-full bg-transparent border-none focus:ring-1 focus:ring-primary focus:bg-primary/5 px-2 py-1 transition-all text-xs outline-none;
@@ -141,5 +251,9 @@ function shiwakeGrid() {
     background-color: white !important;
     box-shadow: inset 0 0 0 2px theme('colors.primary.DEFAULT') !important;
 }
-</style>
+.input-invalid {
+    background-color: theme('colors.error.DEFAULT' / 0.05) !important;
+    box-shadow: inset 0 0 0 1px theme('colors.error.DEFAULT' / 0.3) !important;
+}
+    </style>
 {% endblock content %}

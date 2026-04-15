@@ -1,83 +1,162 @@
-<form hx-post="{% url 'journal:shiwake-create' %}" 
-      hx-trigger="keyup[key=='Enter']"
-      hx-swap="outerHTML" 
-      class="contents"
-      x-data="{ rowIdx: {{ row_index|default:0 }} }">
     {% csrf_token %}
     <td class="p-0 border-r border-base-300">
-        <input type="date" name="date" value="{{ form.date.value|default:'' }}" 
-               class="grid-input" data-row="{{ row_index|default:0 }}" data-col="0"
-               @keyup="handleKey($event, {{ row_index|default:0 }}, 0)">
-    </td>
-    <td class="p-0 border-r border-base-300">
-        <input type="text" value="自動採番" class="grid-input opacity-50" readonly tabindex="-1">
+        <input type="date"
+               name="{{ form.date.html_name }}"
+               value="{{ form.date.value|default:'' }}"
+               class="grid-input"
+               data-row="{{ row_index|default:0 }}"
+               data-col="0"
+               @keyup="handleKey($event, {{ row_index|default:0 }}, 0)" />
     </td>
     <td class="p-0 border-r border-base-300 bg-info/5">
-        <select name="kari_kamoku" class="grid-select" data-row="{{ row_index|default:0 }}" data-col="1"
+        <select name="{{ form.kari_kamoku.html_name }}"
+                class="grid-select tomselect"
+                :class="{ 'input-invalid': validationTick && !($el.value) }"
+                data-row="{{ row_index|default:0 }}"
+                data-col="1"
                 @keyup="handleKey($event, {{ row_index|default:0 }}, 1)">
             {% for choice in form.kari_kamoku.field.choices %}
-                <option value="{{ choice.0 }}" {% if form.kari_kamoku.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                <option value="{{ choice.0 }}"
+                        {% if form.kari_kamoku.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
+                    {{ choice.1 }}
+                </option>
             {% endfor %}
         </select>
     </td>
     <td class="p-0 border-r border-base-300 bg-info/5">
-        <select name="kari_hojo" class="grid-select" data-row="{{ row_index|default:0 }}" data-col="2"
+        <select name="{{ form.kari_hojo.html_name }}"
+                class="grid-select tomselect"
+                data-row="{{ row_index|default:0 }}"
+                data-col="2"
                 @keyup="handleKey($event, {{ row_index|default:0 }}, 2)">
             {% for choice in form.kari_hojo.field.choices %}
-                <option value="{{ choice.0 }}" {% if form.kari_hojo.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                <option value="{{ choice.0 }}"
+                        {% if form.kari_hojo.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
+                    {{ choice.1 }}
+                </option>
             {% endfor %}
         </select>
     </td>
     <td class="p-0 border-r border-base-300">
-        <input type="number" name="kari_kingaku" value="{{ form.kari_kingaku.value|default:'' }}" 
-               class="grid-input text-right font-bold" data-row="{{ row_index|default:0 }}" data-col="3"
-               @keyup="handleKey($event, {{ row_index|default:0 }}, 3)">
+        <input type="number"
+               name="{{ form.kari_kingaku.html_name }}"
+               value="{{ form.kari_kingaku.value|default:'' }}"
+               class="grid-input text-right font-bold"
+               :class="{ 'input-invalid': validationTick && (!$el.value || parseFloat($el.value) <= 0) }"
+               data-row="{{ row_index|default:0 }}"
+               data-col="3"
+               @keyup="handleKey($event, {{ row_index|default:0 }}, 3)" />
     </td>
     <td class="p-0 border-r border-base-300">
-        <select name="kari_zei" class="grid-select" data-row="{{ row_index|default:0 }}" data-col="4"
+        <select name="{{ form.kari_zei.html_name }}"
+                class="grid-select tomselect"
+                data-row="{{ row_index|default:0 }}"
+                data-col="4"
                 @keyup="handleKey($event, {{ row_index|default:0 }}, 4)">
             {% for choice in form.kari_zei.field.choices %}
-                <option value="{{ choice.0 }}" {% if form.kari_zei.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                <option value="{{ choice.0 }}"
+                        {% if form.kari_zei.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
+                    {{ choice.1 }}
+                </option>
             {% endfor %}
         </select>
     </td>
     <td class="p-0 border-r border-base-300 bg-warning/5">
-        <select name="kashi_kamoku" class="grid-select" data-row="{{ row_index|default:0 }}" data-col="5"
+        <select name="{{ form.kashi_kamoku.html_name }}"
+                class="grid-select tomselect"
+                :class="{ 'input-invalid': validationTick && !($el.value) }"
+                data-row="{{ row_index|default:0 }}"
+                data-col="5"
                 @keyup="handleKey($event, {{ row_index|default:0 }}, 5)">
             {% for choice in form.kashi_kamoku.field.choices %}
-                <option value="{{ choice.0 }}" {% if form.kashi_kamoku.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                <option value="{{ choice.0 }}"
+                        {% if form.kashi_kamoku.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
+                    {{ choice.1 }}
+                </option>
             {% endfor %}
         </select>
     </td>
     <td class="p-0 border-r border-base-300 bg-warning/5">
-        <select name="kashi_hojo" class="grid-select" data-row="{{ row_index|default:0 }}" data-col="6"
+        <select name="{{ form.kashi_hojo.html_name }}"
+                class="grid-select tomselect"
+                data-row="{{ row_index|default:0 }}"
+                data-col="6"
                 @keyup="handleKey($event, {{ row_index|default:0 }}, 6)">
             {% for choice in form.kashi_hojo.field.choices %}
-                <option value="{{ choice.0 }}" {% if form.kashi_hojo.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                <option value="{{ choice.0 }}"
+                        {% if form.kashi_hojo.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
+                    {{ choice.1 }}
+                </option>
             {% endfor %}
         </select>
     </td>
     <td class="p-0 border-r border-base-300">
-        <input type="number" name="kashi_kingaku" value="{{ form.kashi_kingaku.value|default:'' }}" 
-               class="grid-input text-right font-bold" data-row="{{ row_index|default:0 }}" data-col="7"
-               @keyup="handleKey($event, {{ row_index|default:0 }}, 7)">
+        <input type="number"
+               name="{{ form.kashi_kingaku.html_name }}"
+               value="{{ form.kashi_kingaku.value|default:'' }}"
+               class="grid-input text-right font-bold"
+               :class="{ 'input-invalid': validationTick && (!$el.value || parseFloat($el.value) <= 0) }"
+               data-row="{{ row_index|default:0 }}"
+               data-col="7"
+               @keyup="handleKey($event, {{ row_index|default:0 }}, 7)" />
     </td>
     <td class="p-0 border-r border-base-300">
-        <select name="kashi_zei" class="grid-select" data-row="{{ row_index|default:0 }}" data-col="8"
+        <select name="{{ form.kashi_zei.html_name }}"
+                class="grid-select tomselect"
+                data-row="{{ row_index|default:0 }}"
+                data-col="8"
                 @keyup="handleKey($event, {{ row_index|default:0 }}, 8)">
             {% for choice in form.kashi_zei.field.choices %}
-                <option value="{{ choice.0 }}" {% if form.kashi_zei.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
+                <option value="{{ choice.0 }}"
+                        {% if form.kashi_zei.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
+                    {{ choice.1 }}
+                </option>
             {% endfor %}
         </select>
     </td>
     <td class="p-0 border-base-300">
-        <input type="text" name="tekiyou" value="{{ form.tekiyou.value|default:'' }}" 
-               class="grid-input" data-row="{{ row_index|default:0 }}" data-col="9"
-               @keyup="handleKey($event, {{ row_index|default:0 }}, 9)">
+        <input type="text"
+               name="{{ form.tekiyou.html_name }}"
+               value="{{ form.tekiyou.value|default:'' }}"
+               class="grid-input"
+               data-row="{{ row_index|default:0 }}"
+               data-col="9"
+               @keyup="handleKey($event, {{ row_index|default:0 }}, 9)" />
     </td>
-    <td class="text-center p-0">
-        <button type="submit" class="btn btn-ghost btn-xs text-primary" title="保存 (Enter)">
-            <i class="fa-solid fa-save"></i>
-        </button>
+    <input type="hidden" name="_row_prefix" value="row-{{ row_index|default:0 }}">
+    <td class="text-center p-0 relative">
+        <div class="flex items-center justify-center gap-1 h-full py-1">
+            <button type="button"
+                    class="btn btn-ghost btn-xs text-primary"
+                    :class="{ 'opacity-20 cursor-not-allowed': rowHasError({{ row_index|default:0 }}) }"
+                    @click="if (!rowHasError({{ row_index|default:0 }})) $dispatch('submit-row', {rowIdx: {{ row_index|default:0 }}})"
+                    title="保存">
+                <i class="fa-solid fa-save"></i>
+            </button>
+            <button type="button"
+                    class="btn btn-ghost btn-xs text-error"
+                    @click="deleteRow({{ row_index|default:0 }})"
+                    title="行削除">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+        </div>
+        <!-- Real-time Validation Tooltip/Icon -->
+        <template x-if="rowHasError({{ row_index|default:0 }})">
+            <div class="absolute right-0 top-0 mt-1 mr-1 z-10">
+                <div class="badge badge-error badge-xs p-1 tooltip tooltip-left" :data-tip="getRowError({{ row_index|default:0 }})">
+                    <i class="fa-solid fa-circle-exclamation text-[10px]"></i>
+                </div>
+            </div>
+        </template>
+        <span class="server-row-error hidden">
+            {% if form.non_field_errors %}
+                {{ form.non_field_errors.0 }}
+            {% else %}
+                {% for field in form %}
+                    {% if field.errors %}
+                        {{ field.errors.0 }}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </span>
     </td>
-</form>

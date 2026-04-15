@@ -1,0 +1,11 @@
+<tr class="hover:bg-base-200/50 transition-colors border-b border-base-200 relative"
+    id="row-{{ row_index|default:0 }}"
+    :class="{ 'bg-error/5 ring-1 ring-inset ring-error/40': rowHasError({{ row_index|default:0 }}) }"
+    hx-post="{% url 'journal:shiwake-create' %}"
+    hx-target="this"
+    hx-swap="outerHTML"
+    hx-include="this"
+    hx-trigger="submit-row-{{ row_index|default:0 }}"
+    @submit-row.window="if ($event.detail.rowIdx == {{ row_index|default:0 }}) $el.dispatchEvent(new CustomEvent('submit-row-{{ row_index|default:0 }}'))">
+    {% include "journal/partials/grid_row_form.html" with form=form row_index=row_index %}
+</tr>

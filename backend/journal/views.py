@@ -22,7 +22,7 @@ from common.permissions import AccountantRequiredMixin, AdminRequiredMixin
 from master.models import KanjoKamokuMaster
 from master.views import HtmxListMixin
 
-from .forms import MeisaiFormSet, ShiwakeMeisaiForm, ShiwakeNikkiHeaderForm
+from .forms import MeisaiFormSet, FurikaeMeisaiForm, FurikaeHeaderForm
 from .models import ShiwakeDenpyo, ShiwakeMeisai
 
 
@@ -90,7 +90,7 @@ class ShiwakeIchiranView(LoginRequiredMixin, HtmxListMixin, ListView):
 class ShiwakeNikkiGridView(AccountantRequiredMixin, View):
     """仕訳日記帳: Spreadsheet-style grid for direct 1:1 journal entries.
 
-    Allows entering multiple rows in a table format. Each row is saved as a 
+    Allows entering multiple rows in a table format. Each row is saved as a
     standalone balanced voucher (S- prefix).
     """
 
@@ -100,12 +100,12 @@ class ShiwakeNikkiGridView(AccountantRequiredMixin, View):
     def get(self, request):
         # We'll provide 5 empty rows initially
         from .forms import ShiwakeGridRowForm
-        rows = [ShiwakeGridRowForm(prefix=f"row-{i}") for i in range(5)]
-        
+
+        today = timezone.localdate()
+        rows = [ShiwakeGridRowForm(prefix=f"row-{i}", initial={"date": today}) for i in range(5)]
+
         # Also get recent entries for display below the input grid
-        recent_shiwake = ShiwakeDenpyo.objects.filter(
-            denpyo_type="SHIWAKE"
-        ).order_by("-id")[:10]
+        recent_shiwake = ShiwakeDenpyo.objects.filter(denpyo_type="SHIWAKE").order_by("-id")[:10]
 
         return render(
             request,
@@ -120,16 +120,17 @@ class ShiwakeNikkiGridView(AccountantRequiredMixin, View):
 
     def post(self, request):
         from .forms import ShiwakeGridRowForm
-        
-        # Determine prefix from POST keys (e.g., row-0-date -> row-0)
-        prefix = None
-        for key in request.POST.keys():
-            if key.startswith("row-") and "-" in key[4:]:
-                prefix = key.split("-")[0] + "-" + key.split("-")[1]
-                break
-        
+
+        # Determine prefix from POST (explicitly passed if possible, or detect)
+        prefix = request.POST.get("_row_prefix")
+        if not prefix:
+            for key in request.POST.keys():
+                if key.startswith("row-") and "-" in key[4:]:
+                    prefix = key.split("-")[0] + "-" + key.split("-")[1]
+                    break
+
         form = ShiwakeGridRowForm(request.POST, prefix=prefix)
-        
+
         if form.is_valid():
             with transaction.atomic():
                 d = form.cleaned_data
@@ -137,7 +138,7 @@ class ShiwakeNikkiGridView(AccountantRequiredMixin, View):
                     date=d["date"],
                     denpyo_type="SHIWAKE",
                     memo=d["tekiyou"] or "",
-                    created_by=request.user
+                    created_by=request.user,
                 )
                 # Debit Side
                 ShiwakeMeisai.objects.create(
@@ -165,31 +166,29 @@ class ShiwakeNikkiGridView(AccountantRequiredMixin, View):
                     bumon=d.get("bumon"),
                     torihikisaki=d.get("torihikisaki"),
                 )
-            
+
             if request.htmx:
-                # Return success partial
-                # We reuse the same prefix or keep it consistent
-                new_form = ShiwakeGridRowForm(prefix=prefix)
-                # Extract numeric index for Alpine logic (row-0 -> 0)
+                new_form = ShiwakeGridRowForm(prefix=prefix, initial={"date": timezone.localdate()})
                 row_idx = prefix.split("-")[1] if prefix and "-" in prefix else 0
-                
-                return render(request, "journal/partials/grid_save_success.html", {
-                    "denpyo": denpyo,
-                    "new_form": new_form,
-                    "row_index": row_idx
-                })
-            
+                response = render(
+                    request,
+                    "journal/partials/grid_row_wrap.html",
+                    {
+                        "form": new_form,
+                        "row_index": row_idx,
+                    },
+                )
+                response["HX-Trigger"] = "refreshRecentEntries"
+                return response
+
             messages.success(request, f"伝票 {denpyo.denpyo_no} を登録しました")
             return redirect(self.success_url)
-        
+
         if request.htmx:
             # Return form with errors
             row_idx = prefix.split("-")[1] if prefix and "-" in prefix else 0
-            return render(request, "journal/partials/grid_row_form.html", {
-                "form": form,
-                "row_index": row_idx
-            })
-        
+            return render(request, "journal/partials/grid_row_wrap.html", {"form": form, "row_index": row_idx})
+
         return self.get(request)
 
 
@@ -215,7 +214,7 @@ class FurikaeDenpyoCreateView(AccountantRequiredMixin, View):
         return MeisaiFormSet(prefix=prefix)
 
     def get(self, request):
-        form = ShiwakeNikkiHeaderForm()
+        form = FurikaeHeaderForm()
         formset = self._get_formset()
         return render(
             request,
@@ -229,7 +228,7 @@ class FurikaeDenpyoCreateView(AccountantRequiredMixin, View):
         )
 
     def post(self, request):
-        form = ShiwakeNikkiHeaderForm(request.POST)
+        form = FurikaeHeaderForm(request.POST)
         formset = self._get_formset(request.POST)
         if form.is_valid() and formset.is_valid():
             with transaction.atomic():
@@ -278,7 +277,7 @@ class FurikaeDenpyoUpdateView(AccountantRequiredMixin, View):
         if denpyo.is_locked:
             messages.error(request, "この伝票はロックされており編集できません。")
             return redirect(self.success_url)
-        form = ShiwakeNikkiHeaderForm(instance=denpyo)
+        form = FurikaeHeaderForm(instance=denpyo)
         formset = self._get_formset(denpyo)
         return render(
             request,
@@ -297,7 +296,7 @@ class FurikaeDenpyoUpdateView(AccountantRequiredMixin, View):
         if denpyo.is_locked:
             messages.error(request, "ロックされた伝票は編集できません。")
             return redirect(self.success_url)
-        form = ShiwakeNikkiHeaderForm(request.POST, instance=denpyo)
+        form = FurikaeHeaderForm(request.POST, instance=denpyo)
         formset = self._get_formset(denpyo, request.POST)
         if form.is_valid() and formset.is_valid():
             with transaction.atomic():
@@ -358,13 +357,43 @@ class DenpyoDeleteView(AccountantRequiredMixin, DeleteView):
 def add_meisai_row(request):
     """HTMX endpoint — return an empty Shiwake line item row."""
     form_index = int(request.GET.get("form_index", 0))
-    form = ShiwakeMeisaiForm(prefix=f"meisai-{form_index}")
+    form = FurikaeMeisaiForm(prefix=f"meisai-{form_index}")
     return render(
         request,
         "journal/partials/meisai_row.html",
         {
             "form": form,
             "form_index": form_index,
+        },
+    )
+
+
+def add_grid_row(request):
+    """HTMX endpoint — append one empty 1:1 grid row for 仕訳日記帳."""
+    from .forms import ShiwakeGridRowForm
+
+    row_index = int(request.GET.get("row_index", 0))
+    form = ShiwakeGridRowForm(prefix=f"row-{row_index}", initial={"date": timezone.localdate()})
+    return render(
+        request,
+        "journal/partials/grid_row_wrap.html",
+        {
+            "form": form,
+            "row_index": row_index,
+        },
+    )
+
+
+def recent_shiwake_entries(request):
+    """HTMX endpoint — refresh the recent shiwake entries panel."""
+    recent_shiwake = (
+        ShiwakeDenpyo.objects.filter(denpyo_type="SHIWAKE").prefetch_related("meisai__kamoku").order_by("-id")[:10]
+    )
+    return render(
+        request,
+        "journal/partials/recent_entries_body.html",
+        {
+            "recent_shiwake": recent_shiwake,
         },
     )
 

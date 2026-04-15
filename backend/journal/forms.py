@@ -11,28 +11,27 @@ from common.forms_widgets import INPUT_CLASS, SELECT_CLASS
 
 
 # =========================================================
-# Shiwake Nikki — Complex N:N Journal Entry Forms
+# Furikae Denpyo — Complex N:N Internal Transfer Form
 # =========================================================
 
 
-class ShiwakeNikkiHeaderForm(forms.ModelForm):
-    """Header form for complex journal entries (仕訳日記帳).
+class FurikaeHeaderForm(forms.ModelForm):
+    """Header form for simple internal transfer entries (振替伝票).
 
-    Captures document date, accounting date, and overall memo.
-    denpyo_type is fixed to SHIWAKE for this form.
+    Captures document date, accounting date, and memo.
+    denpyo_type is fixed to FURIKAE when saving.
     """
 
     class Meta:
         model = ShiwakeDenpyo
-        fields = ["date", "keijo_date", "memo"]
+        fields = ["date", "memo"]
         widgets = {
-            "date": forms.DateInput(attrs={"type": "date", "class": INPUT_CLASS}),
-            "keijo_date": forms.DateInput(attrs={"type": "date", "class": INPUT_CLASS}),
-            "memo": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "摘要・備考（全体）"}),
+            "date": forms.DateInput(attrs={"type": "date"}),
+            "memo": forms.TextInput(attrs={"placeholder": "摘要（全体）"}),
         }
 
 
-class ShiwakeMeisaiForm(forms.ModelForm):
+class FurikaeMeisaiForm(forms.ModelForm):
     """Form for a single Journal Entry Line Item.
 
     Used within an inline formset for Shiwake Nikki.
@@ -126,7 +125,7 @@ class BaseMeisaiFormSet(BaseInlineFormSet):
 MeisaiFormSet = inlineformset_factory(
     ShiwakeDenpyo,
     ShiwakeMeisai,
-    form=ShiwakeMeisaiForm,
+    form=FurikaeMeisaiForm,
     formset=BaseMeisaiFormSet,
     extra=2,
     can_delete=True,
@@ -136,25 +135,18 @@ MeisaiFormSet = inlineformset_factory(
 
 
 # =========================================================
-# Furikae Denpyo — Simple 1:1 Internal Transfer Form
+# Shiwake Nikki — Simple 1:1 Journal Entry Forms
 # =========================================================
 
 
-class FurikaeHeaderForm(forms.ModelForm):
-    """Header form for simple internal transfer entries (振替伝票).
+class ShiwakeNikkiHeaderForm(forms.ModelForm):
+    """Header form for complex journal entries (仕訳日記帳).
 
-    Captures document date, accounting date, and memo.
-    denpyo_type is fixed to FURIKAE when saving.
+    Captures document date, accounting date, and overall memo.
+    denpyo_type is fixed to SHIWAKE for this form.
     """
 
-    class Meta:
-        model = ShiwakeDenpyo
-        fields = ["date", "keijo_date", "memo"]
-        widgets = {
-            "date": forms.DateInput(attrs={"type": "date", "class": INPUT_CLASS}),
-            "keijo_date": forms.DateInput(attrs={"type": "date", "class": INPUT_CLASS}),
-            "memo": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "摘要（任意）"}),
-        }
+    pass
 
 
 class FurikaeRowForm(forms.Form):
@@ -164,128 +156,7 @@ class FurikaeRowForm(forms.Form):
     and a third one if a fee is applied.
     """
 
-    # --- Withdrawal (出金側 - Credit/貸方) ---
-    shukkin_kamoku = forms.ModelChoiceField(
-        queryset=KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code"),
-        label="出金科目",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
-    )
-    shukkin_hojo = forms.ModelChoiceField(
-        queryset=HojoKamokuMaster.objects.filter(is_active=True).order_by("kamoku__code", "code"),
-        required=False,
-        label="出金補助",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
-    )
-    shukkin_kingaku = forms.DecimalField(
-        label="出金額",
-        min_value=1,
-        max_digits=15,
-        decimal_places=0,
-        widget=forms.NumberInput(
-            attrs={
-                "class": INPUT_CLASS + " text-right font-bold text-lg text-info",
-                "step": "1",
-                "placeholder": "0",
-                "x-model": "shukkinKingaku",
-                "x-on:input": "calcNyukin()",
-            }
-        ),
-    )
-
-    # --- Deposit (入金側 - Debit/借方) ---
-    nyukin_kamoku = forms.ModelChoiceField(
-        queryset=KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code"),
-        label="入金科目",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
-    )
-    nyukin_hojo = forms.ModelChoiceField(
-        queryset=HojoKamokuMaster.objects.filter(is_active=True).order_by("kamoku__code", "code"),
-        required=False,
-        label="入金補助",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
-    )
-    nyukin_kingaku = forms.DecimalField(
-        label="入金額",
-        min_value=1,
-        max_digits=15,
-        decimal_places=0,
-        widget=forms.NumberInput(
-            attrs={
-                "class": INPUT_CLASS + " text-right font-bold text-lg text-warning",
-                "step": "1",
-                "placeholder": "0",
-                "x-model": "nyukinKingaku",
-                "x-on:input": "calcNyukin()",
-            }
-        ),
-    )
-
-    # --- Fee (手数料 - Debit/借方) ---
-    tesuryo_kamoku = forms.ModelChoiceField(
-        queryset=KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code"),
-        required=False,
-        label="手数料科目",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
-        # Prefill typical fee account if possible (usually 支払手数料 - code 6000 or similar)
-    )
-    tesuryo_zei = forms.ModelChoiceField(
-        queryset=ZeiMaster.objects.filter(is_active=True).order_by("order_no"),
-        required=False,
-        label="対象税区分",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
-    )
-    tesuryo_kingaku = forms.DecimalField(
-        label="手数料額",
-        required=False,
-        min_value=0,
-        max_digits=15,
-        decimal_places=0,
-        widget=forms.NumberInput(
-            attrs={
-                "class": INPUT_CLASS + " text-right text-error font-semibold",
-                "step": "1",
-                "placeholder": "0",
-                "x-model": "tesuryoKingaku",
-                "x-on:input": "calcNyukin()",
-            }
-        ),
-    )
-
-    # --- Shared fields ---
-    bumon = forms.ModelChoiceField(
-        queryset=BumonMaster.objects.filter(is_active=True).order_by("code"),
-        required=False,
-        label="部門",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
-    )
-    torihikisaki = forms.ModelChoiceField(
-        queryset=TorihikiSakiMaster.objects.filter(is_active=True).order_by("code"),
-        required=False,
-        label="取引先",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
-    )
-
-    def clean(self):
-        cleaned = super().clean()
-        s_k = cleaned.get("shukkin_kingaku") or 0
-        n_k = cleaned.get("nyukin_kingaku") or 0
-        t_k = cleaned.get("tesuryo_kingaku") or 0
-
-        # Validate Balance: Shukkin = Nyukin + Tesuryo
-        if s_k != (n_k + t_k):
-            raise forms.ValidationError(
-                f"金額が一致していません。出金額(¥{s_k:,.0f}) ≠ 入金額(¥{n_k:,.0f}) + 手数料(¥{t_k:,.0f})"
-            )
-
-        if cleaned.get("shukkin_kamoku") == cleaned.get("nyukin_kamoku"):
-            self.add_error("nyukin_kamoku", "出金科目と入金科目には別の勘定科目を選択してください。")
-
-        # Validate Fee if amount exists
-        if t_k > 0:
-            if not cleaned.get("tesuryo_kamoku"):
-                self.add_error("tesuryo_kamoku", "手数料の金額が入力されていますが、科目が選択されていません。")
-
-        return cleaned
+    pass
 
 
 class ShiwakeGridRowForm(forms.Form):
@@ -293,30 +164,28 @@ class ShiwakeGridRowForm(forms.Form):
     A single 1:1 row in the Spreadsheet Grid (仕訳日記帳).
     Maps to two ShiwakeMeisai records under one ShiwakeDenpyo.
     """
-    date = forms.DateField(
-        label="日付",
-        widget=forms.DateInput(attrs={"type": "date", "class": INPUT_CLASS})
-    )
-    
+
+    date = forms.DateField(label="日付", widget=forms.DateInput(attrs={"type": "date", "class": INPUT_CLASS}))
+
     # --- Debit Side (借方) ---
     kari_kamoku = forms.ModelChoiceField(
         queryset=KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code"),
         label="借方科目",
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     kari_hojo = forms.ModelChoiceField(
         queryset=HojoKamokuMaster.objects.filter(is_active=True).order_by("kamoku__code", "code"),
         required=False,
         label="借方補助",
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     kari_zei = forms.ModelChoiceField(
         queryset=ZeiMaster.objects.filter(is_active=True).order_by("order_no"),
         required=False,
         label="借方税区分",
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
-    
+
     # --- Amounts (金額) ---
     kari_kingaku = forms.DecimalField(
         label="借方金額",
@@ -324,7 +193,7 @@ class ShiwakeGridRowForm(forms.Form):
         max_digits=15,
         decimal_places=0,
         required=False,
-        widget=forms.NumberInput(attrs={"class": INPUT_CLASS + " text-right", "placeholder": "0"})
+        widget=forms.NumberInput(attrs={"class": INPUT_CLASS + " text-right", "placeholder": "0"}),
     )
     kashi_kingaku = forms.DecimalField(
         label="貸方金額",
@@ -332,47 +201,47 @@ class ShiwakeGridRowForm(forms.Form):
         max_digits=15,
         decimal_places=0,
         required=False,
-        widget=forms.NumberInput(attrs={"class": INPUT_CLASS + " text-right", "placeholder": "0"})
+        widget=forms.NumberInput(attrs={"class": INPUT_CLASS + " text-right", "placeholder": "0"}),
     )
-    
+
     # --- Credit Side (貸方) ---
     kashi_kamoku = forms.ModelChoiceField(
         queryset=KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code"),
         label="貸方科目",
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     kashi_hojo = forms.ModelChoiceField(
         queryset=HojoKamokuMaster.objects.filter(is_active=True).order_by("kamoku__code", "code"),
         required=False,
         label="貸方補助",
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     kashi_zei = forms.ModelChoiceField(
         queryset=ZeiMaster.objects.filter(is_active=True).order_by("order_no"),
         required=False,
         label="貸方税区分",
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
-    
+
     # --- Memo (摘要) ---
     tekiyou = forms.CharField(
         label="摘要",
         required=False,
-        widget=forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "摘要(明細)"})
+        widget=forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "摘要(明細)"}),
     )
-    
+
     # --- Metadata (optional for grid) ---
     bumon = forms.ModelChoiceField(
         queryset=BumonMaster.objects.filter(is_active=True).order_by("code"),
         required=False,
         label="部門",
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     torihikisaki = forms.ModelChoiceField(
         queryset=TorihikiSakiMaster.objects.filter(is_active=True).order_by("code"),
         required=False,
         label="取引先",
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
 
     def clean(self):
@@ -380,19 +249,19 @@ class ShiwakeGridRowForm(forms.Form):
         kari_kingaku = cleaned.get("kari_kingaku")
         kashi_kingaku = cleaned.get("kashi_kingaku")
 
-        # 1:1 mode supports entering one side only; the other side is auto-filled.
-        if kari_kingaku is None and kashi_kingaku is None:
-            raise forms.ValidationError("借方金額または貸方金額のいずれかを入力してください。")
-        if kari_kingaku is None:
-            cleaned["kari_kingaku"] = kashi_kingaku
-            kari_kingaku = kashi_kingaku
-        if kashi_kingaku is None:
-            cleaned["kashi_kingaku"] = kari_kingaku
-            kashi_kingaku = kari_kingaku
+        if kari_kingaku is None or kashi_kingaku is None:
+            raise forms.ValidationError("借方金額と貸方金額の両方を入力してください。")
+        if kari_kingaku <= 0 or kashi_kingaku <= 0:
+            raise forms.ValidationError("金額は0より大きい値を入力してください。")
         if kari_kingaku != kashi_kingaku:
-            raise forms.ValidationError("1:1仕訳では借方金額と貸方金額を一致させてください。")
+            raise forms.ValidationError("借方金額と貸方金額が一致していません。")
 
-        if cleaned.get("kari_kamoku") == cleaned.get("kashi_kamoku") and cleaned.get("kari_hojo") == cleaned.get("kashi_hojo"):
+        if not cleaned.get("kari_kamoku") or not cleaned.get("kashi_kamoku"):
+            raise forms.ValidationError("借方科目と貸方科目は必須です。")
+
+        if cleaned.get("kari_kamoku") == cleaned.get("kashi_kamoku") and cleaned.get("kari_hojo") == cleaned.get(
+            "kashi_hojo"
+        ):
             # Note: technically allowed in some accounting, but usually a mistake for 1:1 bank transfers etc.
             # We'll keep it allowed but maybe add a warning later.
             pass

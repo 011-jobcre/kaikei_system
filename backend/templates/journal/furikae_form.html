@@ -7,12 +7,6 @@
 {% endblock page_header %}
 {% block content %}
     <div class="space-y-4" x-data="denpyoForm()">
-        <div class="flex justify-end">
-            <a href="{% url 'journal:shiwake-create' %}"
-               class="btn btn-sm btn-outline">
-                <i class="fa-solid fa-toggle-off mr-1"></i>単純仕訳(1:1)へ切替
-            </a>
-        </div>
         <!-- Server-Side Validation Notice -->
         {% if form.errors or formset.errors %}
             <div class="alert alert-error text-sm shadow-sm gap-2">
@@ -25,36 +19,31 @@
             <!-- Header Section -->
             <div class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
                 <div class="grid grid-cols-1 sm:grid-cols-6 gap-2 w-full">
-                    <!-- Document Date -->
-                    <div class="form-control col-span-2">
+                    <div class="form-control w-full md:col-span-2">
                         <label class="input text-neutral w-full">
-                            <span class="label min-w-24">伝票日付<span class="text-error ml-1">*</span></span>
+                            <span class="label min-w-24 md:min-w-auto">伝票日付<span class="text-error ml-1">*</span></span>
                             {{ form.date }}
                         </label>
                         {% if form.date.errors %}
                             <div class="label pt-1 text-sm">
-                                <span class="text-error text-xs">{{ form.date.errors.0 }}</span>
+                                <span class="text-error flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-exclamation">
+                                    </i>{{ form.date.errors.0 }}
+                                </span>
                             </div>
                         {% endif %}
                     </div>
-                    <!-- Accounting Date (Keijo) -->
-                    <div class="form-control col-span-2">
+                    <div class="form-control w-full md:col-span-3">
                         <label class="input text-neutral w-full">
-                            <span class="label min-w-24">計上日付</span>
-                            {{ form.keijo_date }}
-                        </label>
-                        {% if form.keijo_date.errors %}
-                            <div class="label pt-1 text-sm">
-                                <span class="text-error text-xs">{{ form.keijo_date.errors.0 }}</span>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <!-- Memo -->
-                    <div class="form-control col-span-4">
-                        <label class="input text-neutral w-full">
-                            <span class="label min-w-20">摘要</span>
+                            <span class="label min-w-24 md:min-w-auto">摘要（全体）</span>
                             {{ form.memo }}
                         </label>
+                    </div>
+                    <div class="w-full md:col-span-1 flex justify-end">
+                        <a href="{% url 'journal:shiwake-create' %}"
+                           class="btn btn-primary btn-outline gap-2 w-full md:w-auto">
+                            <i class="fa-solid fa-toggle-off"></i>仕訳へ切替
+                        </a>
                     </div>
                 </div>
             </div>
@@ -62,9 +51,9 @@
             <div id="balance-container"
                  class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
                 <div class="flex flex-col md:flex-row items-center justify-center">
-                    <div class="space-y-1 text-center md:text-left">
-                        <div class="text-primary font-bold text-lg">借貸バランス</div>
-                        <div class="text-xs text-info/70 font-medium">振替伝票は複式仕訳 (1:n / n:1 / n:n) 入力モードです</div>
+                    <div class="space-y-1 text-center">
+                        <div class="text-primary font-bold">借貸バランス</div>
+                        <div class="text-xs text-info/70">＊ 振替伝票は複式仕訳 (1:n / n:1 / n:n) 入力モードです</div>
                     </div>
                 </div>
                 <!-- This bar will be updated via HTMX or Alpine -->
@@ -73,7 +62,7 @@
             <!-- Line Items (Meisai) -->
             <div class="space-y-4">
                 <h4 class="font-bold flex items-center gap-2 text-primary">
-                    <i class="fa-solid fa-list ml-4"></i>仕訳明細（複合）
+                    <i class="fa-solid fa-list ml-4"></i>伝票明細（複合）
                 </h4>
                 <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
                     {{ formset.management_form }}
@@ -112,12 +101,12 @@
                     <!-- Add Row -->
                     <div class="bg-base-100 p-4 border-t border-base-300">
                         <button type="button"
-                                hx-get="{% url 'journal:add-row' %}"
+                                hx-get="{% url 'journal:add-meisai-row' %}"
                                 hx-vals="js:{form_index: getNextFormIndex()}"
                                 hx-target="#meisai-rows"
                                 hx-swap="beforeend"
                                 hx-on::after-request="incrementFormIndex(); initTomSelects(); calcBalance();"
-                                class="btn btn-primary btn-outline gap-2 px-6 w-auto font-bold">
+                                class="btn btn-primary btn-outline gap-2">
                             <i class="fa-solid fa-plus"></i>行を追加
                         </button>
                     </div>
@@ -125,7 +114,7 @@
             </div>
             <!-- Action Buttons -->
             <div class="mt-4 flex items-center justify-end">
-                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                     {% if not is_new %}
                         <button type="button"
                                 hx-get="{% url 'journal:denpyo-delete' denpyo.pk %}"
@@ -144,6 +133,6 @@
         </form>
     </div>
     {% block extra_scripts %}
-        {% include "journal/partials/shiwake_scripts.html" %}
+        {% include "journal/partials/furikae_scripts.html" %}
     {% endblock extra_scripts %}
 {% endblock content %}

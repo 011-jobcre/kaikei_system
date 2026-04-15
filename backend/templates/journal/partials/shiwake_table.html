@@ -9,7 +9,6 @@
             <thead>
                 <tr>
                     <th class="w-28">日付</th>
-                    <th class="w-28">計上日</th>
                     <th class="min-w-36 md:w-36">伝票No</th>
                     <th class="w-20 text-center">種別</th>
                     <th class="min-w-44 md:w-44">借方科目</th>
@@ -29,7 +28,6 @@
                             <tr>
                                 {% if forloop.first %}
                                     <td rowspan="{{ denpyo.meisai_count }}">{{ denpyo.date|date:"Y/m/d" }}</td>
-                                    <td rowspan="{{ denpyo.meisai_count }}">{{ denpyo.keijo_date|date:"Y/m/d"|default:"—" }}</td>
                                     <td class="amount-neutral" rowspan="{{ denpyo.meisai_count }}">
                                         {% if is_accountant %}
                                             <a href="{{ denpyo.get_edit_url }}" class="hover:text-accent">{{ denpyo.denpyo_no }}</a>
@@ -96,7 +94,6 @@
                     {% else %}
                         <tr>
                             <td>{{ denpyo.date|date:"Y/m/d" }}</td>
-                            <td>{{ denpyo.keijo_date|date:"Y/m/d"|default:"—" }}</td>
                             <td class="amount-neutral">
                                 {% if is_accountant %}
                                     <a href="{{ denpyo.get_edit_url }}" class="hover:text-accent">{{ denpyo.denpyo_no }}</a>
@@ -176,7 +173,7 @@
                     {% endif %}
                 {% empty %}
                     <tr>
-                        <td colspan="{% if is_accountant %}12{% else %}11{% endif %}"
+                        <td colspan="{% if is_accountant %}11{% else %}10{% endif %}"
                             class="text-center">
                             <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
                             データがありません

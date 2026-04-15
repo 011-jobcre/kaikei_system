@@ -58,26 +58,25 @@ class ShiwakeDenpyo(BaseModel):
         ("FURIKAE", "振替"),
     ]
 
-    denpyo_no = models.CharField(max_length=25, unique=True, verbose_name="伝票番号", editable=False)
+    denpyo_no = models.CharField(
+        verbose_name="伝票番号",
+        max_length=25,
+        unique=True,
+        editable=False,
+    )
     denpyo_type = models.CharField(
+        verbose_name="伝票種別",
         max_length=10,
         choices=DENPYO_TYPE_CHOICES,
         default="SHIWAKE",
-        verbose_name="伝票種別",
     )
     date = models.DateField(verbose_name="伝票日付")
-    keijo_date = models.DateField(
-        null=True,
-        blank=True,
-        verbose_name="計上日付",
-        help_text="会計帳簿に反映する日付。空欄の場合は伝票日付と同じ扱い。",
-    )
-    memo = models.CharField(max_length=200, blank=True, verbose_name="摘要")
+    memo = models.CharField(verbose_name="摘要（全体）", max_length=200, blank=True)
     created_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
-        verbose_name="作成者",
         related_name="denpyo_set",
+        verbose_name="作成者",
     )
     is_locked = models.BooleanField(default=False, verbose_name="ロック済")
 
@@ -96,8 +95,8 @@ class ShiwakeDenpyo(BaseModel):
 
     @property
     def effective_date(self):
-        """Accounting date — falls back to document date if keijo_date is not set."""
-        return self.keijo_date or self.date
+        """Accounting date — falls back to document date (keijo_date removed)."""
+        return self.date
 
     def get_kari_total(self):
         """Total Debit Amount"""
@@ -142,12 +141,8 @@ class ShiwakeMeisai(BaseModel):
         related_name="meisai",
         verbose_name="伝票",
     )
-    row_no = models.PositiveSmallIntegerField(
-        default=0,
-        verbose_name="行番号",
-        help_text="User-defined ordering within the voucher.",
-    )
-    kari_kashi = models.CharField(max_length=3, choices=KARI_KASHI_CHOICES, verbose_name="借/貸")
+    row_no = models.PositiveSmallIntegerField(verbose_name="行番号", default=0)
+    kari_kashi = models.CharField(verbose_name="借/貸", max_length=3, choices=KARI_KASHI_CHOICES)
     kamoku = models.ForeignKey(
         KanjoKamokuMaster,
         on_delete=models.PROTECT,
