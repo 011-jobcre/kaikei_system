@@ -22,7 +22,7 @@ from common.permissions import AccountantRequiredMixin, AdminRequiredMixin
 from master.models import KanjoKamokuMaster
 from master.views import HtmxListMixin
 
-from .forms import FurikaeHeaderForm, FurikaeRowForm, MeisaiFormSet, ShiwakeMeisaiForm, ShiwakeNikkiHeaderForm
+from .forms import MeisaiFormSet, ShiwakeMeisaiForm, ShiwakeNikkiHeaderForm
 from .models import ShiwakeDenpyo, ShiwakeMeisai
 
 
@@ -83,18 +83,129 @@ class ShiwakeIchiranView(LoginRequiredMixin, HtmxListMixin, ListView):
 
 
 # =========================================================
-# Shiwake Nikki — Complex Journal Entry (仕訳日記帳)
+# Shiwake Nikki — Spreadsheet Grid Entry (仕訳日記帳)
 # =========================================================
 
 
-class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
-    """仕訳日記帳: Create a complex N:N journal entry.
+class ShiwakeNikkiGridView(AccountantRequiredMixin, View):
+    """仕訳日記帳: Spreadsheet-style grid for direct 1:1 journal entries.
 
-    Uses MeisaiFormSet allowing multiple debit and credit rows.
-    Automatically sets denpyo_type=SHIWAKE and assigns S- voucher number.
+    Allows entering multiple rows in a table format. Each row is saved as a 
+    standalone balanced voucher (S- prefix).
     """
 
-    template_name = "journal/shiwake_form.html"
+    template_name = "journal/shiwake_grid.html"
+    success_url = reverse_lazy("journal:shiwake-list")
+
+    def get(self, request):
+        # We'll provide 5 empty rows initially
+        from .forms import ShiwakeGridRowForm
+        rows = [ShiwakeGridRowForm(prefix=f"row-{i}") for i in range(5)]
+        
+        # Also get recent entries for display below the input grid
+        recent_shiwake = ShiwakeDenpyo.objects.filter(
+            denpyo_type="SHIWAKE"
+        ).order_by("-id")[:10]
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "title": "仕訳日記帳 (グリッド入力)",
+                "rows": rows,
+                "recent_shiwake": recent_shiwake,
+                "is_new": True,
+            },
+        )
+
+    def post(self, request):
+        from .forms import ShiwakeGridRowForm
+        
+        # Determine prefix from POST keys (e.g., row-0-date -> row-0)
+        prefix = None
+        for key in request.POST.keys():
+            if key.startswith("row-") and "-" in key[4:]:
+                prefix = key.split("-")[0] + "-" + key.split("-")[1]
+                break
+        
+        form = ShiwakeGridRowForm(request.POST, prefix=prefix)
+        
+        if form.is_valid():
+            with transaction.atomic():
+                d = form.cleaned_data
+                denpyo = ShiwakeDenpyo.objects.create(
+                    date=d["date"],
+                    denpyo_type="SHIWAKE",
+                    memo=d["tekiyou"] or "",
+                    created_by=request.user
+                )
+                # Debit Side
+                ShiwakeMeisai.objects.create(
+                    denpyo=denpyo,
+                    row_no=0,
+                    kari_kashi="KA",
+                    kamoku=d["kari_kamoku"],
+                    hojo=d.get("kari_hojo"),
+                    kingaku=d["kari_kingaku"],
+                    zei_kubun=d.get("kari_zei"),
+                    tekyou=d["tekiyou"],
+                    bumon=d.get("bumon"),
+                    torihikisaki=d.get("torihikisaki"),
+                )
+                # Credit Side
+                ShiwakeMeisai.objects.create(
+                    denpyo=denpyo,
+                    row_no=1,
+                    kari_kashi="SHI",
+                    kamoku=d["kashi_kamoku"],
+                    hojo=d.get("kashi_hojo"),
+                    kingaku=d["kashi_kingaku"],
+                    zei_kubun=d.get("kashi_zei"),
+                    tekyou=d["tekiyou"],
+                    bumon=d.get("bumon"),
+                    torihikisaki=d.get("torihikisaki"),
+                )
+            
+            if request.htmx:
+                # Return success partial
+                # We reuse the same prefix or keep it consistent
+                new_form = ShiwakeGridRowForm(prefix=prefix)
+                # Extract numeric index for Alpine logic (row-0 -> 0)
+                row_idx = prefix.split("-")[1] if prefix and "-" in prefix else 0
+                
+                return render(request, "journal/partials/grid_save_success.html", {
+                    "denpyo": denpyo,
+                    "new_form": new_form,
+                    "row_index": row_idx
+                })
+            
+            messages.success(request, f"伝票 {denpyo.denpyo_no} を登録しました")
+            return redirect(self.success_url)
+        
+        if request.htmx:
+            # Return form with errors
+            row_idx = prefix.split("-")[1] if prefix and "-" in prefix else 0
+            return render(request, "journal/partials/grid_row_form.html", {
+                "form": form,
+                "row_index": row_idx
+            })
+        
+        return self.get(request)
+
+
+# =========================================================
+# Furikae Denpyo — Professional Multi-line Entry (振替伝票)
+# =========================================================
+
+
+class FurikaeDenpyoCreateView(AccountantRequiredMixin, View):
+    """振替伝票: Create a general multi-line (N:N) journal entry.
+
+    Uses MeisaiFormSet allowing multiple debit and credit rows.
+    Automatically sets denpyo_type=FURIKAE and assigns F- voucher number.
+    """
+
+    template_name = "journal/furikae_form.html"
     success_url = reverse_lazy("journal:shiwake-list")
 
     def _get_formset(self, data=None):
@@ -112,7 +223,7 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
             {
                 "form": form,
                 "formset": formset,
-                "title": "仕訳日記帳 新規作成",
+                "title": "振替伝票 新規作成 (複合仕訳)",
                 "is_new": True,
             },
         )
@@ -123,18 +234,17 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
         if form.is_valid() and formset.is_valid():
             with transaction.atomic():
                 denpyo = form.save(commit=False)
-                denpyo.denpyo_type = "SHIWAKE"
+                denpyo.denpyo_type = "FURIKAE"
                 denpyo.created_by = request.user
                 denpyo.save()
                 formset.instance = denpyo
-                # Assign row_no sequentially
                 instances = formset.save(commit=False)
                 for i, obj in enumerate(instances):
                     obj.row_no = i
                     obj.save()
                 for obj in formset.deleted_objects:
                     obj.delete()
-            messages.success(request, f"仕訳伝票「{denpyo.denpyo_no}」を新規登録しました。")
+            messages.success(request, f"振替伝票「{denpyo.denpyo_no}」を新規登録しました。")
             return redirect(self.success_url)
         return render(
             request,
@@ -142,20 +252,20 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
             {
                 "form": form,
                 "formset": formset,
-                "title": "仕訳日記帳 新規作成",
+                "title": "振替伝票 新規作成 (複合仕訳)",
                 "is_new": True,
             },
         )
 
 
-class ShiwakeNikkiUpdateView(AccountantRequiredMixin, View):
-    """仕訳日記帳: Edit an existing Shiwake journal entry."""
+class FurikaeDenpyoUpdateView(AccountantRequiredMixin, View):
+    """振替伝票: Edit an existing multi-line journal entry."""
 
-    template_name = "journal/shiwake_form.html"
+    template_name = "journal/furikae_form.html"
     success_url = reverse_lazy("journal:shiwake-list")
 
     def _get_object(self, pk):
-        return ShiwakeDenpyo.objects.get(pk=pk, denpyo_type="SHIWAKE")
+        return ShiwakeDenpyo.objects.get(pk=pk)
 
     def _get_formset(self, denpyo, data=None):
         prefix = "meisai"
@@ -177,7 +287,7 @@ class ShiwakeNikkiUpdateView(AccountantRequiredMixin, View):
                 "form": form,
                 "formset": formset,
                 "denpyo": denpyo,
-                "title": f"仕訳日記帳 編集: {denpyo.denpyo_no}",
+                "title": f"{denpyo.get_denpyo_type_display()}伝票 編集: {denpyo.denpyo_no}",
                 "is_new": False,
             },
         )
@@ -198,7 +308,7 @@ class ShiwakeNikkiUpdateView(AccountantRequiredMixin, View):
                     obj.save()
                 for obj in formset.deleted_objects:
                     obj.delete()
-            messages.success(request, f"仕訳伝票「{denpyo.denpyo_no}」を更新しました。")
+            messages.success(request, f"振替伝票「{denpyo.denpyo_no}」を更新しました。")
             return redirect(self.success_url)
         return render(
             request,
@@ -207,208 +317,7 @@ class ShiwakeNikkiUpdateView(AccountantRequiredMixin, View):
                 "form": form,
                 "formset": formset,
                 "denpyo": denpyo,
-                "title": f"仕訳日記帳 編集: {denpyo.denpyo_no}",
-                "is_new": False,
-            },
-        )
-
-
-# =========================================================
-# Furikae Denpyo — Simple 1:1 Transfer Entry (振替伝票)
-# =========================================================
-
-
-class FurikaeDenpyoCreateView(AccountantRequiredMixin, View):
-    """振替伝票: Create a specialized internal transfer (Withdrawal/Deposit/Fee).
-
-    One FurikaeRowForm creates at least two ShiwakeMeisai records (Credit out + Debit in)
-    and an optional 3rd Debit record for bank fees. Uses F- voucher prefix.
-    """
-
-    template_name = "journal/furikae_form.html"
-    success_url = reverse_lazy("journal:shiwake-list")
-
-    @staticmethod
-    def _build_tekiyou(header_memo, suffix=""):
-        memo = (header_memo or "").strip()
-        return f"{memo}{suffix}" if memo else suffix.removeprefix(" ")
-
-    def _save_furikae_meisai(self, denpyo, cleaned_data, header_memo):
-        ShiwakeMeisai.objects.create(
-            denpyo=denpyo,
-            row_no=0,
-            kari_kashi="SHI",
-            kamoku=cleaned_data["shukkin_kamoku"],
-            hojo=cleaned_data.get("shukkin_hojo"),
-            zei_kubun=None,
-            bumon=cleaned_data.get("bumon"),
-            torihikisaki=cleaned_data.get("torihikisaki"),
-            kingaku=cleaned_data["shukkin_kingaku"],
-            tekyou=header_memo,
-        )
-
-        ShiwakeMeisai.objects.create(
-            denpyo=denpyo,
-            row_no=1,
-            kari_kashi="KA",
-            kamoku=cleaned_data["nyukin_kamoku"],
-            hojo=cleaned_data.get("nyukin_hojo"),
-            zei_kubun=None,
-            bumon=cleaned_data.get("bumon"),
-            torihikisaki=cleaned_data.get("torihikisaki"),
-            kingaku=cleaned_data["nyukin_kingaku"],
-            tekyou=header_memo,
-        )
-
-        fee_amount = cleaned_data.get("tesuryo_kingaku") or 0
-        if fee_amount > 0:
-            ShiwakeMeisai.objects.create(
-                denpyo=denpyo,
-                row_no=2,
-                kari_kashi="KA",
-                kamoku=cleaned_data["tesuryo_kamoku"],
-                hojo=None,
-                zei_kubun=cleaned_data.get("tesuryo_zei"),
-                bumon=cleaned_data.get("bumon"),
-                torihikisaki=cleaned_data.get("torihikisaki"),
-                kingaku=fee_amount,
-                tekyou=self._build_tekiyou(header_memo, " (手数料)"),
-            )
-
-    def get(self, request):
-        form = FurikaeHeaderForm()
-        row_form = FurikaeRowForm(prefix="row")
-        return render(
-            request,
-            self.template_name,
-            {
-                "form": form,
-                "row_form": row_form,
-                "title": "振替伝票 新規作成",
-                "is_new": True,
-            },
-        )
-
-    def post(self, request):
-        form = FurikaeHeaderForm(request.POST)
-        row_form = FurikaeRowForm(request.POST, prefix="row")
-        if form.is_valid() and row_form.is_valid():
-            cleaned_data = row_form.cleaned_data
-            with transaction.atomic():
-                denpyo = form.save(commit=False)
-                denpyo.denpyo_type = "FURIKAE"
-                denpyo.created_by = request.user
-                denpyo.save()
-                self._save_furikae_meisai(denpyo, cleaned_data, denpyo.memo)
-
-            messages.success(request, f"振替伝票「{denpyo.denpyo_no}」を新規登録しました。")
-            return redirect(self.success_url)
-        return render(
-            request,
-            self.template_name,
-            {
-                "form": form,
-                "row_form": row_form,
-                "title": "振替伝票 新規作成",
-                "is_new": True,
-            },
-        )
-
-
-class FurikaeDenpyoUpdateView(AccountantRequiredMixin, View):
-    """振替伝票: Edit an existing Furikae specialized transfer entry."""
-
-    template_name = "journal/furikae_form.html"
-    success_url = reverse_lazy("journal:shiwake-list")
-
-    def _get_object(self, pk):
-        return ShiwakeDenpyo.objects.prefetch_related("meisai").get(pk=pk, denpyo_type="FURIKAE")
-
-    def _initial_row_data(self, denpyo):
-        """Map the 2 or 3 saved DB rows back into the single FurikaeRowForm layout."""
-        # Withdrawal is always Credit (SHI)
-        shukkin = denpyo.meisai.filter(kari_kashi="SHI").first()
-
-        # Debits could be the Deposit + Fee
-        karis = list(denpyo.meisai.filter(kari_kashi="KA").order_by("row_no"))
-        nyukin = karis[0] if len(karis) > 0 else None
-        tesuryo = karis[1] if len(karis) > 1 else None
-
-        initial = {}
-        if shukkin:
-            initial.update(
-                {
-                    "shukkin_kamoku": shukkin.kamoku_id,
-                    "shukkin_hojo": shukkin.hojo_id,
-                    "shukkin_kingaku": shukkin.kingaku,
-                    "bumon": shukkin.bumon_id,
-                    "torihikisaki": shukkin.torihikisaki_id,
-                }
-            )
-        if nyukin:
-            initial.update(
-                {
-                    "nyukin_kamoku": nyukin.kamoku_id,
-                    "nyukin_hojo": nyukin.hojo_id,
-                    "nyukin_kingaku": nyukin.kingaku,
-                }
-            )
-        if tesuryo:
-            initial.update(
-                {
-                    "tesuryo_kamoku": tesuryo.kamoku_id,
-                    "tesuryo_zei": tesuryo.zei_kubun_id,
-                    "tesuryo_kingaku": tesuryo.kingaku,
-                }
-            )
-
-        return initial
-
-    def get(self, request, pk):
-        denpyo = self._get_object(pk)
-        if denpyo.is_locked:
-            messages.error(request, "この伝票はロックされており編集できません。")
-            return redirect(self.success_url)
-        form = FurikaeHeaderForm(instance=denpyo)
-        row_form = FurikaeRowForm(initial=self._initial_row_data(denpyo), prefix="row")
-        return render(
-            request,
-            self.template_name,
-            {
-                "form": form,
-                "row_form": row_form,
-                "denpyo": denpyo,
-                "title": f"振替伝票 編集: {denpyo.denpyo_no}",
-                "is_new": False,
-            },
-        )
-
-    def post(self, request, pk):
-        denpyo = self._get_object(pk)
-        if denpyo.is_locked:
-            messages.error(request, "ロックされた伝票は編集できません。")
-            return redirect(self.success_url)
-        form = FurikaeHeaderForm(request.POST, instance=denpyo)
-        row_form = FurikaeRowForm(request.POST, prefix="row")
-        if form.is_valid() and row_form.is_valid():
-            cleaned_data = row_form.cleaned_data
-            with transaction.atomic():
-                denpyo = form.save()
-
-                # Replace all existing meisai logic with the updated payload
-                denpyo.meisai.all().delete()
-                self._save_furikae_meisai(denpyo, cleaned_data, denpyo.memo)
-
-            messages.success(request, f"振替伝票「{denpyo.denpyo_no}」を更新しました。")
-            return redirect(self.success_url)
-        return render(
-            request,
-            self.template_name,
-            {
-                "form": form,
-                "row_form": row_form,
-                "denpyo": denpyo,
-                "title": f"振替伝票 編集: {denpyo.denpyo_no}",
+                "title": f"{denpyo.get_denpyo_type_display()}伝票 編集: {denpyo.denpyo_no}",
                 "is_new": False,
             },
         )

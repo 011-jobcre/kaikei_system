@@ -49,8 +49,8 @@ def generate_denpyo_no(denpyo_type="SHIWAKE"):
 class ShiwakeDenpyo(BaseModel):
     """Journal Entry Voucher Header.
 
-    denpyo_type=SHIWAKE → complex N:N journal entry (仕訳日記帳)
-    denpyo_type=FURIKAE → simple 1:1 internal transfer (振替伝票)
+    denpyo_type=SHIWAKE → journal book style entries (仕訳日記帳)
+    denpyo_type=FURIKAE → professional voucher style entries (振替伝票)
     """
 
     DENPYO_TYPE_CHOICES = [
@@ -119,11 +119,8 @@ class ShiwakeDenpyo(BaseModel):
 
     @property
     def get_edit_url(self):
-        """Returns the appropriate update URL based on voucher type."""
-        if self.denpyo_type == "FURIKAE":
-            return reverse("journal:furikae-update", args=[self.pk])
-        # Default to Shiwake Nikki
-        return reverse("journal:shiwake-update", args=[self.pk])
+        """Returns the multi-line editor URL shared by both voucher types."""
+        return reverse("journal:furikae-update", args=[self.pk])
 
 
 # =========================================================

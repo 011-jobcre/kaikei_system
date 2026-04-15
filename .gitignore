@@ -52,8 +52,11 @@ Thumbs.db
 # */migrations/*
 # !*/migrations/__init__.py
 # seed.py
+
 import_journal_csv.py
 shiwake.csv
+smoke_fee_test.py
+smoke_test.py
+
 *.md
-frontend_checks/
 *copy.*

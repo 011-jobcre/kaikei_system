@@ -6,30 +6,29 @@
     {{ title }}
 {% endblock page_header %}
 {% block content %}
-    <div class="space-y-4" x-data="furikaeLogic()">
+    <div class="space-y-4" x-data="denpyoForm()">
+        <div class="flex justify-end">
+            <a href="{% url 'journal:shiwake-create' %}"
+               class="btn btn-sm btn-outline">
+                <i class="fa-solid fa-toggle-off mr-1"></i>単純仕訳(1:1)へ切替
+            </a>
+        </div>
         <!-- Server-Side Validation Notice -->
-        {% if form.errors or row_form.errors %}
+        {% if form.errors or formset.errors %}
             <div class="alert alert-error text-sm shadow-sm gap-2">
                 <i class="fa-solid fa-triangle-exclamation shrink-0"></i>
-                <div>
-                    <strong>エラーがあります。</strong>
-                    <ul class="list-disc ml-5 mt-1">
-                        {% for field, errors in row_form.errors.items %}
-                            {% for error in errors %}<li>{{ error }}</li>{% endfor %}
-                        {% endfor %}
-                        {% if row_form.non_field_errors %}<li>{{ row_form.non_field_errors.0 }}</li>{% endif %}
-                    </ul>
-                </div>
+                エラーがあります。赤字の項目を確認してください。
             </div>
         {% endif %}
-        <form method="post" id="furikae-form" novalidate class="space-y-4">
+        <form method="post" id="denpyo-form" novalidate class="space-y-4">
             {% csrf_token %}
             <!-- Header Section -->
             <div class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
                 <div class="grid grid-cols-1 sm:grid-cols-6 gap-2 w-full">
-                    <div class="form-control col-span-1">
+                    <!-- Document Date -->
+                    <div class="form-control col-span-2">
                         <label class="input text-neutral w-full">
-                            <span class="label min-w-24">振替日付<span class="text-error ml-1">*</span></span>
+                            <span class="label min-w-24">伝票日付<span class="text-error ml-1">*</span></span>
                             {{ form.date }}
                         </label>
                         {% if form.date.errors %}
@@ -38,12 +37,19 @@
                             </div>
                         {% endif %}
                     </div>
-                    <div class="form-control col-span-1">
+                    <!-- Accounting Date (Keijo) -->
+                    <div class="form-control col-span-2">
                         <label class="input text-neutral w-full">
                             <span class="label min-w-24">計上日付</span>
                             {{ form.keijo_date }}
                         </label>
+                        {% if form.keijo_date.errors %}
+                            <div class="label pt-1 text-sm">
+                                <span class="text-error text-xs">{{ form.keijo_date.errors.0 }}</span>
+                            </div>
+                        {% endif %}
                     </div>
+                    <!-- Memo -->
                     <div class="form-control col-span-4">
                         <label class="input text-neutral w-full">
                             <span class="label min-w-20">摘要</span>
@@ -52,131 +58,68 @@
                     </div>
                 </div>
             </div>
-            <!-- Transfer Detail Section -->
-            <div class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
-                <h4 class="font-semibold mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-money-bill-transfer text-accent"></i>振替内容
-                </h4>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <!-- Withdrawal (出金側 - 貸方) -->
-                    <div class="bg-info/10 rounded-box p-4 space-y-3 border border-info/30">
-                        <div class="text-info font-bold flex items-center gap-2 mb-2">
-                            <i class="fa-solid fa-arrow-up-from-bracket"></i>出金側 (送金元)
-                        </div>
-                        <div class="grid grid-cols-1 gap-3">
-                            <div class="form-control">
-                                <label class="label pb-1">
-                                    <span class="label-text">出金科目<span class="text-error ml-1">*</span></span>
-                                </label>
-                                {{ row_form.shukkin_kamoku }}
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="form-control">
-                                    <label class="label pb-1">
-                                        <span class="label-text">出金補助</span>
-                                    </label>
-                                    {{ row_form.shukkin_hojo }}
-                                </div>
-                                <div class="form-control">
-                                    <label class="label pb-1">
-                                        <span class="label-text">税区分</span>
-                                    </label>
-                                    <div class="input input-bordered w-full bg-base-200 text-base-content/60">
-                                        内部振替のため対象外
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-control mt-2">
-                                <label class="label pb-1">
-                                    <span class="label-text">出金金額<span class="text-error ml-1">*</span></span>
-                                </label>
-                                {{ row_form.shukkin_kingaku }}
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Deposit (入金側 - 借方) -->
-                    <div class="bg-warning/10 rounded-box p-4 space-y-3 border border-warning/30">
-                        <div class="text-warning font-bold flex items-center gap-2 mb-2">
-                            <i class="fa-solid fa-arrow-down-to-bracket"></i>入金側 (受取先)
-                        </div>
-                        <div class="grid grid-cols-1 gap-3">
-                            <div class="form-control">
-                                <label class="label pb-1">
-                                    <span class="label-text">入金科目<span class="text-error ml-1">*</span></span>
-                                </label>
-                                {{ row_form.nyukin_kamoku }}
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="form-control">
-                                    <label class="label pb-1">
-                                        <span class="label-text">入金補助</span>
-                                    </label>
-                                    {{ row_form.nyukin_hojo }}
-                                </div>
-                                <div class="form-control">
-                                    <label class="label pb-1">
-                                        <span class="label-text">税区分</span>
-                                    </label>
-                                    <div class="input input-bordered w-full bg-base-200 text-base-content/60">
-                                        内部振替のため対象外
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-control mt-2">
-                                <label class="label pb-1">
-                                    <span class="label-text">入金金額<span class="text-error ml-1">*</span></span>
-                                    <span class="label-text-alt text-info"
-                                          x-show="parseInt(tesuryoKingaku) > 0">(自動計算: 出金 - 手数料)</span>
-                                </label>
-                                {{ row_form.nyukin_kingaku }}
-                            </div>
-                        </div>
-                        <!-- Fee Section inside Deposit card due to Debit nature -->
-                        <div class="mt-4 pt-4 border-t border-warning/30">
-                            <div class="collapse collapse-arrow bg-base-100 shadow-sm border border-base-200">
-                                <input type="checkbox" :checked="parseInt(tesuryoKingaku) > 0" />
-                                <div class="collapse-title text-sm font-medium text-error flex items-center gap-2">
-                                    <i class="fa-solid fa-coins"></i>振込手数料（引かれる場合）
-                                </div>
-                                <div class="collapse-content space-y-3">
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <div class="form-control">
-                                            <label class="label pb-1">
-                                                <span class="label-text">手数料科目</span>
-                                            </label>
-                                            {{ row_form.tesuryo_kamoku }}
-                                        </div>
-                                        <div class="form-control">
-                                            <label class="label pb-1">
-                                                <span class="label-text">対象税区分</span>
-                                            </label>
-                                            {{ row_form.tesuryo_zei }}
-                                        </div>
-                                    </div>
-                                    <div class="form-control">
-                                        <label class="label pb-1">
-                                            <span class="label-text">手数料額</span>
-                                        </label>
-                                        {{ row_form.tesuryo_kingaku }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Live Balance Tracker -->
+            <div id="balance-container"
+                 class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
+                <div class="flex flex-col md:flex-row items-center justify-center">
+                    <div class="space-y-1 text-center md:text-left">
+                        <div class="text-primary font-bold text-lg">借貸バランス</div>
+                        <div class="text-xs text-info/70 font-medium">振替伝票は複式仕訳 (1:n / n:1 / n:n) 入力モードです</div>
                     </div>
                 </div>
-                <!-- Shared fields -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-base-300">
-                    <div class="form-control">
-                        <label class="label pb-1">
-                            <span class="label-text">部門</span>
-                        </label>
-                        {{ row_form.bumon }}
+                <!-- This bar will be updated via HTMX or Alpine -->
+                <div id="balance-bar" class="mt-4"></div>
+            </div>
+            <!-- Line Items (Meisai) -->
+            <div class="space-y-4">
+                <h4 class="font-bold flex items-center gap-2 text-primary">
+                    <i class="fa-solid fa-list ml-4"></i>仕訳明細（複合）
+                </h4>
+                <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
+                    {{ formset.management_form }}
+                    {% if formset.non_form_errors %}
+                        <div class="bg-error/10 text-error p-3 text-sm font-bold border-b border-error/20 flex gap-2 items-center">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            {{ formset.non_form_errors.0 }}
+                        </div>
+                    {% endif %}
+                    <div class="overflow-x-auto">
+                        <table class="table table-accounting" id="meisai-table">
+                            <thead>
+                                <tr>
+                                    <th class="min-w-36 md:w-32">借/貸</th>
+                                    <th class="min-w-56 md:w-56">
+                                        勘定科目<span class="text-error ml-1">*</span>
+                                    </th>
+                                    <th class="min-w-44 md:w-44">補助科目</th>
+                                    <th class="min-w-44 md:w-44">部門</th>
+                                    <th class="min-w-44 md:w-44">取引先</th>
+                                    <th class="min-w-32 md:w-32 text-right">
+                                        金額<span class="text-error ml-1">*</span>
+                                    </th>
+                                    <th class="min-w-48 md:w-48">税区分</th>
+                                    <th class="min-w-48 md:w-48">摘要</th>
+                                    <th class="w-12">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="meisai-rows" class="divide-y divide-base-200/50">
+                                {% for row_form in formset %}
+                                    {% include "journal/partials/meisai_row.html" with form=row_form form_index=forloop.counter0 %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="form-control">
-                        <label class="label pb-1">
-                            <span class="label-text">取引先</span>
-                        </label>
-                        {{ row_form.torihikisaki }}
+                    <!-- Add Row -->
+                    <div class="bg-base-100 p-4 border-t border-base-300">
+                        <button type="button"
+                                hx-get="{% url 'journal:add-row' %}"
+                                hx-vals="js:{form_index: getNextFormIndex()}"
+                                hx-target="#meisai-rows"
+                                hx-swap="beforeend"
+                                hx-on::after-request="incrementFormIndex(); initTomSelects(); calcBalance();"
+                                class="btn btn-primary btn-outline gap-2 px-6 w-auto font-bold">
+                            <i class="fa-solid fa-plus"></i>行を追加
+                        </button>
                     </div>
                 </div>
             </div>
@@ -193,7 +136,7 @@
                         </button>
                     {% endif %}
                     <a href="{% url 'journal:shiwake-list' %}" class="btn-cancel">キャンセル</a>
-                    <button type="submit" class="btn-save">
+                    <button type="submit" class="btn-save" :disabled="!isBalanced()">
                         <i class="fa-regular fa-floppy-disk"></i>保存
                     </button>
                 </div>
@@ -201,30 +144,6 @@
         </form>
     </div>
     {% block extra_scripts %}
-        <script>
-        function furikaeLogic() {
-            return {
-                shukkinKingaku: document.querySelector('[name="row-shukkin_kingaku"]').value || '',
-                nyukinKingaku: document.querySelector('[name="row-nyukin_kingaku"]').value || '',
-                tesuryoKingaku: document.querySelector('[name="row-tesuryo_kingaku"]').value || '',
-                
-                calcNyukin() {
-                    let s = parseInt(this.shukkinKingaku) || 0;
-                    let t = parseInt(this.tesuryoKingaku) || 0;
-                    let n = s - t;
-                    if (n >= 0) {
-                        this.nyukinKingaku = n;
-                    } else {
-                        this.nyukinKingaku = 0;
-                    }
-                }
-            }
-        }
-        
-        document.addEventListener('DOMContentLoaded', function () {
-            // Init TomSelect on all selects
-            if (typeof initTomSelects === 'function') initTomSelects();
-        });
-        </script>
+        {% include "journal/partials/shiwake_scripts.html" %}
     {% endblock extra_scripts %}
 {% endblock content %}

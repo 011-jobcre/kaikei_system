@@ -1,0 +1,19 @@
+<!-- This partial replaces the row that was just submitted -->
+<tr class="hover:bg-base-200/50 transition-colors border-b border-base-200"
+    hx-target="this"
+    hx-swap="outerHTML">
+    {% include "journal/partials/grid_row_form.html" with form=new_form row_index=row_index %}
+</tr>
+
+<!-- Trigger a notification and update any summary counters if needed -->
+<div hx-swap-oob="afterbegin:#recent-entries-tbody">
+    <tr class="bg-success/5 animate-pulse">
+        <td class="whitespace-nowrap">{{ denpyo.date|date:"Y/m/d" }}</td>
+        <td class="font-mono">{{ denpyo.denpyo_no }}</td>
+        <td>{{ denpyo.meisai.all.0.kamoku.name }}</td>
+        <td>{{ denpyo.meisai.all.1.kamoku.name }}</td>
+        <td class="text-right font-bold">¥{{ denpyo.meisai.all.0.kingaku|format_number }}</td>
+        <td class="text-right font-bold">¥{{ denpyo.meisai.all.1.kingaku|format_number }}</td>
+        <td class="truncate max-w-xs">{{ denpyo.memo }}</td>
+    </tr>
+</div>

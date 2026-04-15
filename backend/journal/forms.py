@@ -286,3 +286,114 @@ class FurikaeRowForm(forms.Form):
                 self.add_error("tesuryo_kamoku", "手数料の金額が入力されていますが、科目が選択されていません。")
 
         return cleaned
+
+
+class ShiwakeGridRowForm(forms.Form):
+    """
+    A single 1:1 row in the Spreadsheet Grid (仕訳日記帳).
+    Maps to two ShiwakeMeisai records under one ShiwakeDenpyo.
+    """
+    date = forms.DateField(
+        label="日付",
+        widget=forms.DateInput(attrs={"type": "date", "class": INPUT_CLASS})
+    )
+    
+    # --- Debit Side (借方) ---
+    kari_kamoku = forms.ModelChoiceField(
+        queryset=KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code"),
+        label="借方科目",
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
+    )
+    kari_hojo = forms.ModelChoiceField(
+        queryset=HojoKamokuMaster.objects.filter(is_active=True).order_by("kamoku__code", "code"),
+        required=False,
+        label="借方補助",
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
+    )
+    kari_zei = forms.ModelChoiceField(
+        queryset=ZeiMaster.objects.filter(is_active=True).order_by("order_no"),
+        required=False,
+        label="借方税区分",
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
+    )
+    
+    # --- Amounts (金額) ---
+    kari_kingaku = forms.DecimalField(
+        label="借方金額",
+        min_value=0,
+        max_digits=15,
+        decimal_places=0,
+        required=False,
+        widget=forms.NumberInput(attrs={"class": INPUT_CLASS + " text-right", "placeholder": "0"})
+    )
+    kashi_kingaku = forms.DecimalField(
+        label="貸方金額",
+        min_value=0,
+        max_digits=15,
+        decimal_places=0,
+        required=False,
+        widget=forms.NumberInput(attrs={"class": INPUT_CLASS + " text-right", "placeholder": "0"})
+    )
+    
+    # --- Credit Side (貸方) ---
+    kashi_kamoku = forms.ModelChoiceField(
+        queryset=KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code"),
+        label="貸方科目",
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
+    )
+    kashi_hojo = forms.ModelChoiceField(
+        queryset=HojoKamokuMaster.objects.filter(is_active=True).order_by("kamoku__code", "code"),
+        required=False,
+        label="貸方補助",
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
+    )
+    kashi_zei = forms.ModelChoiceField(
+        queryset=ZeiMaster.objects.filter(is_active=True).order_by("order_no"),
+        required=False,
+        label="貸方税区分",
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
+    )
+    
+    # --- Memo (摘要) ---
+    tekiyou = forms.CharField(
+        label="摘要",
+        required=False,
+        widget=forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "摘要(明細)"})
+    )
+    
+    # --- Metadata (optional for grid) ---
+    bumon = forms.ModelChoiceField(
+        queryset=BumonMaster.objects.filter(is_active=True).order_by("code"),
+        required=False,
+        label="部門",
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
+    )
+    torihikisaki = forms.ModelChoiceField(
+        queryset=TorihikiSakiMaster.objects.filter(is_active=True).order_by("code"),
+        required=False,
+        label="取引先",
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        kari_kingaku = cleaned.get("kari_kingaku")
+        kashi_kingaku = cleaned.get("kashi_kingaku")
+
+        # 1:1 mode supports entering one side only; the other side is auto-filled.
+        if kari_kingaku is None and kashi_kingaku is None:
+            raise forms.ValidationError("借方金額または貸方金額のいずれかを入力してください。")
+        if kari_kingaku is None:
+            cleaned["kari_kingaku"] = kashi_kingaku
+            kari_kingaku = kashi_kingaku
+        if kashi_kingaku is None:
+            cleaned["kashi_kingaku"] = kari_kingaku
+            kashi_kingaku = kari_kingaku
+        if kari_kingaku != kashi_kingaku:
+            raise forms.ValidationError("1:1仕訳では借方金額と貸方金額を一致させてください。")
+
+        if cleaned.get("kari_kamoku") == cleaned.get("kashi_kamoku") and cleaned.get("kari_hojo") == cleaned.get("kashi_hojo"):
+            # Note: technically allowed in some accounting, but usually a mistake for 1:1 bank transfers etc.
+            # We'll keep it allowed but maybe add a warning later.
+            pass
+        return cleaned
