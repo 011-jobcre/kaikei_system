@@ -4,22 +4,22 @@
      hx-get="{% url 'master:kanjo-list' %}"
      hx-trigger="refreshList from:body"
      hx-swap="outerHTML">
-    <div class="overflow-x-auto">
-        <table class="table table-accounting">
+    <div class="table-wrapper">
+        <table class="table-accounting">
             <thead>
                 <tr>
-                    <th class="w-28">コード</th>
-                    <th class="min-w-44">勘定科目名</th>
-                    <th class="w-28 text-center">分類</th>
+                    <th class="w-40">コード</th>
+                    <th class="min-w-56 md:w-auto">勘定科目名</th>
+                    <th class="w-40 text-center">分類</th>
                     <th class="w-40 text-center">貸借区分</th>
-                    <th class="w-28 text-center">ステータス</th>
-                    {% if is_admin %}<th class="w-28 text-center">操作</th>{% endif %}
+                    <th class="w-40 text-center">ステータス</th>
+                    {% if is_admin %}<th class="w-40 text-center">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for obj in kamoku_list %}
                     <tr>
-                        <td class="amount-neutral">{{ obj.code }}</td>
+                        <td class="text-col">{{ obj.code }}</td>
                         <td>
                             {% if obj.level == 1 %}
                                 <span class="text-primary font-semibold">{{ obj.name }}</span>
@@ -28,35 +28,31 @@
                             {% elif obj.level == 3 %}
                                 <span class="pl-8 text-accent font-semibold">{{ obj.name }}</span>
                             {% else %}
-                                <span class="pl-12">{{ obj.name }}</span>
+                                <span class="pl-12 text-col">{{ obj.name }}</span>
                             {% endif %}
                         </td>
                         <!-- Hierarchy level badge -->
                         <td class="text-center">
-                            <span class="badge badge-outline badge-info font-semibold w-20">
-                                {% if obj.level == 1 %}
-                                    大分類
-                                {% elif obj.level == 2 %}
-                                    中分類
-                                {% elif obj.level == 3 %}
-                                    小分類
-                                {% else %}
-                                    詳細
-                                {% endif %}
-                            </span>
+                            {% if obj.level == 1 %}
+                                <span class="badge-level-1">大分類</span>
+                            {% elif obj.level == 2 %}
+                                <span class="badge-level-2">中分類</span>
+                            {% elif obj.level == 3 %}
+                                <span class="badge-level-3">小分類</span>
+                            {% else %}
+                                <span class="badge-level-4">詳細</span>
+                            {% endif %}
                         </td>
                         <!-- Debit/credit classification badge (color keyed to account type) -->
                         <td class="text-center">
-                            <span class="badge badge-outline badge-{{ obj.kubun_theme_key }} font-semibold w-20">
-                                {{ obj.get_taisha_kubun_display }}
-                            </span>
+                            <span class="badge-{{ obj.kubun_theme_key }}">{{ obj.get_taisha_kubun_display }}</span>
                         </td>
                         <!-- Active / Inactive status badge -->
                         <td class="text-center">
                             {% if obj.is_active %}
-                                <span class="badg-enable">有効</span>
+                                <span class="badge-enable">有効</span>
                             {% else %}
-                                <span class="badg-disable">無効</span>
+                                <span class="badge-disable">無効</span>
                             {% endif %}
                         </td>
                         <!-- Row action buttons: Edit and Delete via HTMX modal -->

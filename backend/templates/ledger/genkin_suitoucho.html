@@ -45,43 +45,42 @@
             <div class="stats stats-vertical md:stats-horizontal shadow-sm w-full gap-2">
                 <div class="stat place-items-center">
                     <div class="stat-title text-success text-base">入金額</div>
-                    <div class="stat-value text-success text-2xl amount-positive">¥{{ kari_total|format_number }}</div>
+                    <div class="stat-value text-success text-xl amount">¥{{ kari_total|format_number }}</div>
                 </div>
                 <div class="stat place-items-center">
                     <div class="stat-title text-error text-base">出金額</div>
-                    <div class="stat-value text-error text-2xl amount-negative">¥{{ kashi_total|format_number }}</div>
+                    <div class="stat-value text-error text-xl amount">¥{{ kashi_total|format_number }}</div>
                 </div>
                 <div class="stat place-items-center">
                     <div class="stat-title text-primary text-base">現在の残高 (手元現金)</div>
-                    <div class="stat-value text-primary text-2xl font-money">¥{{ zandaka|format_number }}</div>
+                    <div class="stat-value text-primary text-xl amount">¥{{ zandaka|format_number }}</div>
                 </div>
             </div>
             <!-- Ledger Table -->
             <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="table table-accounting">
+                <div class="table-wrapper">
+                    <table class="table-accounting">
                         <thead>
                             <tr>
-                                <th class="w-28">日付</th>
-                                <th class="min-w-36 md:w-36">伝票No</th>
-                                <th class="min-w-48">摘要 / [相手科目]</th>
-                                <th class="w-36">部門</th>
-                                <th class="text-right w-36 border-l border-base-300">入金</th>
-                                <th class="text-right w-36 border-r border-base-300">出金</th>
-                                <th class="text-right w-36">残高</th>
+                                <th class="w-40">日付</th>
+                                <th class="min-w-36 md:w-auto">伝票No</th>
+                                <th class="min-w-52 md:w-auto">摘要 / [相手科目]</th>
+                                <th class="min-w-44 md:w-auto">部門</th>
+                                <th class="min-w-36 md:w-auto text-right group-header border-l border-base-300">入金</th>
+                                <th class="min-w-36 md:w-auto text-right group-header credit border-r border-base-300">出金</th>
+                                <th class="min-w-36 md:w-auto text-right">残高</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for row in meisai_list %}
                                 <tr>
-                                    <td>{{ row.meisai.denpyo.date|date:"Y/m/d" }}</td>
-                                    <td class="amount-neutral">
-                                        <a href="{{ row.meisai.denpyo.get_edit_url }}"
-                                           class="hover:text-accent">{{ row.meisai.denpyo.denpyo_no }}</a>
+                                    <td class="date-col">{{ row.meisai.denpyo.date|date:"Y/m/d" }}</td>
+                                    <td class="denp-no">
+                                        <a href="{{ row.meisai.denpyo.get_edit_url }}" class="hover:text-accent">{{ row.meisai.denpyo.denpyo_no }}</a>
                                     </td>
                                     <td class="whitespace-normal">
-                                        <div class="font-medium text-neutral">{{ row.meisai.tekyou }}</div>
-                                        <div class="text-xs text-neutral/50 mt-1">
+                                        <div class="text-col">{{ row.meisai.tekyou }}</div>
+                                        <div class="text-neutral/50 text-xs mt-1">
                                             {% if row.meisai.kari_kashi == 'KA' %}
                                                 [貸方科目] <!-- Inverse side -->
                                             {% else %}
@@ -89,17 +88,17 @@
                                             {% endif %}
                                         </div>
                                     </td>
-                                    <td class="text-neutral">{{ row.meisai.bumon.name|default:"-" }}</td>
+                                    <td class="text-col">{{ row.meisai.bumon.name|default:"-" }}</td>
                                     <!-- Debit Amount -->
-                                    <td class="text-right amount-positive border-l border-base-300">
+                                    <td class="amount amount-positive border-l border-base-300">
                                         {% if row.meisai.kari_kashi == 'KA' %}{{ row.meisai.kingaku|format_number }}{% endif %}
                                     </td>
                                     <!-- Credit Amount -->
-                                    <td class="text-right amount-negative border-r border-base-300">
+                                    <td class="amount amount-negative border-r border-base-300">
                                         {% if row.meisai.kari_kashi == 'SHI' %}{{ row.meisai.kingaku|format_number }}{% endif %}
                                     </td>
                                     <!-- Running Balance -->
-                                    <td class="text-right amount-neutral font-bold">{{ row.running_balance|format_number }}</td>
+                                    <td class="amount amount-neutral font-bold">{{ row.running_balance|format_number }}</td>
                                 </tr>
                             {% empty %}
                                 <tr>
@@ -117,10 +116,8 @@
             <!-- Empty State -->
             <div class="hero bg-base-100 rounded-box shadow-sm border border-base-300 py-8">
                 <div class="hero-content text-center text-base-content/40">
-                    <div class="max-w-lg space-y-2">
-                        <div class="text-primary/50">
-                            <i class="fa-solid fa-magnifying-glass-chart text-6xl"></i>
-                        </div>
+                    <div class="max-w-2xl space-y-2">
+                        <i class="fa-solid fa-magnifying-glass-chart text-6xl"></i>
                         <h1 class="text-xl font-bold">現金科目が見つかりません</h1>
                         <p class="text-sm">名称に「現金」を含む有効な勘定科目がマスタに登録されているか確認してください。</p>
                     </div>

@@ -2,19 +2,19 @@
     {% load number_filters %}
     <div class="flex flex-wrap md:flex-nowrap gap-2">
         <div class="rounded-xl bg-base-300/60 px-4 py-1">
-            借方合計: <span class="amount-positive">{{ kari_total|format_number }}</span> 円
+            借方合計: <span class="amount amount-positive">{{ kari_total|format_number }}</span> 円
         </div>
         <div class="rounded-xl bg-base-300/60 px-4 py-1">
-            貸方合計: <span class="amount-negative">{{ kashi_total|format_number }}</span> 円
+            貸方合計: <span class="amount amount-negative">{{ kashi_total|format_number }}</span> 円
         </div>
     </div>
     {% if balanced and kari_total > 0 %}
-        <div class="text-success font-bold flex items-center gap-1.5">
+        <div class="text-success font-bold flex items-center gap-2">
             <i class="fa-solid fa-circle-check"></i>
             貸借一致
         </div>
     {% elif diff != 0 %}
-        <div class="text-error font-bold flex items-center gap-1.5">
+        <div class="text-error font-bold amount flex items-center gap-2">
             <i class="fa-solid fa-circle-exclamation"></i>
             差額: {{ diff|format_number }} 円
         </div>

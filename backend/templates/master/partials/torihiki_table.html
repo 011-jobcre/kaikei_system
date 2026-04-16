@@ -4,31 +4,31 @@
      hx-get="{% url 'master:torihiki-list' %}"
      hx-trigger="refreshList from:body"
      hx-swap="outerHTML">
-    <div class="overflow-x-auto">
-        <table class="table table-accounting">
+    <div class="table-wrapper">
+        <table class="table-accounting">
             <thead>
                 <tr>
-                    <th class="w-28">コード</th>
-                    <th class="min-w-44">取引先名</th>
-                    <th class="w-40">電話番号</th>
-                    <th class="w-40">メールアドレス</th>
-                    <th class="w-28 text-center">ステータス</th>
-                    {% if is_admin %}<th class="w-28 text-center">操作</th>{% endif %}
+                    <th class="w-40">コード</th>
+                    <th class="min-w-56 md:w-auto">取引先名</th>
+                    <th class="min-w-44 md:w-auto">電話番号</th>
+                    <th class="min-w-44 md:w-auto">メールアドレス</th>
+                    <th class="w-40 text-center">ステータス</th>
+                    {% if is_admin %}<th class="w-40 text-center">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for obj in torihiki_list %}
                     <tr>
-                        <td class="amount-neutral">{{ obj.code }}</td>
-                        <td>{{ obj.name }}</td>
-                        <td>{{ obj.phone|default:"—" }}</td>
-                        <td>{{ obj.email|default:"—" }}</td>
+                        <td class="text-col">{{ obj.code }}</td>
+                        <td class="text-col">{{ obj.name }}</td>
+                        <td class="text-col">{{ obj.phone|default:"—" }}</td>
+                        <td class="text-col">{{ obj.email|default:"—" }}</td>
                         <!-- Active / Inactive status badge -->
                         <td class="text-center">
                             {% if obj.is_active %}
-                                <span class="badg-enable">有効</span>
+                                <span class="badge-enable">有効</span>
                             {% else %}
-                                <span class="badg-disable">無効</span>
+                                <span class="badge-disable">無効</span>
                             {% endif %}
                         </td>
                         <!-- Row action buttons -->

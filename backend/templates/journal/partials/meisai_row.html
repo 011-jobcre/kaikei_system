@@ -55,7 +55,7 @@
     <td class="align-top py-2">
         {{ form.kingaku }}
         {% if form.instance.pk and form.instance.zei_kubun %}
-            <div class="text-xs text-base-content/50 text-right mt-1">
+            <div class="text-xs text-base-content/40 text-right mt-1">
                 税抜: {{ form.instance.kingaku_nuki|format_number }}
                 / 消費税: {{ form.instance.zei_kingaku|format_number }}
             </div>

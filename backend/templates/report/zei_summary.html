@@ -51,51 +51,51 @@
                 </p>
             </div>
             {% if rows %}
-                <div class="overflow-x-auto">
-                    <table class="table table-accounting print:table-fixed print:text-xs print:border-t print:border-base-300">
+                <div class="table-wrapper">
+                    <table class="table-accounting print:table-fixed print:text-xs print:border-t print:border-base-300">
                         <thead>
                             <tr>
-                                <th rowspan="2" class="text-center align-middle">税区分</th>
-                                <th rowspan="2" class="text-center align-middle">税率</th>
-                                <th colspan="3" class="text-center bg-info/10 text-info">課税売上（税込）</th>
-                                <th colspan="3" class="text-center bg-warning/10 text-warning">課税仕入（税込）</th>
+                                <th rowspan="2" class="min-w-44 md:w-auto text-center align-middle">税区分</th>
+                                <th rowspan="2" class="min-w-32 md:w-auto text-center align-middle">税率</th>
+                                <th colspan="3" class="text-center group-header">課税売上（税込）</th>
+                                <th colspan="3" class="text-center group-header credit">課税仕入（税込）</th>
                             </tr>
                             <tr>
-                                <th class="text-right">税込金額</th>
-                                <th class="text-right">税抜金額</th>
-                                <th class="text-right">消費税額</th>
-                                <th class="text-right">税込金額</th>
-                                <th class="text-right">税抜金額</th>
-                                <th class="text-right">消費税額</th>
+                                <th class="min-w-40 md:w-auto group-header text-right">税込金額</th>
+                                <th class="min-w-40 md:w-auto group-header text-right">税抜金額</th>
+                                <th class="min-w-40 md:w-auto group-header text-right">消費税額</th>
+                                <th class="min-w-40 md:w-auto group-header credit text-right">税込金額</th>
+                                <th class="min-w-40 md:w-auto group-header credit text-right">税抜金額</th>
+                                <th class="min-w-40 md:w-auto group-header credit text-right">消費税額</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for row in rows %}
                                 <tr>
-                                    <td class="font-medium">{{ row.zei.zei_name }}</td>
-                                    <td class="text-center font-bold">
-                                        <span class="badge badge-outline badge-success font-semibold w-20">{{ row.zei.tax_rate }}%</span>
+                                    <td class="text-col">{{ row.zei.zei_name }}</td>
+                                    <td class="text-center">
+                                        <span class="badge-enable">{{ row.zei.tax_rate }}%</span>
                                     </td>
                                     <!-- 売上側 -->
-                                    <td class="text-right font-money">{{ row.uriage_zeikomi|format_number }}</td>
-                                    <td class="text-right font-money text-base-content/40">{{ row.uriage_honai|format_number }}</td>
-                                    <td class="text-right font-money text-info font-bold">{{ row.uriage_zeigaku|format_number }}</td>
+                                    <td class="amount amount-neutral">{{ row.uriage_zeikomi|format_number }}</td>
+                                    <td class="amount amount-neutral">{{ row.uriage_honai|format_number }}</td>
+                                    <td class="amount amount-positive text-base">{{ row.uriage_zeigaku|format_number }}</td>
                                     <!-- 仕入側 -->
-                                    <td class="text-right font-money">{{ row.shiire_zeikomi|format_number }}</td>
-                                    <td class="text-right font-money text-base-content/40">{{ row.shiire_honai|format_number }}</td>
-                                    <td class="text-right font-money text-warning font-bold">{{ row.shiire_zeigaku|format_number }}</td>
+                                    <td class="amount amount-neutral">{{ row.shiire_zeikomi|format_number }}</td>
+                                    <td class="amount amount-neutral">{{ row.shiire_honai|format_number }}</td>
+                                    <td class="amount amount-negative text-base">{{ row.shiire_zeigaku|format_number }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="2" class="text-center">合計</td>
-                                <td class="text-right font-money">{{ total_uriage_zeikomi|format_number }}</td>
-                                <td></td>
-                                <td class="text-right font-money text-info">{{ total_zei_uke|format_number }}</td>
-                                <td class="text-right font-money">{{ total_shiire_zeikomi|format_number }}</td>
-                                <td></td>
-                                <td class="text-right font-money text-warning">{{ total_zei_shiharai|format_number }}</td>
+                                <td class="amount amount-neutral">{{ total_uriage_zeikomi|format_number }}</td>
+                                <td class="text-neutral text-right">-</td>
+                                <td class="amount amount-positive">{{ total_zei_uke|format_number }}</td>
+                                <td class="amount amount-neutral">{{ total_shiire_zeikomi|format_number }}</td>
+                                <td class="text-neutral text-right">-</td>
+                                <td class="amount amount-negative">{{ total_zei_shiharai|format_number }}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -105,12 +105,12 @@
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex-1 bg-info/10 rounded-xl p-4 text-center">
                             <p class="text-xs text-info font-bold tracking-widest mb-1">受取消費税 (売上)</p>
-                            <p class="text-2xl font-money font-bold text-info">{{ total_zei_uke|format_number }}</p>
+                            <p class="text-2xl amount font-bold text-info">{{ total_zei_uke|format_number }}</p>
                         </div>
                         <div class="flex items-center justify-center text-2xl text-base-content/40 font-bold">−</div>
                         <div class="flex-1 bg-warning/10 rounded-xl p-4 text-center">
                             <p class="text-xs text-warning font-bold tracking-widest mb-1">支払消費税 (仕入)</p>
-                            <p class="text-2xl font-money font-bold text-warning">{{ total_zei_shiharai|format_number }}</p>
+                            <p class="text-2xl amount font-bold text-warning">{{ total_zei_shiharai|format_number }}</p>
                         </div>
                         <div class="flex items-center justify-center text-2xl text-base-content/40 font-bold">=</div>
                         <div class="flex-1 {% if nofu_zei >= 0 %}bg-error/10{% else %}bg-success/10{% endif %} rounded-xl p-4 text-center">
@@ -121,7 +121,7 @@
                                     還付税額
                                 {% endif %}
                             </p>
-                            <p class="text-2xl font-money font-bold {% if nofu_zei >= 0 %}text-error{% else %}text-success{% endif %}">
+                            <p class="text-2xl amount font-bold {% if nofu_zei >= 0 %}text-error{% else %}text-success{% endif %}">
                                 {{ nofu_zei|format_number|cut:"-" }}
                             </p>
                         </div>

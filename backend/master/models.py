@@ -82,11 +82,11 @@ class KanjoKamokuMaster(BaseModel):
     def kubun_theme_key(self):
         """DaisyUI semantic color keys for themes"""
         keys = {
-            "SHISAN": "primary",
-            "FUSAI": "info",
-            "JUNSHISAN": "success",
-            "SHUEKI": "error",
-            "HIYO": "warning",
+            "SHISAN": "level-1",
+            "FUSAI": "level-2",
+            "JUNSHISAN": "level-3",
+            "SHUEKI": "level-4",
+            "HIYO": "level-5",
         }
         return keys.get(self.taisha_kubun, "neutral")
 

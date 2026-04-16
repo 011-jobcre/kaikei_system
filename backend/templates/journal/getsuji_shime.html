@@ -27,12 +27,12 @@
                 <span class="badge badge-outline badge-primary">{{ months|length }} ヶ月</span>
             </div>
             {% if months %}
-                <div class="overflow-x-auto">
-                    <table class="table table-accounting">
+                <div class="table-wrapper">
+                    <table class="table-accounting">
                         <thead>
                             <tr>
-                                <th class="text-center w-8">#</th>
-                                <th>対象月</th>
+                                <th class="text-center w-20">#</th>
+                                <th class="text-center">対象月</th>
                                 <th class="text-center">伝票数</th>
                                 <th class="text-center">ロック済</th>
                                 <th class="text-center">状態</th>
@@ -42,19 +42,19 @@
                         <tbody>
                             {% for m in months %}
                                 <tr class="{% if m.is_fully_locked %}bg-success/10{% endif %}">
-                                    <td class="text-center text-sm">{{ forloop.counter }}</td>
-                                    <td class="font-bold text-neutral">{{ m.label }}</td>
-                                    <td class="text-center font-mono">{{ m.denpyo_count }} 件</td>
-                                    <td class="text-center font-mono">
+                                    <td class="text-center text-col">{{ forloop.counter }}</td>
+                                    <td class="text-center date-col">{{ m.label }}</td>
+                                    <td class="text-center text-col">{{ m.denpyo_count }} 件</td>
+                                    <td class="text-center">
                                         {% if m.locked_count > 0 %}
-                                            <span class="text-warning">{{ m.locked_count }} 件</span>
+                                            <span class="text-success">{{ m.locked_count }} 件</span>
                                         {% else %}
-                                            <span class="text-base-content/40">—</span>
+                                            <span class="text-neutral">—</span>
                                         {% endif %}
                                     </td>
                                     <td class="text-center">
                                         {% if m.is_fully_locked %}
-                                            <span class="badge badge-outline badge-success font-semibold w-24 shrink-0">
+                                            <span class="badge badge-outline badge-info font-semibold w-24 shrink-0">
                                                 <i class="fa-solid fa-lock"></i>締済
                                             </span>
                                         {% elif m.locked_count > 0 %}
@@ -78,9 +78,10 @@
                                                     <input type="hidden" name="month_str" value="{{ m.month_str }}" />
                                                     <input type="hidden" name="action" value="unlock" />
                                                     <button type="submit"
-                                                            class="btn btn-warning w-24"
+                                                            class="btn-delete"
+                                                            title="解除"
                                                             id="unlock-btn-{{ m.month_str }}">
-                                                        <i class="fa-solid fa-lock-open"></i>解除
+                                                        <i class="fa-solid fa-lock-open"></i>
                                                     </button>
                                                 </form>
                                             {% else %}
@@ -92,9 +93,10 @@
                                                     <input type="hidden" name="month_str" value="{{ m.month_str }}" />
                                                     <input type="hidden" name="action" value="lock" />
                                                     <button type="submit"
-                                                            class="btn btn-primary w-24"
+                                                            class="btn-edit"
+                                                            title="締める"
                                                             id="lock-btn-{{ m.month_str }}">
-                                                        <i class="fa-solid fa-lock"></i>締める
+                                                        <i class="fa-solid fa-lock"></i>
                                                     </button>
                                                 </form>
                                             {% endif %}

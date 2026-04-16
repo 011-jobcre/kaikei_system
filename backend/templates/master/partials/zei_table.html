@@ -4,26 +4,26 @@
      hx-get="{% url 'master:zei-list' %}"
      hx-trigger="refreshList from:body"
      hx-swap="outerHTML">
-    <div class="overflow-x-auto">
-        <table class="table table-accounting">
+    <div class="table-wrapper">
+        <table class="table-accounting">
             <thead>
                 <tr>
-                    <th class="min-w-44">税区分名</th>
+                    <th class="min-w-56 md:w-auto">税区分名</th>
                     <!-- Right-aligned for numeric tax rate -->
-                    <th class="w-28">税率（%）</th>
-                    <th class="min-w-56 md:w-56 text-center">適用期間</th>
-                    <th class="w-28 text-center">ステータス</th>
-                    {% if is_admin %}<th class="w-28 text-center">操作</th>{% endif %}
+                    <th class="w-40 text-right">税率（%）</th>
+                    <th class="min-w-56 md:w-auto text-center">適用期間</th>
+                    <th class="w-40 text-center">ステータス</th>
+                    {% if is_admin %}<th class="w-40 text-center">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for obj in zei_list %}
                     <tr>
-                        <td>{{ obj.zei_name }}</td>
+                        <td class="text-col">{{ obj.zei_name }}</td>
                         <!-- Tax rate displayed with monospace font for alignment -->
-                        <td class="amount-neutral">{{ obj.tax_rate }}%</td>
+                        <td class="amount amount-neutral">{{ obj.tax_rate }}%</td>
                         <!-- Date range: shown as "YYYY/MM/DD ～ YYYY/MM/DD" or dashes -->
-                        <td class="text-center">
+                        <td class="date-col text-center ">
                             {{ obj.valid_from|date:"Y/m/d"|default:"—" }}
                             〜
                             {{ obj.valid_to|date:"Y/m/d"|default:"—" }}
@@ -31,9 +31,9 @@
                         <!-- Active / Inactive status badge -->
                         <td class="text-center">
                             {% if obj.is_active %}
-                                <span class="badg-enable">有効</span>
+                                <span class="badge-enable">有効</span>
                             {% else %}
-                                <span class="badg-disable">無効</span>
+                                <span class="badge-disable">無効</span>
                             {% endif %}
                         </td>
                         <!-- Row action buttons: Edit and Delete via HTMX modal -->

@@ -68,13 +68,13 @@ class HtmxListMixin:
 
 
 # =========================================================
-# Chart of Accounts
+# Account Master
 # =========================================================
 
 
 class KanjoKamokuListView(LoginRequiredMixin, HtmxListMixin, ListView):
     """
-    Displays the full chart of accounts with optional filters:
+    Displays the full account master with optional filters:
     - q          : search by code or account name
     - level      : filter by hierarchy level (1=large … 4=detail)
     - taisha     : filter by debit/credit classification
