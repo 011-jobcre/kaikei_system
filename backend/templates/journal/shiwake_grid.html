@@ -23,11 +23,14 @@
                 </a>
             </div>
         </div>
-        <div x-show="globalError"
-             x-cloak
-             class="alert alert-error text-sm shadow-sm">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span x-text="globalError"></span>
+        <!-- Error Alerts for All Rows -->
+        <div x-show="Object.keys(rowErrors).length > 0" x-cloak class="space-y-2">
+            <template x-for="(error, rowIdx) in rowErrors" :key="rowIdx">
+                <div class="alert alert-error text-sm shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span><strong>Row <span x-text="parseInt(rowIdx) + 1"></span>:</strong> <span x-text="error"></span></span>
+                </div>
+            </template>
         </div>
         <!-- ── The Grid ──────────────────────────────────────────────────────────── -->
         <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
@@ -91,14 +94,16 @@
 function shiwakeGrid() {
     return {
         validationTick: 0,
-        globalError: "",
+        rowErrors: {},  // Track errors for each row: { rowIdx: errorMessage }
+
         deleteRow(rowIdx) {
             const row = document.getElementById(`row-${rowIdx}`);
             if (row) {
                 row.remove();
-                this.updateGlobalError();
+                delete this.rowErrors[rowIdx];
             }
         },
+
         getNextRowIndex() {
             // Find max index to avoid collisions
             const rows = document.querySelectorAll('#grid-rows > tr[id^="row-"]');
@@ -109,40 +114,68 @@ function shiwakeGrid() {
             });
             return maxIdx + 1;
         },
+
         init() {
             if (typeof initTomSelects === 'function') {
                 initTomSelects();
             }
             this.applyDefaultDate();
-            this.updateGlobalError();
+            this.revalidateAllRows();
+
             // Focus the first input on load
             this.$nextTick(() => {
                 const firstInput = document.querySelector('.grid-input, .grid-select');
                 if (firstInput) firstInput.focus();
             });
+
             document.body.addEventListener('htmx:afterSwap', (evt) => {
                 if (typeof initTomSelects === 'function') {
                     initTomSelects();
                 }
                 this.applyDefaultDate();
-                const target = evt.detail && evt.detail.target ? evt.detail.target : null;
+
+                // Clear error for successfully saved row
+                const target = evt.detail?.target;
                 if (target && target.id && target.id.startsWith('row-')) {
+                    const rowIdx = target.id.replace('row-', '');
+                    delete this.rowErrors[rowIdx];
+
+                    // Check for server errors in the returned HTML
                     const serverErr = target.querySelector('.server-row-error')?.textContent?.trim();
-                    this.globalError = serverErr || this.getFirstRowError();
-                } else if (target && (target.id === 'grid-rows' || target.id === 'recent-entries-tbody')) {
-                    this.globalError = this.getFirstRowError();
+                    if (serverErr) {
+                        this.rowErrors[rowIdx] = serverErr;
+                    }
                 }
+                this.revalidateAllRows();
                 this.validationTick++;
             });
-            document.body.addEventListener('input', (e) => {
+
+            document.body.addEventListener('input', () => {
                 this.validationTick++;
+                this.revalidateAllRows();
             });
-            document.body.addEventListener('change', (e) => {
+
+            document.body.addEventListener('change', () => {
                 this.validationTick++;
+                this.revalidateAllRows();
             });
+
             // Handle specific refresh event from server
             document.body.addEventListener('refreshHistory', () => {
                 htmx.trigger('#recent-entries-tbody', 'refreshRecentEntries');
+            });
+        },
+
+        revalidateAllRows() {
+            const rows = document.querySelectorAll('#grid-rows > tr[id^="row-"]');
+            rows.forEach(row => {
+                const rowIdx = row.id.replace('row-', '');
+                const error = this.getRowError(rowIdx);
+                if (error) {
+                    this.rowErrors[rowIdx] = error;
+                } else {
+                    delete this.rowErrors[rowIdx];
+                }
             });
         },
         applyDefaultDate() {
@@ -213,29 +246,21 @@ function shiwakeGrid() {
             if (kari !== kashi) return `行 ${rowIdx + 1}: 借方金額と貸方金額が一致していません。`;
             return "";
         },
-        getFirstRowError() {
-            const rows = document.querySelectorAll('#grid-rows > tr[id^="row-"]');
-            for (const row of rows) {
-                const rowIdx = parseInt(row.id.replace('row-', ''), 10);
-                const errorMsg = this.getRowError(rowIdx);
-                if (errorMsg) return errorMsg;
-            }
-            return "";
-        },
-        updateGlobalError() {
-            this.globalError = this.getFirstRowError();
-        },
         rowHasError(rowIdx) {
-            return this.getRowError(rowIdx) !== "";
+            return !!this.rowErrors[rowIdx];
         },
-        validateBeforeSubmit(e, rowIdx) {
-            const errorMsg = this.getRowError(rowIdx, true);
-            this.globalError = errorMsg;
-            if (errorMsg) {
-                e.preventDefault();
+
+        validateBeforeSave(e, rowIdx) {
+            // Clear previous error for this row
+            delete this.rowErrors[rowIdx];
+
+            const error = this.getRowError(rowIdx, true);
+            if (error) {
+                this.rowErrors[rowIdx] = error;
+                e.stopPropagation();  // Stop HTMX from submitting
                 return false;
             }
-            return true;
+            return true;  // Allow HTMX to proceed
         }
     }
 }

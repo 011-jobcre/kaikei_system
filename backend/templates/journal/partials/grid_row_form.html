@@ -1,5 +1,8 @@
-{% csrf_token %}
 <td class="p-0">
+    {% csrf_token %}
+    <input type="hidden"
+           name="_row_prefix"
+           value="row-{{ row_index|default:0 }}" />
     <input type="date"
            name="{{ form.date.html_name }}"
            value="{{ form.date.value|default:'' }}"
@@ -123,15 +126,17 @@
            data-col="9"
            @keyup="handleKey($event, {{ row_index|default:0 }}, 9)" />
 </td>
-<input type="hidden"
-       name="_row_prefix"
-       value="row-{{ row_index|default:0 }}" />
 <td class="text-center p-0 relative">
     <div class="flex items-center justify-center gap-1 h-full py-1">
         <button type="button"
                 class="btn btn-ghost btn-xs text-primary"
-                :class="{ 'opacity-20 cursor-not-allowed': rowHasError({{ row_index|default:0 }}) }"
-                @click="if (!rowHasError({{ row_index|default:0 }})) $dispatch('submit-row', {rowIdx: {{ row_index|default:0 }}})"
+                hx-post="{% url 'journal:shiwake-create' %}?row_index={{ row_index|default:0 }}"
+                hx-target="closest tr"
+                hx-swap="outerHTML"
+                hx-include="closest tr"
+                hx-indicator="closest tr"
+                :class="{ 'opacity-30 cursor-not-allowed': rowHasError({{ row_index|default:0 }}) }"
+                @click="return validateBeforeSave($event, {{ row_index|default:0 }})"
                 title="保存">
             <i class="fa-solid fa-save"></i>
         </button>
@@ -151,7 +156,7 @@
             </div>
         </div>
     </template>
-    <span class="server-row-error hidden">
+    <span class="server-row-error hidden" data-row="{{ row_index|default:0 }}">
         {% if form.non_field_errors %}
             {{ form.non_field_errors.0 }}
         {% else %}
