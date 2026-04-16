@@ -1,7 +1,7 @@
 <script>
 // ── Alpine.js Component for Frontend Balance Tracking ────────────────
 document.addEventListener('alpine:init', () => {
-    Alpine.data('denpyoForm', () => ({
+    Alpine.data('furikaeForm', () => ({
         kariTotal: 0,
         kashiTotal: 0,
         triggerCalc: 0,
@@ -13,7 +13,7 @@ document.addEventListener('alpine:init', () => {
             }, 50);
             
             // Client-side validation styles for inputs
-            const form = document.querySelector('#denpyo-form');
+            const form = document.querySelector('#furikae-form');
             if (form) {
                 form.querySelectorAll('input[required], select[required]').forEach(el => {
                     el.addEventListener('blur', () => this.validateField(el));

@@ -6,7 +6,7 @@
     {{ title }}
 {% endblock page_header %}
 {% block content %}
-    <div class="space-y-4" x-data="denpyoForm()">
+    <div class="space-y-4" x-data="furikaeForm()">
         <!-- Server-Side Validation Notice -->
         {% if form.errors or formset.errors %}
             <div class="alert alert-error text-sm shadow-sm gap-2">
@@ -14,7 +14,7 @@
                 エラーがあります。赤字の項目を確認してください。
             </div>
         {% endif %}
-        <form method="post" id="denpyo-form" novalidate class="space-y-4">
+        <form method="post" id="furikae-form" novalidate class="space-y-4">
             {% csrf_token %}
             <!-- Header Section -->
             <div class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
@@ -23,6 +23,14 @@
                         <label class="input text-neutral w-full">
                             <span class="label min-w-24 md:min-w-auto">伝票日付<span class="text-error ml-1">*</span></span>
                             {{ form.date }}
+                            <script>
+                                (function() {
+                                    const dateInput = document.currentScript.previousElementSibling;
+                                    if (dateInput && !dateInput.value) {
+                                        dateInput.value = new Date().toISOString().slice(0, 10);
+                                    }
+                                })();
+                            </script>
                         </label>
                         {% if form.date.errors %}
                             <div class="label pt-1 text-sm">
