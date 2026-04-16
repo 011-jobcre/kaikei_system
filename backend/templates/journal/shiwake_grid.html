@@ -30,48 +30,50 @@
             <span x-text="globalError"></span>
         </div>
         <!-- ── The Grid ──────────────────────────────────────────────────────────── -->
-        <div class="flex-1 overflow-auto bg-base-100 rounded-box shadow-lg border border-base-300">
-            <table class="table table-xs table-pin-rows table-pin-cols w-full border-collapse">
-                <thead class="bg-base-200">
-                    <tr class="text-center font-bold text-base-content/70">
-                        <th class="w-32 border-r border-base-300">日付</th>
-                        <th class="w-48 border-r border-base-300 bg-info/5">借方科目</th>
-                        <th class="w-40 border-r border-base-300 bg-info/5">借方補助</th>
-                        <th class="w-32 border-r border-base-300">借方金額</th>
-                        <th class="w-40 border-r border-base-300">借方税区分</th>
-                        <th class="w-48 border-r border-base-300 bg-warning/5">貸方科目</th>
-                        <th class="w-40 border-r border-base-300 bg-warning/5">貸方補助</th>
-                        <th class="w-32 border-r border-base-300">貸方金額</th>
-                        <th class="w-40 border-r border-base-300">貸方税区分</th>
-                        <th class="border-base-300">摘要(明細)</th>
-                        <th class="w-16">操作</th>
-                    </tr>
-                </thead>
-                <tbody id="grid-rows">
-                    {% for form in rows %}
-                        {% include "journal/partials/grid_row_wrap.html" with form=form row_index=forloop.index0 %}
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
+            <div class="table-wrapper">
+                <table class="table-accounting table-xs">
+                    <thead>
+                        <tr>
+                            <th class="w-28">日付</th>
+                            <th class="min-w-44 md:w-auto group-header">借方科目</th>
+                            <th class="min-w-44 md:w-auto group-header">借方補助</th>
+                            <th class="min-w-32 md:w-auto group-header">借方金額</th>
+                            <th class="min-w-40 md:w-auto group-header">借方税区分</th>
+                            <th class="min-w-44 md:w-auto group-header credit">貸方科目</th>
+                            <th class="min-w-44 md:w-auto group-header credit">貸方補助</th>
+                            <th class="min-w-32 md:w-auto group-header credit">貸方金額</th>
+                            <th class="min-w-40 md:w-auto group-header credit">貸方税区分</th>
+                            <th class="min-w-40 md:w-auto">摘要</th>
+                            <th class="w-28 text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="grid-rows">
+                        {% for form in rows %}
+                            {% include "journal/partials/grid_row_wrap.html" with form=form row_index=forloop.index0 %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
         <!-- ── Recent History (Peek) ──────────────────────────────────────────────── -->
-        <div class="card bg-base-100 shadow-sm border border-base-300">
-            <div class="card-body p-0">
-                <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between">
-                    <h3 class="text-xs font-bold uppercase tracking-wider opacity-60">最近の登録内容</h3>
-                    <span class="text-[10px] opacity-40">最新10件を表示</span>
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-1">
+                <div class="px-4 py-2 bg-base-200 border-b border-base-300 flex items-center justify-between">
+                    <h3 class="text-neutral text-sm font-bold tracking-wider">最近の登録内容</h3>
+                    <span class="text-neutral/60 text-xs">最新10件を表示</span>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="table table-xs w-full">
+                <div class="table-wrapper">
+                    <table class="table-accounting">
                         <thead>
                             <tr>
-                                <th>日付</th>
-                                <th>No</th>
-                                <th>借方</th>
-                                <th>貸方</th>
-                                <th class="text-right">借方金額</th>
-                                <th class="text-right">貸方金額</th>
-                                <th>摘要</th>
+                                <th class="w-28">日付</th>
+                                <th class="min-w-36 md:w-auto">伝票No</th>
+                                <th class="min-w-44 md:w-auto group-header">借方</th>
+                                <th class="w-28 text-right group-header">借方金額</th>
+                                <th class="min-w-44 md:w-auto group-header credit">貸方</th>
+                                <th class="w-28 text-right group-header credit">貸方金額</th>
+                                <th class="min-w-52 md:w-auto">摘要</th>
                             </tr>
                         </thead>
                         <tbody id="recent-entries-tbody"

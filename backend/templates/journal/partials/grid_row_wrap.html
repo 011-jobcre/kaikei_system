@@ -1,5 +1,4 @@
-<tr class="hover:bg-base-200/50 transition-colors border-b border-base-200 relative"
-    id="row-{{ row_index|default:0 }}"
+<tr id="row-{{ row_index|default:0 }}"
     :class="{ 'bg-error/5 ring-1 ring-inset ring-error/40': rowHasError({{ row_index|default:0 }}) }"
     hx-post="{% url 'journal:shiwake-create' %}"
     hx-target="this"
