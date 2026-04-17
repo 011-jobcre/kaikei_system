@@ -11,6 +11,55 @@ from common.forms_widgets import INPUT_CLASS, SELECT_CLASS
 
 
 # =========================================================
+# Common Queryset Helpers
+# =========================================================
+
+
+def get_active_level4_kamoku_queryset():
+    """Return active Level-4 (detail) kamoku accounts ordered by code."""
+    return KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
+
+
+def get_active_hojo_queryset():
+    """Return active sub-accounts ordered by kamoku code and code."""
+    return HojoKamokuMaster.objects.filter(is_active=True).order_by("kamoku__code", "code")
+
+
+def get_active_bumon_queryset():
+    """Return active departments ordered by code."""
+    return BumonMaster.objects.filter(is_active=True).order_by("code")
+
+
+def get_active_torihiki_queryset():
+    """Return active business partners ordered by code."""
+    return TorihikiSakiMaster.objects.filter(is_active=True).order_by("code")
+
+
+def get_active_zei_queryset():
+    """Return active tax rates ordered by order_no."""
+    return ZeiMaster.objects.filter(is_active=True).order_by("order_no")
+
+
+def setup_master_fields(form):
+    """Configure common master data field querysets and empty labels."""
+    form.fields["kamoku"].queryset = get_active_level4_kamoku_queryset()
+    form.fields["kamoku"].empty_label = "勘定科目（必須）"
+    form.fields["kamoku"].required = True
+
+    form.fields["hojo"].queryset = get_active_hojo_queryset()
+    form.fields["hojo"].empty_label = "補助科目（任意）"
+
+    form.fields["bumon"].queryset = get_active_bumon_queryset()
+    form.fields["bumon"].empty_label = "部門（任意）"
+
+    form.fields["torihikisaki"].queryset = get_active_torihiki_queryset()
+    form.fields["torihikisaki"].empty_label = "取引先（任意）"
+
+    form.fields["zei_kubun"].queryset = get_active_zei_queryset()
+    form.fields["zei_kubun"].empty_label = "税区分（任意）"
+
+
+# =========================================================
 # Furikae Denpyo — Complex N:N Internal Transfer Form
 # =========================================================
 
@@ -66,23 +115,7 @@ class FurikaeMeisaiForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Only detail-level (Level 4) active accounts selectable
-        self.fields["kamoku"].queryset = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
-        self.fields["kamoku"].empty_label = "勘定科目（必須）"
-        self.fields["kamoku"].required = True
-
-        # Sub-accounts: initially shows all; filtered by JS after kamoku selection
-        self.fields["hojo"].queryset = HojoKamokuMaster.objects.filter(is_active=True).order_by("kamoku__code", "code")
-        self.fields["hojo"].empty_label = "補助科目（任意）"
-
-        self.fields["bumon"].queryset = BumonMaster.objects.filter(is_active=True).order_by("code")
-        self.fields["bumon"].empty_label = "部門（任意）"
-
-        self.fields["torihikisaki"].queryset = TorihikiSakiMaster.objects.filter(is_active=True).order_by("code")
-        self.fields["torihikisaki"].empty_label = "取引先（任意）"
-
-        self.fields["zei_kubun"].queryset = ZeiMaster.objects.filter(is_active=True).order_by("order_no")
-        self.fields["zei_kubun"].empty_label = "税区分（任意）"
+        setup_master_fields(self)
 
 
 class BaseMeisaiFormSet(BaseInlineFormSet):
@@ -149,18 +182,18 @@ class ShiwakeMeisaiForm(forms.Form):
 
     # --- Debit Side (借方) ---
     kari_kamoku = forms.ModelChoiceField(
-        queryset=KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code"),
+        queryset=get_active_level4_kamoku_queryset(),
         label="借方科目",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     kari_hojo = forms.ModelChoiceField(
-        queryset=HojoKamokuMaster.objects.filter(is_active=True).order_by("kamoku__code", "code"),
+        queryset=get_active_hojo_queryset(),
         required=False,
         label="借方補助",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     kari_zei = forms.ModelChoiceField(
-        queryset=ZeiMaster.objects.filter(is_active=True).order_by("order_no"),
+        queryset=get_active_zei_queryset(),
         required=False,
         label="借方税区分",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
@@ -186,18 +219,18 @@ class ShiwakeMeisaiForm(forms.Form):
 
     # --- Credit Side (貸方) ---
     kashi_kamoku = forms.ModelChoiceField(
-        queryset=KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code"),
+        queryset=get_active_level4_kamoku_queryset(),
         label="貸方科目",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     kashi_hojo = forms.ModelChoiceField(
-        queryset=HojoKamokuMaster.objects.filter(is_active=True).order_by("kamoku__code", "code"),
+        queryset=get_active_hojo_queryset(),
         required=False,
         label="貸方補助",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     kashi_zei = forms.ModelChoiceField(
-        queryset=ZeiMaster.objects.filter(is_active=True).order_by("order_no"),
+        queryset=get_active_zei_queryset(),
         required=False,
         label="貸方税区分",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
@@ -212,13 +245,13 @@ class ShiwakeMeisaiForm(forms.Form):
 
     # --- Metadata (optional for grid) ---
     bumon = forms.ModelChoiceField(
-        queryset=BumonMaster.objects.filter(is_active=True).order_by("code"),
+        queryset=get_active_bumon_queryset(),
         required=False,
         label="部門",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     torihikisaki = forms.ModelChoiceField(
-        queryset=TorihikiSakiMaster.objects.filter(is_active=True).order_by("code"),
+        queryset=get_active_torihiki_queryset(),
         required=False,
         label="取引先",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),

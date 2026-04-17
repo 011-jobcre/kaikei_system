@@ -27,7 +27,38 @@ from .models import ShiwakeDenpyo, ShiwakeMeisai
 
 
 # =========================================================
-# Shiwake Ichiran — Journal List View (仕訳一覧)
+# Common Helper Functions
+# =========================================================
+
+
+def get_row_prefix(request):
+    """Extract row prefix from GET/POST parameters for HTMX row handling."""
+    prefix = request.GET.get("row_index")
+    if prefix:
+        return f"row-{prefix}"
+
+    prefix = request.POST.get("_row_prefix")
+    if prefix:
+        return prefix
+
+    for key in request.POST.keys():
+        if key.startswith("row-") and "-" in key[4:]:
+            return key.split("-")[0] + "-" + key.split("-")[1]
+    return None
+
+
+def save_formset_with_row_numbers(formset):
+    """Save formset instances with sequential row numbers."""
+    instances = formset.save(commit=False)
+    for i, obj in enumerate(instances):
+        obj.row_no = i
+        obj.save()
+    for obj in formset.deleted_objects:
+        obj.delete()
+
+
+# =========================================================
+# Shiwake List — Journal List View (仕訳一覧)
 # =========================================================
 
 
@@ -119,20 +150,7 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
         )
 
     def post(self, request):
-        # Determine prefix from GET/POST parameters or detect from field names
-        prefix = request.GET.get("row_index")
-        if prefix:
-            prefix = f"row-{prefix}"
-
-        if not prefix:
-            prefix = request.POST.get("_row_prefix")
-
-        if not prefix:
-            for key in request.POST.keys():
-                if key.startswith("row-") and "-" in key[4:]:
-                    prefix = key.split("-")[0] + "-" + key.split("-")[1]
-                    break
-
+        prefix = get_row_prefix(request)
         form = ShiwakeMeisaiForm(request.POST, prefix=prefix)
 
         if form.is_valid():
@@ -241,12 +259,7 @@ class FurikaeDenpyoCreateView(AccountantRequiredMixin, View):
                 denpyo.created_by = request.user
                 denpyo.save()
                 formset.instance = denpyo
-                instances = formset.save(commit=False)
-                for i, obj in enumerate(instances):
-                    obj.row_no = i
-                    obj.save()
-                for obj in formset.deleted_objects:
-                    obj.delete()
+                save_formset_with_row_numbers(formset)
             messages.success(request, f"振替伝票「{denpyo.denpyo_no}」を新規登録しました。")
             return redirect(self.success_url)
         return render(
@@ -304,12 +317,7 @@ class FurikaeDenpyoUpdateView(AccountantRequiredMixin, View):
         if form.is_valid() and formset.is_valid():
             with transaction.atomic():
                 form.save()
-                instances = formset.save(commit=False)
-                for i, obj in enumerate(instances):
-                    obj.row_no = i
-                    obj.save()
-                for obj in formset.deleted_objects:
-                    obj.delete()
+                save_formset_with_row_numbers(formset)
             messages.success(request, f"振替伝票「{denpyo.denpyo_no}」を更新しました。")
             return redirect(self.success_url)
         return render(

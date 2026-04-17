@@ -1,5 +1,6 @@
 <tr id="{{ form.prefix }}"
-    :class="{ 'bg-error/5 ring-1 ring-inset ring-error/40': rowHasError(getRowIndex($el)) }">
+    :class="{ 'bg-error/5 ring-1 ring-inset ring-error/40': rowHasError(getRowIndex($el)) }"
+    @keyup="handleGridKey($event)">
     <td class="p-0">
         {% csrf_token %}
         <input type="hidden" name="_row_prefix" value="{{ form.prefix }}" />
@@ -9,7 +10,6 @@
                class="grid-input"
                data-row="{{ form.prefix|cut:"row-" }}"
                data-col="0"
-               @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 0)"
                x-init="if (!$el.value) $el.value = new Date().toISOString().split('T')[0]" />
     </td>
     <td class="p-0 bg-info/10">
@@ -17,8 +17,7 @@
                 class="grid-select tomselect"
                 :class="{ 'input-invalid': validationTick && !($el.value) }"
                 data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="1"
-                @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 1)">
+                data-col="1">
             {% for choice in form.kari_kamoku.field.choices %}
                 <option value="{{ choice.0 }}"
                         {% if form.kari_kamoku.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -31,8 +30,7 @@
         <select name="{{ form.prefix }}-kari_hojo"
                 class="grid-select tomselect"
                 data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="2"
-                @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 2)">
+                data-col="2">
             {% for choice in form.kari_hojo.field.choices %}
                 <option value="{{ choice.0 }}"
                         {% if form.kari_hojo.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -48,15 +46,13 @@
                class="grid-input text-right font-bold"
                :class="{ 'input-invalid': validationTick && (!$el.value || parseFloat($el.value) <= 0) }"
                data-row="{{ form.prefix|cut:"row-" }}"
-               data-col="3"
-               @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 3)" />
+               data-col="3" />
     </td>
     <td class="p-0 bg-info/10">
         <select name="{{ form.prefix }}-kari_zei"
                 class="grid-select tomselect"
                 data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="4"
-                @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 4)">
+                data-col="4">
             {% for choice in form.kari_zei.field.choices %}
                 <option value="{{ choice.0 }}"
                         {% if form.kari_zei.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -70,8 +66,7 @@
                 class="grid-select tomselect"
                 :class="{ 'input-invalid': validationTick && !($el.value) }"
                 data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="5"
-                @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 5)">
+                data-col="5">
             {% for choice in form.kashi_kamoku.field.choices %}
                 <option value="{{ choice.0 }}"
                         {% if form.kashi_kamoku.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -84,8 +79,7 @@
         <select name="{{ form.prefix }}-kashi_hojo"
                 class="grid-select tomselect"
                 data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="6"
-                @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 6)">
+                data-col="6">
             {% for choice in form.kashi_hojo.field.choices %}
                 <option value="{{ choice.0 }}"
                         {% if form.kashi_hojo.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -101,15 +95,13 @@
                class="grid-input text-right font-bold"
                :class="{ 'input-invalid': validationTick && (!$el.value || parseFloat($el.value) <= 0) }"
                data-row="{{ form.prefix|cut:"row-" }}"
-               data-col="7"
-               @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 7)" />
+               data-col="7" />
     </td>
     <td class="p-0 bg-accent/10">
         <select name="{{ form.prefix }}-kashi_zei"
                 class="grid-select tomselect"
                 data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="8"
-                @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 8)">
+                data-col="8">
             {% for choice in form.kashi_zei.field.choices %}
                 <option value="{{ choice.0 }}"
                         {% if form.kashi_zei.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -124,8 +116,7 @@
                value="{{ form.tekiyou.value|default:'' }}"
                class="grid-input"
                data-row="{{ form.prefix|cut:"row-" }}"
-               data-col="9"
-               @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 9)" />
+               data-col="9" />
     </td>
     <td class="text-center p-0 relative">
         <div class="flex items-center justify-center gap-1 h-full py-1">

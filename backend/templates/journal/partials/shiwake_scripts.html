@@ -159,23 +159,53 @@ function shiwakeGrid() {
             return match ? parseInt(match[1]) : 0;
         },
 
+        handleGridKey(e) {
+            const target = e.target;
+            const row = target.dataset.row;
+            const col = target.dataset.col;
+            if (!row || col === undefined) return;
+            this.handleKey(e, parseInt(row), parseInt(col));
+        },
+
         handleKey(e, rowIdx, colIdx) {
             const colCount = 10;
 
             if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission
                 // HTMX handles the save. We just need to move focus if it's the last cell
                 if (colIdx === colCount - 1) {
                     this.focusCell(rowIdx + 1, 0);
                 } else {
                     this.focusCell(rowIdx, colIdx + 1);
                 }
+            } else if (e.key === 'Tab') {
+                e.preventDefault(); // Prevent default tab behavior
+                if (e.shiftKey) {
+                    // Shift+Tab: move left
+                    if (colIdx > 0) {
+                        this.focusCell(rowIdx, colIdx - 1);
+                    } else {
+                        this.focusCell(rowIdx - 1, colCount - 1);
+                    }
+                } else {
+                    // Tab: move right
+                    if (colIdx < colCount - 1) {
+                        this.focusCell(rowIdx, colIdx + 1);
+                    } else {
+                        this.focusCell(rowIdx + 1, 0);
+                    }
+                }
             } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
                 this.focusCell(rowIdx, colIdx + 1);
             } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
                 this.focusCell(rowIdx, colIdx - 1);
             } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
                 this.focusCell(rowIdx + 1, colIdx);
             } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
                 this.focusCell(rowIdx - 1, colIdx);
             }
         },
