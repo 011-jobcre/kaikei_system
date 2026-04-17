@@ -1,23 +1,21 @@
 <td class="p-0">
     {% csrf_token %}
-    <input type="hidden"
-           name="_row_prefix"
-           value="row-{{ row_index|default:0 }}" />
+    <input type="hidden" name="_row_prefix" value="{{ form.prefix }}" />
     <input type="date"
-           name="{{ form.date.html_name }}"
+           name="{{ form.prefix }}-date"
            value="{{ form.date.value|default:'' }}"
            class="grid-input"
-           data-row="{{ row_index|default:0 }}"
+           data-row="{{ form.prefix|cut:"row-" }}"
            data-col="0"
-           @keyup="handleKey($event, {{ row_index|default:0 }}, 0)" />
+           @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 0)" />
 </td>
 <td class="p-0 bg-info/10">
-    <select name="{{ form.kari_kamoku.html_name }}"
+    <select name="{{ form.prefix }}-kari_kamoku"
             class="grid-select tomselect"
             :class="{ 'input-invalid': validationTick && !($el.value) }"
-            data-row="{{ row_index|default:0 }}"
+            data-row="{{ form.prefix|cut:"row-" }}"
             data-col="1"
-            @keyup="handleKey($event, {{ row_index|default:0 }}, 1)">
+            @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 1)">
         {% for choice in form.kari_kamoku.field.choices %}
             <option value="{{ choice.0 }}"
                     {% if form.kari_kamoku.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -27,11 +25,11 @@
     </select>
 </td>
 <td class="p-0 bg-info/10">
-    <select name="{{ form.kari_hojo.html_name }}"
+    <select name="{{ form.prefix }}-kari_hojo"
             class="grid-select tomselect"
-            data-row="{{ row_index|default:0 }}"
+            data-row="{{ form.prefix|cut:"row-" }}"
             data-col="2"
-            @keyup="handleKey($event, {{ row_index|default:0 }}, 2)">
+            @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 2)">
         {% for choice in form.kari_hojo.field.choices %}
             <option value="{{ choice.0 }}"
                     {% if form.kari_hojo.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -42,20 +40,20 @@
 </td>
 <td class="p-0 bg-info/10">
     <input type="number"
-           name="{{ form.kari_kingaku.html_name }}"
+           name="{{ form.prefix }}-kari_kingaku"
            value="{{ form.kari_kingaku.value|default:'' }}"
            class="grid-input text-right font-bold"
            :class="{ 'input-invalid': validationTick && (!$el.value || parseFloat($el.value) <= 0) }"
-           data-row="{{ row_index|default:0 }}"
+           data-row="{{ form.prefix|cut:"row-" }}"
            data-col="3"
-           @keyup="handleKey($event, {{ row_index|default:0 }}, 3)" />
+           @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 3)" />
 </td>
 <td class="p-0 bg-info/10">
-    <select name="{{ form.kari_zei.html_name }}"
+    <select name="{{ form.prefix }}-kari_zei"
             class="grid-select tomselect"
-            data-row="{{ row_index|default:0 }}"
+            data-row="{{ form.prefix|cut:"row-" }}"
             data-col="4"
-            @keyup="handleKey($event, {{ row_index|default:0 }}, 4)">
+            @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 4)">
         {% for choice in form.kari_zei.field.choices %}
             <option value="{{ choice.0 }}"
                     {% if form.kari_zei.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -65,12 +63,12 @@
     </select>
 </td>
 <td class="p-0 bg-accent/10">
-    <select name="{{ form.kashi_kamoku.html_name }}"
+    <select name="{{ form.prefix }}-kashi_kamoku"
             class="grid-select tomselect"
             :class="{ 'input-invalid': validationTick && !($el.value) }"
-            data-row="{{ row_index|default:0 }}"
+            data-row="{{ form.prefix|cut:"row-" }}"
             data-col="5"
-            @keyup="handleKey($event, {{ row_index|default:0 }}, 5)">
+            @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 5)">
         {% for choice in form.kashi_kamoku.field.choices %}
             <option value="{{ choice.0 }}"
                     {% if form.kashi_kamoku.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -80,11 +78,11 @@
     </select>
 </td>
 <td class="p-0 bg-accent/10">
-    <select name="{{ form.kashi_hojo.html_name }}"
+    <select name="{{ form.prefix }}-kashi_hojo"
             class="grid-select tomselect"
-            data-row="{{ row_index|default:0 }}"
+            data-row="{{ form.prefix|cut:"row-" }}"
             data-col="6"
-            @keyup="handleKey($event, {{ row_index|default:0 }}, 6)">
+            @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 6)">
         {% for choice in form.kashi_hojo.field.choices %}
             <option value="{{ choice.0 }}"
                     {% if form.kashi_hojo.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -95,20 +93,20 @@
 </td>
 <td class="p-0 bg-accent/10">
     <input type="number"
-           name="{{ form.kashi_kingaku.html_name }}"
+           name="{{ form.prefix }}-kashi_kingaku"
            value="{{ form.kashi_kingaku.value|default:'' }}"
            class="grid-input text-right font-bold"
            :class="{ 'input-invalid': validationTick && (!$el.value || parseFloat($el.value) <= 0) }"
-           data-row="{{ row_index|default:0 }}"
+           data-row="{{ form.prefix|cut:"row-" }}"
            data-col="7"
-           @keyup="handleKey($event, {{ row_index|default:0 }}, 7)" />
+           @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 7)" />
 </td>
 <td class="p-0 bg-accent/10">
-    <select name="{{ form.kashi_zei.html_name }}"
+    <select name="{{ form.prefix }}-kashi_zei"
             class="grid-select tomselect"
-            data-row="{{ row_index|default:0 }}"
+            data-row="{{ form.prefix|cut:"row-" }}"
             data-col="8"
-            @keyup="handleKey($event, {{ row_index|default:0 }}, 8)">
+            @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 8)">
         {% for choice in form.kashi_zei.field.choices %}
             <option value="{{ choice.0 }}"
                     {% if form.kashi_zei.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
@@ -119,44 +117,45 @@
 </td>
 <td class="p-0 border-base-300">
     <input type="text"
-           name="{{ form.tekiyou.html_name }}"
+           name="{{ form.prefix }}-tekiyou"
            value="{{ form.tekiyou.value|default:'' }}"
            class="grid-input"
-           data-row="{{ row_index|default:0 }}"
+           data-row="{{ form.prefix|cut:"row-" }}"
            data-col="9"
-           @keyup="handleKey($event, {{ row_index|default:0 }}, 9)" />
+           @keyup="handleKey($event, {{ form.prefix|cut:"row-" }}, 9)" />
 </td>
 <td class="text-center p-0 relative">
     <div class="flex items-center justify-center gap-1 h-full py-1">
         <button type="button"
                 class="btn btn-ghost btn-xs text-primary"
-                hx-post="{% url 'journal:shiwake-create' %}?row_index={{ row_index|default:0 }}"
+                hx-post="{% url 'journal:shiwake-create' %}?row_index={{ form.prefix|cut:"row-" }}"
                 hx-target="closest tr"
                 hx-swap="outerHTML"
                 hx-include="closest tr"
                 hx-indicator="closest tr"
-                :class="{ 'opacity-30 cursor-not-allowed': rowHasError({{ row_index|default:0 }}) }"
-                @click="return validateBeforeSave($event, {{ row_index|default:0 }})"
+                :class="{ 'opacity-30 cursor-not-allowed': rowHasError({{ form.prefix|cut:"row-" }}) }"
+                @click="saveRow($event)"
                 title="保存">
             <i class="fa-solid fa-save"></i>
         </button>
         <button type="button"
                 class="btn btn-ghost btn-xs text-error"
-                @click="deleteRow({{ row_index|default:0 }})"
+                @click="deleteRow(getRowIndex($el))"
                 title="行削除">
             <i class="fa-solid fa-trash-can"></i>
         </button>
     </div>
     <!-- Real-time Validation Tooltip/Icon -->
-    <template x-if="rowHasError({{ row_index|default:0 }})">
+    <template x-if="rowHasError(getRowIndex($el))">
         <div class="absolute right-0 top-0 mt-1 mr-1 z-10">
             <div class="badge badge-error badge-xs p-1 tooltip tooltip-left"
-                 :data-tip="getRowError({{ row_index|default:0 }})">
+                 :data-tip="getRowError(getRowIndex($el))">
                 <i class="fa-solid fa-circle-exclamation text-[10px]"></i>
             </div>
         </div>
     </template>
-    <span class="server-row-error hidden" data-row="{{ row_index|default:0 }}">
+    <span class="server-row-error hidden"
+          data-row="{{ form.prefix|cut:"row-" }}">
         {% if form.non_field_errors %}
             {{ form.non_field_errors.0 }}
         {% else %}

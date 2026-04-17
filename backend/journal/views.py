@@ -121,8 +121,14 @@ class ShiwakeNikkiGridView(AccountantRequiredMixin, View):
     def post(self, request):
         from .forms import ShiwakeGridRowForm
 
-        # Determine prefix from POST (explicitly passed if possible, or detect)
-        prefix = request.POST.get("_row_prefix")
+        # Determine prefix from GET/POST parameters or detect from field names
+        prefix = request.GET.get("row_index")
+        if prefix:
+            prefix = f"row-{prefix}"
+        
+        if not prefix:
+            prefix = request.POST.get("_row_prefix")
+        
         if not prefix:
             for key in request.POST.keys():
                 if key.startswith("row-") and "-" in key[4:]:

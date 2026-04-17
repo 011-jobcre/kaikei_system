@@ -233,11 +233,12 @@ function shiwakeGrid() {
             const row = document.getElementById(`row-${rowIdx}`);
             if (!row) return "";
             if (!enforceRequired && !this.rowHasAnyInput(row)) return "";
-            const date = row.querySelector('input[name$="-date"]')?.value;
-            const kariKamoku = row.querySelector('select[name$="-kari_kamoku"]')?.value;
-            const kashiKamoku = row.querySelector('select[name$="-kashi_kamoku"]')?.value;
-            const kariRaw = row.querySelector('input[name$="-kari_kingaku"]')?.value;
-            const kashiRaw = row.querySelector('input[name$="-kashi_kingaku"]')?.value;
+            // Use explicit prefix-based selectors to match the form field names
+            const date = row.querySelector(`input[name="row-${rowIdx}-date"]`)?.value;
+            const kariKamoku = row.querySelector(`select[name="row-${rowIdx}-kari_kamoku"]`)?.value;
+            const kashiKamoku = row.querySelector(`select[name="row-${rowIdx}-kashi_kamoku"]`)?.value;
+            const kariRaw = row.querySelector(`input[name="row-${rowIdx}-kari_kingaku"]`)?.value;
+            const kashiRaw = row.querySelector(`input[name="row-${rowIdx}-kashi_kingaku"]`)?.value;
             const kari = parseFloat(kariRaw || "0");
             const kashi = parseFloat(kashiRaw || "0");
 
@@ -249,20 +250,55 @@ function shiwakeGrid() {
         rowHasError(rowIdx) {
             return !!this.rowErrors[rowIdx];
         },
+        getRowIndex(el) {
+            const tr = el.closest('tr');
+            if (!tr) return 0;
+            const id = tr.id;
+            const match = id.match(/row-(\d+)/);
+            return match ? parseInt(match[1]) : 0;
+        },
 
-        validateBeforeSave(e, rowIdx) {
+        saveRow(e) {
+            const rowIdx = this.getRowIndex(e.currentTarget);
             // Clear previous error for this row
             delete this.rowErrors[rowIdx];
 
             const error = this.getRowError(rowIdx, true);
             if (error) {
                 this.rowErrors[rowIdx] = error;
+                // Prevent HTMX from submitting by stopping propagation
+                e.stopPropagation();
+                e.preventDefault();
+                return false;
+            }
+            // Allow HTMX to proceed - don't stop the event
+            return true;
+        },
+
+        validateBeforeSave(e, rowIdx) {
+            console.log('validateBeforeSave called for rowIdx:', rowIdx);
+            // Clear previous error for this row
+            delete this.rowErrors[rowIdx];
+
+            const error = this.getRowError(rowIdx, true);
+            console.log('Error for row', rowIdx, ':', error);
+            if (error) {
+                this.rowErrors[rowIdx] = error;
                 e.stopPropagation();  // Stop HTMX from submitting
+                e.preventDefault();
                 return false;
             }
             return true;  // Allow HTMX to proceed
         }
     }
+}
+
+function getGridRowIndex(el) {
+    const tr = el.closest('tr');
+    if (!tr) return 0;
+    const id = tr.id;
+    const match = id.match(/row-(\d+)/);
+    return match ? parseInt(match[1]) : 0;
 }
 
 function getNextGridRowIndex() {
