@@ -12,8 +12,8 @@
         <div class="flex justify-end bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
             <div class="flex gap-2 items-center justify-end">
                 <button type="button"
-                        hx-get="{% url 'journal:add-grid-row' %}"
-                        hx-vals="js:{row_index: getNextRowIndex()}"
+                        hx-get="{% url 'journal:add-form-row' %}?form_type=shiwake"
+                        hx-vals="js:{index: getNextRowIndex()}"
                         hx-target="#grid-rows"
                         hx-swap="beforeend"
                         class="btn btn-primary btn-outline gap-2">
@@ -30,7 +30,7 @@
             <template x-for="(error, rowIdx) in rowErrors" :key="rowIdx">
                 <div class="alert alert-error text-sm shadow-sm">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span><strong>行 <span x-text="parseInt(rowIdx) + 1"></span>： </strong> <span x-text="error"></span></span>
+                    <span><strong>行 <span x-text="parseInt(rowIdx) + 1"></span>: </strong> <span x-text="error"></span></span>
                 </div>
             </template>
         </div>

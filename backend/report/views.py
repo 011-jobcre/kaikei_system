@@ -1,4 +1,8 @@
-import calendar
+# =========================================================
+# Report Views
+# =========================================================
+
+
 import csv
 import io
 from datetime import date as date_type
@@ -9,10 +13,6 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-
-# =========================================================
-# Report Models
-# =========================================================
 
 from django.db import models
 from django.http import HttpResponse

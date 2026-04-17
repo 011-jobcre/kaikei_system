@@ -1,18 +1,23 @@
-from django.contrib import admin
+# =========================================================
+# Journal Admin
+# =========================================================
 
+from django.contrib import admin
 from .models import ShiwakeDenpyo, ShiwakeMeisai
 
 
 class ShiwakeMeisaiInline(admin.TabularInline):
     model = ShiwakeMeisai
     extra = 2
-    fields = ["kari_kashi", "kamoku", "bumon", "kingaku", "tekyou"]
+    fields = ["kari_kashi", "kamoku", "hojo", "bumon", "torihikisaki", "kingaku", "zei_kubun", "tekyou"]
 
 
 @admin.register(ShiwakeDenpyo)
 class ShiwakeDenpyoAdmin(admin.ModelAdmin):
+    fields = ("denpyo_no", "date", "memo", "created_by", "is_locked")
     list_display = ["denpyo_no", "date", "memo", "created_by", "is_locked"]
-    list_filter = ["is_locked", "date"]
+
+    list_filter = ["date", "is_locked"]
     search_fields = ["denpyo_no", "memo"]
     readonly_fields = ["denpyo_no", "created_by"]
     inlines = [ShiwakeMeisaiInline]

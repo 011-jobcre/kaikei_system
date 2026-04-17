@@ -1,21 +1,25 @@
+# =========================================================
+# Master Forms
+# =========================================================
+
 from django import forms
-from .models import BumonMaster, HojoKamokuMaster, KanjoKamokuMaster, TorihikiSakiMaster, ZeiMaster
-from common.forms_widgets import (
-    INPUT_CLASS,
-    SELECT_CLASS,
-    TEXTAREA_CLASS,
-    CHECKBOX_CLASS,
-)
+from .models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, ZeiMaster, TorihikiSakiMaster
+from common.forms_widgets import INPUT_CLASS, SELECT_CLASS, TEXTAREA_CLASS, CHECKBOX_CLASS
 
 
 class BaseMasterForm(forms.ModelForm):
     """Base form with common validation for master data."""
 
+    class Meta:
+        error_messages = {"code": {"unique": "このコードは既に存在しています。別のコードを入力してください。"}}
+
     def clean(self):
         cleaned_data = super().clean()
+
         code = cleaned_data.get("code")
         if code and len(code) > 6:
             raise forms.ValidationError({"code": "コードは半角英数字6文字で入力してください。"})
+
         name = cleaned_data.get("name")
         if name and len(name) > 50:
             raise forms.ValidationError({"name": "名称は50文字以内で入力してください。"})
@@ -30,17 +34,16 @@ class KanjoKamokuForm(BaseMasterForm):
     automatically in KanjoKamokuMaster.save() from the parent account hierarchy.
     """
 
-    class Meta:
+    class Meta(BaseMasterForm.Meta):
         model = KanjoKamokuMaster
         fields = ["code", "name", "parent", "is_active"]
-        help_texts = {"parent": "親科目を選択してください。子科目は親科目の下に表示されます。"}
         widgets = {
             "code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: 111010"}),
             "name": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: 現金"}),
             "parent": forms.Select(attrs={"class": SELECT_CLASS}),
             "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
         }
-        error_messages = {"code": {"unique": "このコードは既に存在しています。別のコードを入力してください。"}}
+        help_texts = {"parent": "親科目を選択してください。子科目は親科目の下に表示されます。"}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,7 +56,7 @@ class KanjoKamokuForm(BaseMasterForm):
 class BumonForm(BaseMasterForm):
     """Form for creating / editing a department (部門) record."""
 
-    class Meta:
+    class Meta(BaseMasterForm.Meta):
         model = BumonMaster
         fields = ["code", "name", "manager_name", "annual_budget", "is_active"]
         widgets = {
@@ -63,7 +66,6 @@ class BumonForm(BaseMasterForm):
             "annual_budget": forms.NumberInput(attrs={"class": INPUT_CLASS}),
             "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
         }
-        error_messages = {"code": {"unique": "このコードは既に存在しています。別のコードを入力してください。"}}
 
 
 class ZeiForm(forms.ModelForm):
@@ -96,7 +98,7 @@ class ZeiForm(forms.ModelForm):
 class TorihikiSakiForm(BaseMasterForm):
     """Form for creating / editing a business partner — customer or supplier (取引先) record."""
 
-    class Meta:
+    class Meta(BaseMasterForm.Meta):
         model = TorihikiSakiMaster
         fields = ["code", "name", "address", "phone", "email", "is_active"]
         widgets = {
@@ -107,7 +109,6 @@ class TorihikiSakiForm(BaseMasterForm):
             "email": forms.EmailInput(attrs={"class": INPUT_CLASS}),
             "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
         }
-        error_messages = {"code": {"unique": "このコードは既に存在しています。別のコードを入力してください。"}}
 
     def clean_phone(self):
         phone = self.cleaned_data.get("phone")
@@ -125,11 +126,11 @@ class HojoKamokuForm(forms.ModelForm):
 
     class Meta:
         model = HojoKamokuMaster
-        fields = ["kamoku", "code", "name", "is_active"]
+        fields = ["code", "name", "kamoku", "is_active"]
         widgets = {
-            "kamoku": forms.Select(attrs={"class": SELECT_CLASS}),
             "code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: H100"}),
             "name": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: みずほ銀行"}),
+            "kamoku": forms.Select(attrs={"class": SELECT_CLASS}),
             "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
         }
         error_messages = {"__all__": {"unique_together": "この科目コードの組み合わせは既に存在しています。"}}

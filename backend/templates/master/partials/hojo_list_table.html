@@ -8,10 +8,10 @@
         <table class="table-accounting">
             <thead>
                 <tr>
-                    <th class="w-40 group-header">勘定科目コード</th>
-                    <th class="min-w-56 md:w-auto group-header">勘定科目名</th>
-                    <th class="w-40 group-header credit">補助科目コード</th>
-                    <th class="min-w-56 md:w-auto group-header credit">補助科目名</th>
+                    <th class="w-40 group-header">補助科目コード</th>
+                    <th class="min-w-56 md:w-auto group-header">補助科目名</th>
+                    <th class="w-40 group-header credit">勘定科目コード</th>
+                    <th class="min-w-56 md:w-auto group-header credit">勘定科目名</th>
                     <th class="w-40 text-center">ステータス</th>
                     {% if is_admin %}<th class="w-40 text-center">操作</th>{% endif %}
                 </tr>
@@ -19,10 +19,10 @@
             <tbody>
                 {% for obj in hojo_list %}
                     <tr>
-                        <td class="text-col">{{ obj.kamoku.code }}</td>
-                        <td class="text-col">{{ obj.kamoku.name }}</td>
                         <td class="text-col">{{ obj.code }}</td>
                         <td class="text-col">{{ obj.name }}</td>
+                        <td class="text-col">{{ obj.kamoku.code }}</td>
+                        <td class="text-col">{{ obj.kamoku.name }}</td>
                         <td class="text-center">
                             {% if obj.is_active %}
                                 <span class="badge-enable">有効</span>

@@ -64,6 +64,11 @@
     </form>
 </dialog>
 <script>
+    // Initialize TomSelect for searchable dropdowns
+    if (typeof initTomSelects === 'function') {
+        initTomSelects();
+    }
+
     // Client-side validation for master-data modal forms
     // Provides immediate visual feedback by highlighting required fields before the
     // form is submitted to the server.  Django's server-side validation remains the

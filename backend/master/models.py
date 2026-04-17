@@ -2,10 +2,10 @@
 # Master Models
 # =========================================================
 
-from common.models import BaseModel
-from django.db import models
 import datetime
-from django.core.validators import MinValueValidator, MaxValueValidator
+from common.models import BaseModel
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 
 class KanjoKamokuMaster(BaseModel):
@@ -143,7 +143,6 @@ class ZeiMaster(BaseModel):
 
     zei_name = models.CharField(verbose_name="税区分名", max_length=100)
     tax_rate = models.DecimalField(verbose_name="税率（%）", max_digits=5, decimal_places=2, default=0)
-    is_active = models.BooleanField(verbose_name="有効", default=True)
     valid_from = models.DateField(
         verbose_name="適用開始日",
         validators=[MinValueValidator(limit_value=datetime.date(1900, 1, 1))],
@@ -156,6 +155,7 @@ class ZeiMaster(BaseModel):
         null=True,
         blank=True,
     )
+    is_active = models.BooleanField(verbose_name="有効", default=True)
     order_no = models.PositiveIntegerField(verbose_name="表示順", default=0)
 
     class Meta:
@@ -165,6 +165,12 @@ class ZeiMaster(BaseModel):
 
     def __str__(self):
         return self.zei_name
+
+    def save(self, *args, **kwargs):
+        if not self.order_no:
+            max_order_no = ZeiMaster.objects.aggregate(models.Max("order_no"))["order_no__max"]
+            self.order_no = max_order_no + 1 if max_order_no else 1
+        super().save(*args, **kwargs)
 
 
 class TorihikiSakiMaster(BaseModel):

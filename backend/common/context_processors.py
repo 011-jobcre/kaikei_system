@@ -1,3 +1,8 @@
+# =========================================================
+# Common Context Processors
+# =========================================================
+
+
 def rbac(request):
     """
     Context processor to make user roles available in all templates

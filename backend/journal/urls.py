@@ -23,8 +23,7 @@ urlpatterns = [
     # 年次決算 (Year-End Closing)
     path("closing/", views.NenjiKessanView.as_view(), name="nenji-kessan"),
     # HTMX Endpoints
-    path("htmx/add-meisai-row/", views.add_meisai_row, name="add-meisai-row"),
-    path("htmx/add-grid-row/", views.add_grid_row, name="add-grid-row"),
+    path("htmx/add-form-row/", views.add_form_row, name="add-form-row"),
     path("htmx/shiwake-recent-entries/", views.recent_shiwake_entries, name="shiwake-recent-entries"),
     path("htmx/balance-check/", views.balance_check, name="balance-check"),
 ]

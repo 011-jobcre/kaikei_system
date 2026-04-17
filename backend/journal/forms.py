@@ -3,10 +3,10 @@
 # =========================================================
 
 from django import forms
-from django.forms import BaseInlineFormSet, inlineformset_factory
 
-from master.models import BumonMaster, HojoKamokuMaster, KanjoKamokuMaster, TorihikiSakiMaster, ZeiMaster
+from master.models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, TorihikiSakiMaster, ZeiMaster
 from .models import ShiwakeDenpyo, ShiwakeMeisai
+from django.forms import BaseInlineFormSet, inlineformset_factory
 from common.forms_widgets import INPUT_CLASS, SELECT_CLASS
 
 
@@ -139,27 +139,7 @@ MeisaiFormSet = inlineformset_factory(
 # =========================================================
 
 
-class ShiwakeNikkiHeaderForm(forms.ModelForm):
-    """Header form for complex journal entries (仕訳日記帳).
-
-    Captures document date, accounting date, and overall memo.
-    denpyo_type is fixed to SHIWAKE for this form.
-    """
-
-    pass
-
-
-class FurikaeRowForm(forms.Form):
-    """A customized Transfer entry supporting Withdrawal, Deposit, and optional Fee.
-
-    One submitted FurikaeRowForm creates at least two ShiwakeMeisai records,
-    and a third one if a fee is applied.
-    """
-
-    pass
-
-
-class ShiwakeGridRowForm(forms.Form):
+class ShiwakeMeisaiForm(forms.Form):
     """
     A single 1:1 row in the Spreadsheet Grid (仕訳日記帳).
     Maps to two ShiwakeMeisai records under one ShiwakeDenpyo.

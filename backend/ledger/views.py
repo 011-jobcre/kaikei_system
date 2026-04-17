@@ -1,3 +1,7 @@
+# =========================================================
+# Ledger Views
+# =========================================================
+
 import csv
 import io
 from decimal import Decimal
@@ -391,7 +395,7 @@ class ZandakaExportView(LoginRequiredMixin, View):
         ws.title = "残高試算表"
 
         ws.merge_cells("A1:F1")
-        ws["A1"] = f"残高試算表　{label}"
+        ws["A1"] = f"残高試算表 {label}"
         ws["A1"].font = Font(bold=True, size=14)
         ws["A1"].alignment = Alignment(horizontal="center")
 

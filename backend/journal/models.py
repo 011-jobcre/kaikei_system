@@ -5,13 +5,12 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
 from common.models import BaseModel
-from master.models import BumonMaster, HojoKamokuMaster, KanjoKamokuMaster, ZeiMaster
+from master.models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, ZeiMaster, TorihikiSakiMaster
 
 User = get_user_model()
 
@@ -42,7 +41,7 @@ def generate_denpyo_no(denpyo_type="SHIWAKE"):
 
 
 # =========================================================
-# Voucher Header
+# Journal Header
 # =========================================================
 
 
@@ -58,12 +57,7 @@ class ShiwakeDenpyo(BaseModel):
         ("FURIKAE", "振替"),
     ]
 
-    denpyo_no = models.CharField(
-        verbose_name="伝票番号",
-        max_length=25,
-        unique=True,
-        editable=False,
-    )
+    denpyo_no = models.CharField(verbose_name="伝票番号", max_length=25, unique=True, editable=False)
     denpyo_type = models.CharField(
         verbose_name="伝票種別",
         max_length=10,
@@ -74,11 +68,11 @@ class ShiwakeDenpyo(BaseModel):
     memo = models.CharField(verbose_name="摘要（全体）", max_length=200, blank=True)
     created_by = models.ForeignKey(
         User,
+        verbose_name="作成者",
         on_delete=models.PROTECT,
         related_name="denpyo_set",
-        verbose_name="作成者",
     )
-    is_locked = models.BooleanField(default=False, verbose_name="ロック済")
+    is_locked = models.BooleanField(verbose_name="ロック済", default=False)
 
     class Meta:
         verbose_name = "仕訳伝票"
@@ -94,36 +88,13 @@ class ShiwakeDenpyo(BaseModel):
         super().save(*args, **kwargs)
 
     @property
-    def effective_date(self):
-        """Accounting date — falls back to document date (keijo_date removed)."""
-        return self.date
-
-    def get_kari_total(self):
-        """Total Debit Amount"""
-        return self.meisai.filter(kari_kashi="KA").aggregate(total=models.Sum("kingaku"))["total"] or Decimal("0")
-
-    def get_kashi_total(self):
-        """Total Credit Amount"""
-        return self.meisai.filter(kari_kashi="SHI").aggregate(total=models.Sum("kingaku"))["total"] or Decimal("0")
-
-    def validate_taisha_itchi(self):
-        """Balance Check: Total Debit must equal Total Credit"""
-        kari = self.get_kari_total()
-        kashi = self.get_kashi_total()
-        if kari != kashi:
-            diff = kari - kashi
-            raise ValidationError(
-                f"貸借が一致していません。差額: {diff:,.0f}円 (借方: {kari:,.0f} /貸方: {kashi:,.0f})"
-            )
-
-    @property
     def get_edit_url(self):
         """Returns the multi-line editor URL shared by both voucher types."""
         return reverse("journal:furikae-update", args=[self.pk])
 
 
 # =========================================================
-# Voucher Line Item
+# Journal Line Item
 # =========================================================
 
 
@@ -137,52 +108,52 @@ class ShiwakeMeisai(BaseModel):
 
     denpyo = models.ForeignKey(
         ShiwakeDenpyo,
+        verbose_name="伝票",
         on_delete=models.CASCADE,
         related_name="meisai",
-        verbose_name="伝票",
     )
     row_no = models.PositiveSmallIntegerField(verbose_name="行番号", default=0)
     kari_kashi = models.CharField(verbose_name="借/貸", max_length=3, choices=KARI_KASHI_CHOICES)
     kamoku = models.ForeignKey(
         KanjoKamokuMaster,
-        on_delete=models.PROTECT,
         verbose_name="勘定科目",
+        on_delete=models.PROTECT,
         limit_choices_to={"level": 4, "is_active": True},
     )
     hojo = models.ForeignKey(
         HojoKamokuMaster,
+        verbose_name="補助科目",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
-        verbose_name="補助科目",
         limit_choices_to={"is_active": True},
     )
     bumon = models.ForeignKey(
         BumonMaster,
+        verbose_name="部門",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
-        verbose_name="部門",
         limit_choices_to={"is_active": True},
     )
     torihikisaki = models.ForeignKey(
-        "master.TorihikiSakiMaster",
+        TorihikiSakiMaster,
+        verbose_name="取引先",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
-        verbose_name="取引先",
         limit_choices_to={"is_active": True},
     )
-    kingaku = models.DecimalField(max_digits=15, decimal_places=0, verbose_name="金額")
     zei_kubun = models.ForeignKey(
         ZeiMaster,
+        verbose_name="税区分",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
-        verbose_name="税区分",
         limit_choices_to={"is_active": True},
     )
-    tekyou = models.CharField(max_length=200, blank=True, verbose_name="摘要")
+    kingaku = models.DecimalField(verbose_name="金額", max_digits=15, decimal_places=0)
+    tekyou = models.CharField(verbose_name="摘要", max_length=200, blank=True)
 
     class Meta:
         verbose_name = "仕訳明細"

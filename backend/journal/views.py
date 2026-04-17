@@ -22,7 +22,7 @@ from common.permissions import AccountantRequiredMixin, AdminRequiredMixin
 from master.models import KanjoKamokuMaster
 from master.views import HtmxListMixin
 
-from .forms import MeisaiFormSet, FurikaeMeisaiForm, FurikaeHeaderForm
+from .forms import MeisaiFormSet, FurikaeHeaderForm, FurikaeMeisaiForm, ShiwakeMeisaiForm
 from .models import ShiwakeDenpyo, ShiwakeMeisai
 
 
@@ -101,10 +101,8 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
 
     def get(self, request):
         # We'll provide 5 empty rows initially
-        from .forms import ShiwakeGridRowForm
-
         today = timezone.localdate()
-        rows = [ShiwakeGridRowForm(prefix=f"row-{i}", initial={"date": today}) for i in range(5)]
+        rows = [ShiwakeMeisaiForm(prefix=f"row-{i}", initial={"date": today}) for i in range(5)]
 
         # Also get recent entries for display below the input grid
         recent_shiwake = ShiwakeDenpyo.objects.filter(denpyo_type="SHIWAKE").order_by("-id")[:10]
@@ -113,7 +111,7 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
             request,
             self.template_name,
             {
-                "title": "仕訳日記帳　新規作成",
+                "title": "仕訳日記帳 新規作成",
                 "rows": rows,
                 "recent_shiwake": recent_shiwake,
                 "is_new": True,
@@ -121,23 +119,21 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
         )
 
     def post(self, request):
-        from .forms import ShiwakeGridRowForm
-
         # Determine prefix from GET/POST parameters or detect from field names
         prefix = request.GET.get("row_index")
         if prefix:
             prefix = f"row-{prefix}"
-        
+
         if not prefix:
             prefix = request.POST.get("_row_prefix")
-        
+
         if not prefix:
             for key in request.POST.keys():
                 if key.startswith("row-") and "-" in key[4:]:
                     prefix = key.split("-")[0] + "-" + key.split("-")[1]
                     break
 
-        form = ShiwakeGridRowForm(request.POST, prefix=prefix)
+        form = ShiwakeMeisaiForm(request.POST, prefix=prefix)
 
         if form.is_valid():
             with transaction.atomic():
@@ -176,7 +172,7 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
                 )
 
             if request.htmx:
-                new_form = ShiwakeGridRowForm(prefix=prefix, initial={"date": timezone.localdate()})
+                new_form = ShiwakeMeisaiForm(prefix=prefix, initial={"date": timezone.localdate()})
                 row_index = prefix.split("-")[1] if prefix and "-" in prefix else 0
                 response = render(
                     request,
@@ -230,7 +226,7 @@ class FurikaeDenpyoCreateView(AccountantRequiredMixin, View):
             {
                 "form": form,
                 "formset": formset,
-                "title": "振替伝票　新規作成",
+                "title": "振替伝票 新規作成",
                 "is_new": True,
             },
         )
@@ -293,7 +289,7 @@ class FurikaeDenpyoUpdateView(AccountantRequiredMixin, View):
                 "form": form,
                 "formset": formset,
                 "denpyo": denpyo,
-                "title": f"{denpyo.get_denpyo_type_display()}伝票　編集： {denpyo.denpyo_no}",
+                "title": f"{denpyo.get_denpyo_type_display()}伝票 編集: {denpyo.denpyo_no}",
                 "is_new": False,
             },
         )
@@ -360,34 +356,27 @@ class DenpyoDeleteView(AccountantRequiredMixin, DeleteView):
 # =========================================================
 
 
-def add_meisai_row(request):
-    """HTMX endpoint — return an empty Shiwake line item row."""
-    form_index = int(request.GET.get("form_index", 0))
-    form = FurikaeMeisaiForm(prefix=f"meisai-{form_index}")
-    return render(
-        request,
-        "journal/partials/furikae_form_meisai.html",
-        {
-            "form": form,
-            "form_index": form_index,
-        },
-    )
+def add_form_row(request):
+    """HTMX endpoint — add empty row for shiwake or furikae forms.
 
+    Args:
+        form_type: 'shiwake' or 'furikae'
+        index: row index for prefix
+    """
 
-def add_grid_row(request):
-    """HTMX endpoint — append one empty 1:1 grid row for 仕訳日記帳."""
-    from .forms import ShiwakeGridRowForm
+    form_type = request.GET.get("form_type", "shiwake")
+    index = int(request.GET.get("index", 0))
 
-    row_index = int(request.GET.get("row_index", 0))
-    form = ShiwakeGridRowForm(prefix=f"row-{row_index}", initial={"date": timezone.localdate()})
-    return render(
-        request,
-        "journal/partials/shiwake_form_meisai.html",
-        {
-            "form": form,
-            "row_index": row_index,
-        },
-    )
+    if form_type == "furikae":
+        form = FurikaeMeisaiForm(prefix=f"meisai-{index}")
+        template = "journal/partials/furikae_form_meisai.html"
+        context = {"form": form, "form_index": index}
+    else:  # shiwake
+        form = ShiwakeMeisaiForm(prefix=f"row-{index}", initial={"date": timezone.localdate()})
+        template = "journal/partials/shiwake_form_meisai.html"
+        context = {"form": form, "row_index": index}
+
+    return render(request, template, context)
 
 
 def recent_shiwake_entries(request):

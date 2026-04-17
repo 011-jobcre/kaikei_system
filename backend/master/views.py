@@ -1,3 +1,7 @@
+# =========================================================
+# Master Views
+# =========================================================
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import ProtectedError
@@ -8,8 +12,8 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from common.permissions import AdminRequiredMixin
 
-from .forms import BumonForm, HojoKamokuForm, KanjoKamokuForm, TorihikiSakiForm, ZeiForm
-from .models import BumonMaster, HojoKamokuMaster, KanjoKamokuMaster, TorihikiSakiMaster, ZeiMaster
+from .forms import KanjoKamokuForm, HojoKamokuForm, BumonForm, TorihikiSakiForm, ZeiForm
+from .models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, TorihikiSakiMaster, ZeiMaster
 
 
 # =========================================================
@@ -67,12 +71,73 @@ class HtmxListMixin:
         return [self.template_name]
 
 
+class BaseMasterDeleteView(AdminRequiredMixin, DeleteView):
+    """Base DeleteView for master data with ProtectedError handling and HTMX support."""
+
+    delete_error_message = "このデータはすでに使用されているため削除できません。"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["delete_url"] = reverse_lazy(f"{self.url_name_prefix}-delete", args=[self.object.pk])
+        return ctx
+
+    def form_valid(self, form):
+        try:
+            obj = self.get_object()
+            name = str(obj)
+            obj.delete()
+            messages.success(self.request, f"「{name}」を削除しました。")
+            if self.request.htmx:
+                return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
+            return redirect(self.success_url)
+        except ProtectedError:
+            messages.error(self.request, self.delete_error_message)
+            if self.request.htmx:
+                return render(self.request, self.template_name, self.get_context_data())
+            return self.get(self.request)
+
+
+class BaseMasterModalView(AdminRequiredMixin, HtmxModalMixin):
+    """Base class for Create/Update views with modal context."""
+
+    model_name_ja = None  # Japanese model name (e.g., "勘定科目")
+    url_name_prefix = None  # URL name prefix (e.g., "kanjo")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        if isinstance(self, UpdateView):
+            ctx["title"] = f"{self.model_name_ja} 編集: {self.object}"
+            ctx["action_url"] = reverse_lazy(f"{self.url_name_prefix}-update", args=[self.object.pk])
+        else:
+            ctx["title"] = f"{self.model_name_ja} 新規登録"
+            ctx["action_url"] = reverse_lazy(f"{self.url_name_prefix}-create")
+        return ctx
+
+
+class BaseMasterListView(LoginRequiredMixin, HtmxListMixin, ListView):
+    """Base ListView with common search filter logic."""
+
+    paginate_by = 20
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        q = self.request.GET.get("q", "")
+        if q:
+            qs = qs.filter(code__icontains=q) | qs.filter(name__icontains=q)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["q"] = self.request.GET.get("q", "")
+        return ctx
+
+
 # =========================================================
 # Account Master
 # =========================================================
 
 
-class KanjoKamokuListView(LoginRequiredMixin, HtmxListMixin, ListView):
+class KanjoKamokuListView(BaseMasterListView):
     """
     Displays the full account master with optional filters:
     - q          : search by code or account name
@@ -82,22 +147,15 @@ class KanjoKamokuListView(LoginRequiredMixin, HtmxListMixin, ListView):
 
     model = KanjoKamokuMaster
     template_name = "master/kanjo_list.html"
-    partial_template_name = "master/partials/kanjo_table.html"
+    partial_template_name = "master/partials/kanjo_list_table.html"
     context_object_name = "kamoku_list"
-    paginate_by = 20
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        q = self.request.GET.get("q", "")
         level = self.request.GET.get("level", "")
         taisha = self.request.GET.get("taisha", "")
-        # Full-text search on code OR name
-        if q:
-            qs = qs.filter(code__icontains=q) | qs.filter(name__icontains=q)
-        # Filter by hierarchy depth
+        qs = super().get_queryset()
         if level:
             qs = qs.filter(level=level)
-        # Filter by debit/credit classification (taisha_kubun)
         if taisha:
             qs = qs.filter(taisha_kubun=taisha)
         return qs
@@ -105,370 +163,73 @@ class KanjoKamokuListView(LoginRequiredMixin, HtmxListMixin, ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["taisha_choices"] = KanjoKamokuMaster.TAISHA_KUBUN_CHOICES
-        ctx["q"] = self.request.GET.get("q", "")
         ctx["level_filter"] = self.request.GET.get("level", "")
         ctx["taisha_filter"] = self.request.GET.get("taisha", "")
         return ctx
 
 
-class KanjoKamokuCreateView(AdminRequiredMixin, HtmxModalMixin, CreateView):
-    """Modal form to create a new account code entry."""
+class KanjoKamokuCreateView(BaseMasterModalView, CreateView):
+    """Modal form to create a new account."""
 
     model = KanjoKamokuMaster
     form_class = KanjoKamokuForm
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:kanjo-list")
     action_name = "新規登録"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "勘定科目 新規登録"
-        ctx["action_url"] = reverse_lazy("master:kanjo-create")
-        return ctx
+    model_name_ja = "勘定科目"
+    url_name_prefix = "master:kanjo"
 
 
-class KanjoKamokuUpdateView(AdminRequiredMixin, HtmxModalMixin, UpdateView):
-    """Modal form to edit an existing account code entry."""
+class KanjoKamokuUpdateView(BaseMasterModalView, UpdateView):
+    """Modal form to edit an existing account."""
 
     model = KanjoKamokuMaster
     form_class = KanjoKamokuForm
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:kanjo-list")
     action_name = "更新"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = f"勘定科目 編集: {self.object}"
-        ctx["action_url"] = reverse_lazy("master:kanjo-update", args=[self.object.pk])
-        return ctx
+    model_name_ja = "勘定科目"
+    url_name_prefix = "master:kanjo"
 
 
-class KanjoKamokuDeleteView(AdminRequiredMixin, DeleteView):
-    """
-    Confirms and processes deletion of an account code.
-    Returns HTTP 409 if the account is already referenced by journal entries.
-    """
+class KanjoKamokuDeleteView(BaseMasterDeleteView):
+    """Confirms and processes deletion of a account."""
 
     model = KanjoKamokuMaster
     template_name = "master/partials/delete_confirm.html"
     success_url = reverse_lazy("master:kanjo-list")
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["delete_url"] = reverse_lazy("master:kanjo-delete", args=[self.object.pk])
-        return ctx
-
-    def form_valid(self, form):
-        try:
-            obj = self.get_object()
-            name = str(obj)
-            obj.delete()
-            messages.success(self.request, f"「{name}」を削除しました。")
-            if self.request.htmx:
-                return HttpResponse(
-                    "",
-                    status=200,
-                    headers={"HX-Trigger": "refreshList"},
-                )
-            return redirect(self.success_url)
-        except ProtectedError:
-            # The account is linked to journal entries and cannot be deleted
-            messages.error(self.request, "この科目はすでに仕訳に使用されているため削除できません。")
-            if self.request.htmx:
-                return render(self.request, self.template_name, self.get_context_data())
-            return self.get(self.request)
+    url_name_prefix = "master:kanjo"
+    delete_error_message = "この科目はすでに仕訳に使用されているため削除できません。"
 
 
 # =========================================================
-# Department Master
+# Sub-account Master
 # =========================================================
 
 
-class BumonListView(LoginRequiredMixin, HtmxListMixin, ListView):
-    """Lists all departments with an optional code/name keyword search."""
-
-    model = BumonMaster
-    template_name = "master/bumon_list.html"
-    partial_template_name = "master/partials/bumon_table.html"
-    context_object_name = "bumon_list"
-    paginate_by = 20
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        q = self.request.GET.get("q", "")
-        if q:
-            qs = qs.filter(code__icontains=q) | qs.filter(name__icontains=q)
-        return qs
-
-
-class BumonCreateView(AdminRequiredMixin, HtmxModalMixin, CreateView):
-    """Modal form to create a new department."""
-
-    model = BumonMaster
-    form_class = BumonForm
-    template_name = "master/partials/form_modal.html"
-    success_url = reverse_lazy("master:bumon-list")
-    action_name = "新規登録"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "部門 新規登録"
-        ctx["action_url"] = reverse_lazy("master:bumon-create")
-        return ctx
-
-
-class BumonUpdateView(AdminRequiredMixin, HtmxModalMixin, UpdateView):
-    """Modal form to edit an existing department."""
-
-    model = BumonMaster
-    form_class = BumonForm
-    template_name = "master/partials/form_modal.html"
-    success_url = reverse_lazy("master:bumon-list")
-    action_name = "更新"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = f"部門 編集: {self.object}"
-        ctx["action_url"] = reverse_lazy("master:bumon-update", args=[self.object.pk])
-        return ctx
-
-
-class BumonDeleteView(AdminRequiredMixin, DeleteView):
-    """
-    Confirms and processes deletion of a department.
-    Returns HTTP 409 if the department is already referenced by journal entries.
-    """
-
-    model = BumonMaster
-    template_name = "master/partials/delete_confirm.html"
-    success_url = reverse_lazy("master:bumon-list")
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["delete_url"] = reverse_lazy("master:bumon-delete", args=[self.object.pk])
-        return ctx
-
-    def form_valid(self, form):
-        try:
-            obj = self.get_object()
-            name = str(obj)
-            obj.delete()
-            messages.success(self.request, f"「{name}」を削除しました。")
-            if self.request.htmx:
-                return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
-            return redirect(self.success_url)
-        except ProtectedError:
-            # The department is linked to journal entries and cannot be deleted
-            messages.error(self.request, "この部門はすでに使用されているため削除できません。")
-            if self.request.htmx:
-                return render(self.request, self.template_name, self.get_context_data())
-            return self.get(self.request)
-
-
-# =========================================================
-# Tax Rate Master
-# =========================================================
-
-
-class ZeiListView(LoginRequiredMixin, HtmxListMixin, ListView):
-    """Lists all tax rates (small dataset — no search filter needed)."""
-
-    model = ZeiMaster
-    template_name = "master/zei_list.html"
-    partial_template_name = "master/partials/zei_table.html"
-    context_object_name = "zei_list"
-    paginate_by = 20
-
-
-class ZeiCreateView(AdminRequiredMixin, HtmxModalMixin, CreateView):
-    """Modal form to create a new tax rate entry."""
-
-    model = ZeiMaster
-    form_class = ZeiForm
-    template_name = "master/partials/form_modal.html"
-    success_url = reverse_lazy("master:zei-list")
-    action_name = "新規登録"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "税区分 新規登録"
-        ctx["action_url"] = reverse_lazy("master:zei-create")
-        return ctx
-
-
-class ZeiUpdateView(AdminRequiredMixin, HtmxModalMixin, UpdateView):
-    """Modal form to edit an existing tax rate entry."""
-
-    model = ZeiMaster
-    form_class = ZeiForm
-    template_name = "master/partials/form_modal.html"
-    success_url = reverse_lazy("master:zei-list")
-    action_name = "更新"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = f"税区分 編集: {self.object}"
-        ctx["action_url"] = reverse_lazy("master:zei-update", args=[self.object.pk])
-        return ctx
-
-
-class ZeiDeleteView(AdminRequiredMixin, DeleteView):
-    """
-    Confirms and processes deletion of a tax rate.
-    Returns HTTP 409 if it is already referenced by journal entries.
-    """
-
-    model = ZeiMaster
-    template_name = "master/partials/delete_confirm.html"
-    success_url = reverse_lazy("master:zei-list")
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["delete_url"] = reverse_lazy("master:zei-delete", args=[self.object.pk])
-        return ctx
-
-    def form_valid(self, form):
-        try:
-            obj = self.get_object()
-            name = str(obj)
-            obj.delete()
-            messages.success(self.request, f"「{name}」を削除しました。")
-            if self.request.htmx:
-                return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
-            return redirect(self.success_url)
-        except ProtectedError:
-            # The tax rate is referenced by journal entries and cannot be deleted
-            messages.error(
-                self.request,
-                "この税区分はすでに仕訳に使用されているため削除できません。",
-            )
-            if self.request.htmx:
-                return render(self.request, self.template_name, self.get_context_data())
-            return self.get(self.request)
-
-
-# =========================================================
-# Business Partner Master
-# =========================================================
-
-
-class TorihikiSakiListView(LoginRequiredMixin, HtmxListMixin, ListView):
-    """Lists business partners (customers / suppliers) with code/name search."""
-
-    model = TorihikiSakiMaster
-    template_name = "master/torihiki_list.html"
-    partial_template_name = "master/partials/torihiki_table.html"
-    context_object_name = "torihiki_list"
-    paginate_by = 20
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        q = self.request.GET.get("q", "")
-        if q:
-            qs = qs.filter(code__icontains=q) | qs.filter(name__icontains=q)
-        return qs
-
-
-class TorihikiSakiCreateView(AdminRequiredMixin, HtmxModalMixin, CreateView):
-    """Modal form to create a new business partner."""
-
-    model = TorihikiSakiMaster
-    form_class = TorihikiSakiForm
-    template_name = "master/partials/form_modal.html"
-    success_url = reverse_lazy("master:torihiki-list")
-    action_name = "新規登録"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "取引先 新規登録"
-        ctx["action_url"] = reverse_lazy("master:torihiki-create")
-        return ctx
-
-
-class TorihikiSakiUpdateView(AdminRequiredMixin, HtmxModalMixin, UpdateView):
-    """Modal form to edit an existing business partner."""
-
-    model = TorihikiSakiMaster
-    form_class = TorihikiSakiForm
-    template_name = "master/partials/form_modal.html"
-    success_url = reverse_lazy("master:torihiki-list")
-    action_name = "更新"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = f"取引先 編集: {self.object}"
-        ctx["action_url"] = reverse_lazy("master:torihiki-update", args=[self.object.pk])
-        return ctx
-
-
-class TorihikiSakiDeleteView(AdminRequiredMixin, DeleteView):
-    """
-    Confirms and processes deletion of a business partner.
-    Returns HTTP 409 if it is already referenced by journal entries.
-    """
-
-    model = TorihikiSakiMaster
-    template_name = "master/partials/delete_confirm.html"
-    success_url = reverse_lazy("master:torihiki-list")
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["delete_url"] = reverse_lazy("master:torihiki-delete", args=[self.object.pk])
-        return ctx
-
-    def form_valid(self, form):
-        try:
-            obj = self.get_object()
-            name = str(obj)
-            obj.delete()
-            messages.success(self.request, f"「{name}」を削除しました。")
-            if self.request.htmx:
-                return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
-            return redirect(self.success_url)
-        except ProtectedError:
-            # The partner is referenced by journal entries and cannot be deleted
-            messages.error(
-                self.request,
-                "この取引先はすでに仕訳に使用されているため削除できません。",
-            )
-            if self.request.htmx:
-                return render(self.request, self.template_name, self.get_context_data())
-            return self.get(self.request)
-
-
-# =========================================================
-# Sub-account Master (補助科目マスタ)
-# =========================================================
-
-
-class HojoKamokuListView(LoginRequiredMixin, HtmxListMixin, ListView):
+class HojoKamokuListView(BaseMasterListView):
     """List all sub-accounts with optional filters by parent account or keyword."""
 
     model = HojoKamokuMaster
     template_name = "master/hojo_list.html"
-    partial_template_name = "master/partials/hojo_table.html"
+    partial_template_name = "master/partials/hojo_list_table.html"
     context_object_name = "hojo_list"
-    paginate_by = 30
 
     def get_queryset(self):
         qs = HojoKamokuMaster.objects.select_related("kamoku")
-        q = self.request.GET.get("q", "")
         kamoku_id = self.request.GET.get("kamoku", "")
-        if q:
-            qs = qs.filter(code__icontains=q) | qs.filter(name__icontains=q)
         if kamoku_id:
             qs = qs.filter(kamoku_id=kamoku_id)
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["q"] = self.request.GET.get("q", "")
         ctx["kamoku_id"] = self.request.GET.get("kamoku", "")
         ctx["kamoku_choices"] = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
         return ctx
 
 
-class HojoKamokuCreateView(AdminRequiredMixin, HtmxModalMixin, CreateView):
+class HojoKamokuCreateView(BaseMasterModalView, CreateView):
     """Modal form to create a new sub-account."""
 
     model = HojoKamokuMaster
@@ -476,15 +237,11 @@ class HojoKamokuCreateView(AdminRequiredMixin, HtmxModalMixin, CreateView):
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:hojo-list")
     action_name = "新規登録"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "補助科目 新規登録"
-        ctx["action_url"] = reverse_lazy("master:hojo-create")
-        return ctx
+    model_name_ja = "補助科目"
+    url_name_prefix = "master:hojo"
 
 
-class HojoKamokuUpdateView(AdminRequiredMixin, HtmxModalMixin, UpdateView):
+class HojoKamokuUpdateView(BaseMasterModalView, UpdateView):
     """Modal form to edit an existing sub-account."""
 
     model = HojoKamokuMaster
@@ -492,40 +249,162 @@ class HojoKamokuUpdateView(AdminRequiredMixin, HtmxModalMixin, UpdateView):
     template_name = "master/partials/form_modal.html"
     success_url = reverse_lazy("master:hojo-list")
     action_name = "更新"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["title"] = "補助科目 編集"
-        ctx["action_url"] = reverse_lazy("master:hojo-update", args=[self.object.pk])
-        return ctx
+    model_name_ja = "補助科目"
+    url_name_prefix = "master:hojo"
 
 
-class HojoKamokuDeleteView(AdminRequiredMixin, DeleteView):
+class HojoKamokuDeleteView(BaseMasterDeleteView):
     """Confirms and processes deletion of a sub-account."""
 
     model = HojoKamokuMaster
     template_name = "master/partials/delete_confirm.html"
     success_url = reverse_lazy("master:hojo-list")
+    url_name_prefix = "master:hojo"
+    delete_error_message = "この補助科目はすでに仕訳に使用されているため削除できません。"
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["delete_url"] = reverse_lazy("master:hojo-delete", args=[self.object.pk])
-        return ctx
 
-    def form_valid(self, form):
-        try:
-            obj = self.get_object()
-            name = str(obj)
-            obj.delete()
-            messages.success(self.request, f"「{name}」を削除しました。")
-            if self.request.htmx:
-                return HttpResponse("", status=200, headers={"HX-Trigger": "refreshList"})
-            return redirect(self.success_url)
-        except ProtectedError:
-            messages.error(
-                self.request,
-                "この補助科目はすでに仕訳に使用されているため削除できません。",
-            )
-            if self.request.htmx:
-                return render(self.request, self.template_name, self.get_context_data())
-            return self.get(self.request)
+# =========================================================
+# Department Master
+# =========================================================
+
+
+class BumonListView(BaseMasterListView):
+    """Lists all departments with an optional code/name keyword search."""
+
+    model = BumonMaster
+    template_name = "master/bumon_list.html"
+    partial_template_name = "master/partials/bumon_list_table.html"
+    context_object_name = "bumon_list"
+
+
+class BumonCreateView(BaseMasterModalView, CreateView):
+    """Modal form to create a new department."""
+
+    model = BumonMaster
+    form_class = BumonForm
+    template_name = "master/partials/form_modal.html"
+    success_url = reverse_lazy("master:bumon-list")
+    action_name = "新規登録"
+    model_name_ja = "部門"
+    url_name_prefix = "master:bumon"
+
+
+class BumonUpdateView(BaseMasterModalView, UpdateView):
+    """Modal form to edit an existing department."""
+
+    model = BumonMaster
+    form_class = BumonForm
+    template_name = "master/partials/form_modal.html"
+    success_url = reverse_lazy("master:bumon-list")
+    action_name = "更新"
+    model_name_ja = "部門"
+    url_name_prefix = "master:bumon"
+
+
+class BumonDeleteView(BaseMasterDeleteView):
+    """Confirms and processes deletion of a department."""
+
+    model = BumonMaster
+    template_name = "master/partials/delete_confirm.html"
+    success_url = reverse_lazy("master:bumon-list")
+    url_name_prefix = "master:bumon"
+    delete_error_message = "この部門はすでに使用されているため削除できません。"
+
+
+# =========================================================
+# Tax Rate Master
+# =========================================================
+
+
+class ZeiListView(BaseMasterListView):
+    """Lists all tax rates (small dataset — no search filter needed)."""
+
+    model = ZeiMaster
+    template_name = "master/zei_list.html"
+    partial_template_name = "master/partials/zei_list_table.html"
+    context_object_name = "zei_list"
+
+    def get_queryset(self):
+        return super().get_queryset()  # No search filter for tax rates
+
+
+class ZeiCreateView(BaseMasterModalView, CreateView):
+    """Modal form to create a new tax rate entry."""
+
+    model = ZeiMaster
+    form_class = ZeiForm
+    template_name = "master/partials/form_modal.html"
+    success_url = reverse_lazy("master:zei-list")
+    action_name = "新規登録"
+    model_name_ja = "税区分"
+    url_name_prefix = "master:zei"
+
+
+class ZeiUpdateView(BaseMasterModalView, UpdateView):
+    """Modal form to edit an existing tax rate entry."""
+
+    model = ZeiMaster
+    form_class = ZeiForm
+    template_name = "master/partials/form_modal.html"
+    success_url = reverse_lazy("master:zei-list")
+    action_name = "更新"
+    model_name_ja = "税区分"
+    url_name_prefix = "master:zei"
+
+
+class ZeiDeleteView(BaseMasterDeleteView):
+    """Confirms and processes deletion of a tax rate."""
+
+    model = ZeiMaster
+    template_name = "master/partials/delete_confirm.html"
+    success_url = reverse_lazy("master:zei-list")
+    url_name_prefix = "master:zei"
+    delete_error_message = "この税区分はすでに仕訳に使用されているため削除できません。"
+
+
+# =========================================================
+# Business Partner Master
+# =========================================================
+
+
+class TorihikiSakiListView(BaseMasterListView):
+    """Lists business partners (customers / suppliers) with code/name search."""
+
+    model = TorihikiSakiMaster
+    template_name = "master/torihiki_list.html"
+    partial_template_name = "master/partials/torihiki_list_table.html"
+    context_object_name = "torihiki_list"
+
+
+class TorihikiSakiCreateView(BaseMasterModalView, CreateView):
+    """Modal form to create a new business partner."""
+
+    model = TorihikiSakiMaster
+    form_class = TorihikiSakiForm
+    template_name = "master/partials/form_modal.html"
+    success_url = reverse_lazy("master:torihiki-list")
+    action_name = "新規登録"
+    model_name_ja = "取引先"
+    url_name_prefix = "master:torihiki"
+
+
+class TorihikiSakiUpdateView(BaseMasterModalView, UpdateView):
+    """Modal form to edit an existing business partner."""
+
+    model = TorihikiSakiMaster
+    form_class = TorihikiSakiForm
+    template_name = "master/partials/form_modal.html"
+    success_url = reverse_lazy("master:torihiki-list")
+    action_name = "更新"
+    model_name_ja = "取引先"
+    url_name_prefix = "master:torihiki"
+
+
+class TorihikiSakiDeleteView(BaseMasterDeleteView):
+    """Confirms and processes deletion of a business partner."""
+
+    model = TorihikiSakiMaster
+    template_name = "master/partials/delete_confirm.html"
+    success_url = reverse_lazy("master:torihiki-list")
+    url_name_prefix = "master:torihiki"
+    delete_error_message = "この取引先はすでに仕訳に使用されているため削除できません。"
