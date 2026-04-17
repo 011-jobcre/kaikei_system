@@ -4,7 +4,7 @@
     <!-- DaisyUI Drawer: off-canvas sidebar on mobile, fixed sidebar on desktop -->
     <div class="drawer md:drawer-open">
         <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
-        <!-- ── Main content column ──────────────────────────────────────────────── -->
+        <!-- Main content column -->
         <div class="drawer-content flex flex-col min-h-screen">
             <!-- Sticky top navigation bar -->
             <header class="navbar sticky top-0 z-10 px-4 h-auto min-h-20 shadow-xl bg-base-100 border-b border-base-300 print:hidden">
@@ -33,7 +33,7 @@
                         <i class="fa-solid fa-arrow-right-arrow-left"></i>振替伝票
                     </a>
                     <!-- User initials avatar — safe fallback that never crashes.
-                         Full user info is shown in the sidebar on desktop.        -->
+                         Full user info is shown in the sidebar on desktop. -->
                     <div class="avatar placeholder md:hidden">
                         <div class="bg-primary text-primary-content rounded-full w-9 text-sm font-bold flex items-center justify-center">
                             <span>{{ request.user.username|slice:":1"|upper }}</span>
@@ -52,7 +52,7 @@
                 <span>© 2026 会計システム — 全ての権利を保有します</span>
             </footer>
         </div>
-        <!-- ── Sidebar (off-canvas on mobile, always visible on lg+) ────────────── -->
+        <!-- Sidebar (off-canvas on mobile, always visible on lg+) -->
         <div class="drawer-side z-20">
             <label for="drawer-toggle" aria-label="閉じる" class="drawer-overlay"></label>
             {% include "includes/sidebar.html" %}

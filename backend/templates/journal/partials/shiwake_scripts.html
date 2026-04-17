@@ -1,0 +1,200 @@
+<script>
+function shiwakeGrid() {
+    return {
+        // State
+        validationTick: 0,
+        rowErrors: {},  // Track errors for each row: { rowIdx: errorMessage }
+
+        // Initialization
+        init() {
+            if (typeof initTomSelects === 'function') {
+                initTomSelects();
+            }
+            this.revalidateAllRows();
+
+            // Focus the first input on load
+            this.$nextTick(() => {
+                const firstInput = document.querySelector('.grid-input, .grid-select');
+                if (firstInput) firstInput.focus();
+            });
+
+            // HTMX afterSwap handler
+            document.body.addEventListener('htmx:afterSwap', (evt) => {
+                if (typeof initTomSelects === 'function') {
+                    initTomSelects();
+                }
+
+                // Clear error for successfully saved row
+                const target = evt.detail?.target;
+                if (target && target.id && target.id.startsWith('row-')) {
+                    const rowIdx = target.id.replace('row-', '');
+                    delete this.rowErrors[rowIdx];
+
+                    // Check for server errors in the returned HTML
+                    const serverErr = target.querySelector('.server-row-error')?.textContent?.trim();
+                    if (serverErr) {
+                        this.rowErrors[rowIdx] = serverErr;
+                    }
+                }
+                this.revalidateAllRows();
+                this.validationTick++;
+            });
+
+            // Input change handlers for real-time validation
+            document.body.addEventListener('input', () => {
+                this.validationTick++;
+                this.revalidateAllRows();
+            });
+
+            document.body.addEventListener('change', () => {
+                this.validationTick++;
+                this.revalidateAllRows();
+            });
+
+            // Handle specific refresh event from server
+            document.body.addEventListener('refreshHistory', () => {
+                htmx.trigger('#recent-entries-tbody', 'refreshRecentEntries');
+            });
+        },
+
+        // Validation
+        revalidateAllRows() {
+            const rows = document.querySelectorAll('#grid-rows > tr[id^="row-"]');
+            rows.forEach(row => {
+                const rowIdx = row.id.replace('row-', '');
+                const error = this.getRowError(rowIdx);
+                if (error) {
+                    this.rowErrors[rowIdx] = error;
+                } else {
+                    delete this.rowErrors[rowIdx];
+                }
+            });
+        },
+
+        rowHasAnyInput(row) {
+            if (!row) return false;
+            const selectors = [
+                'select[name$="-kari_kamoku"]',
+                'select[name$="-kashi_kamoku"]',
+                'input[name$="-kari_kingaku"]',
+                'input[name$="-kashi_kingaku"]',
+                'input[name$="-tekiyou"]'
+            ];
+            return selectors.some((selector) => {
+                const el = row.querySelector(selector);
+                return el && `${el.value || ''}`.trim() !== '';
+            });
+        },
+
+        getRowError(rowIdx, enforceRequired = false) {
+            const row = document.getElementById(`row-${rowIdx}`);
+            if (!row) return "";
+            if (!enforceRequired && !this.rowHasAnyInput(row)) return "";
+            
+            // Get field values
+            const date = row.querySelector(`input[name="row-${rowIdx}-date"]`)?.value;
+            const kariKamoku = row.querySelector(`select[name="row-${rowIdx}-kari_kamoku"]`)?.value;
+            const kashiKamoku = row.querySelector(`select[name="row-${rowIdx}-kashi_kamoku"]`)?.value;
+            const kariRaw = row.querySelector(`input[name="row-${rowIdx}-kari_kingaku"]`)?.value;
+            const kashiRaw = row.querySelector(`input[name="row-${rowIdx}-kashi_kingaku"]`)?.value;
+            const kari = parseFloat(kariRaw || "0");
+            const kashi = parseFloat(kashiRaw || "0");
+
+            // Check required fields specifically
+            const missingFields = [];
+            if (!date) missingFields.push("日付");
+            if (!kariKamoku) missingFields.push("借方科目");
+            if (!kashiKamoku) missingFields.push("貸方科目");
+            if (missingFields.length > 0) {
+                return `必須項目を入力してください（${missingFields.join(", ")}）`;
+            }
+            
+            if (!kariRaw || !kashiRaw || kari <= 0 || kashi <= 0) {
+                return `借方金額・貸方金額は0より大きい値が必要です。`;
+            }
+            
+            if (kari !== kashi) {
+                const diff = Math.abs(kari - kashi);
+                return `借方金額と貸方金額が一致していません。（借方: ${kari.toLocaleString()}円、貸方: ${kashi.toLocaleString()}円、差額: ${diff.toLocaleString()}円）`;
+            }
+            return "";
+        },
+
+        rowHasError(rowIdx) {
+            return !!this.rowErrors[rowIdx];
+        },
+
+        // Save Handler
+        saveRow(e) {
+            const rowIdx = this.getRowIndex(e.currentTarget);
+            // Clear previous error for this row
+            delete this.rowErrors[rowIdx];
+
+            const error = this.getRowError(rowIdx, true);
+            if (error) {
+                this.rowErrors[rowIdx] = error;
+                // Prevent HTMX from submitting by stopping propagation
+                e.stopPropagation();
+                e.preventDefault();
+                return false;
+            }
+            // Allow HTMX to proceed - don't stop the event
+            return true;
+        },
+
+        // Row Management
+        deleteRow(rowIdx) {
+            const row = document.getElementById(`row-${rowIdx}`);
+            if (row) {
+                row.remove();
+                delete this.rowErrors[rowIdx];
+            }
+        },
+
+        getRowIndex(el) {
+            const tr = el.closest('tr');
+            if (!tr) return 0;
+            const id = tr.id;
+            const match = id.match(/row-(\d+)/);
+            return match ? parseInt(match[1]) : 0;
+        },
+
+        handleKey(e, rowIdx, colIdx) {
+            const colCount = 10;
+
+            if (e.key === 'Enter') {
+                // HTMX handles the save. We just need to move focus if it's the last cell
+                if (colIdx === colCount - 1) {
+                    this.focusCell(rowIdx + 1, 0);
+                } else {
+                    this.focusCell(rowIdx, colIdx + 1);
+                }
+            } else if (e.key === 'ArrowRight') {
+                this.focusCell(rowIdx, colIdx + 1);
+            } else if (e.key === 'ArrowLeft') {
+                this.focusCell(rowIdx, colIdx - 1);
+            } else if (e.key === 'ArrowDown') {
+                this.focusCell(rowIdx + 1, colIdx);
+            } else if (e.key === 'ArrowUp') {
+                this.focusCell(rowIdx - 1, colIdx);
+            }
+        },
+
+        focusCell(row, col) {
+            const el = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            if (el) el.focus();
+        }
+    }
+}
+
+function getNextRowIndex() {
+    // Find max index to avoid collisions
+    const rows = document.querySelectorAll('#grid-rows > tr[id^="row-"]');
+    let maxIdx = -1;
+    rows.forEach(r => {
+        const idx = parseInt(r.id.replace('row-', ''));
+        if (!isNaN(idx) && idx > maxIdx) maxIdx = idx;
+    });
+    return maxIdx + 1;
+}
+</script>

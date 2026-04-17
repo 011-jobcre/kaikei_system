@@ -1,5 +1,5 @@
 <script>
-// ── Alpine.js Component for Frontend Balance Tracking ────────────────
+// Alpine.js Component for Frontend Balance Tracking
 document.addEventListener('alpine:init', () => {
     Alpine.data('furikaeForm', () => ({
         kariTotal: 0,
@@ -80,7 +80,7 @@ document.addEventListener('alpine:init', () => {
     }));
 });
 
-// ── Django Formset Dynamic Index Management ──────────────────────────
+// Django Formset Dynamic Index Management
 function getNextFormIndex() {
     let el = document.getElementById('id_meisai-TOTAL_FORMS');
     if (!el) return 0;
@@ -94,9 +94,7 @@ function incrementFormIndex() {
     }
 }
 
-
-
-// ── Row Deletion Handler ─────────────────────────────────────────────
+// Row Deletion Handler
 function removeRow(btn) {
     const row = btn.closest('tr');
     const delInput = row.querySelector('input[name$="-DELETE"]');

@@ -1,9 +1,9 @@
 {% extends "layout_main.html" %}
 {% block title %}
-    仕訳一覧 | 会計システム
+    {{ title }} | 会計システム
 {% endblock title %}
 {% block page_header %}
-    仕訳一覧
+    {{ title }}
 {% endblock page_header %}
 {% block content %}
     <div class="space-y-4">
@@ -60,6 +60,6 @@
             {% endif %}
         </div>
         <!-- Data Table: HTMX-enabled for dynamic updates -->
-        {% include "journal/partials/shiwake_table.html" %}
+        {% include "journal/partials/shiwake_list_table.html" %}
     </div>
 {% endblock content %}

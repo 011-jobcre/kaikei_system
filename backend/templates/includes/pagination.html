@@ -1,7 +1,5 @@
 {% if is_paginated %}
-    <!-- ── Pagination Controls ──────────────────────────────────────────────────
-         Shared partial for list views (Master data, Journal, etc.).
-         Preserves current query parameters (q, level, taisha) when changing pages. -->
+    <!-- Pagination Controls -->
     <div class="p-4 sm:p-6 border-t border-base-300 flex flex-col sm:flex-row justify-between items-center gap-4">
         <!-- Page info (e.g. Page 1 of 5) -->
         <div class="text-base-content/40">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>

@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // ── CSRF token ───────────────────────────────────────────────────────
+    // CSRF token
     // Read the CSRF token from Django's cookie and attach it to every
     // HTMX POST/PUT/DELETE request via the hx-headers attribute on <body>.
     const csrfToken = document.cookie
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-    // ── Modal auto-close on success ──────────────────────────────────────
+    // Modal auto-close on success
     // When a modal form POSTs successfully and the server responds with
     // the header HX-Trigger: refreshList, close the open modal.
     document.addEventListener("htmx:afterRequest", (evt) => {
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // ── Flash message refresher ──────────────────────────────────────────
+    // Flash message refresher
     // After a modal save succeeds, refetch Django's flash messages and
     // inject them into the page without a full reload.
     function updateMessages() {
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     }
 
-    // ── refreshList custom event ─────────────────────────────────────────
+    // refreshList custom event
     // Fired by HTMX when the server sends HX-Trigger: refreshList.
     // Closes any open modal and refreshes flash messages.
     document.addEventListener("refreshList", () => {
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// ── TomSelect Searchable Dropdown Initializer ────────────────────────
+// TomSelect Searchable Dropdown Initializer
 function initTomSelects() {
     // Select all elements with class .tomselect that haven't been initialized yet
     // Exclude empty form templates used for dynamic formsets

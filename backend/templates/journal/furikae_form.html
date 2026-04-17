@@ -1,6 +1,6 @@
 {% extends "layout_main.html" %}
 {% block title %}
-    {{ title }} | 会計システム
+    振替伝票 | 会計システム
 {% endblock title %}
 {% block page_header %}
     {{ title }}
@@ -101,7 +101,7 @@
                             </thead>
                             <tbody id="meisai-rows" class="divide-y divide-base-200/50">
                                 {% for row_form in formset %}
-                                    {% include "journal/partials/meisai_row.html" with form=row_form form_index=forloop.counter0 %}
+                                    {% include "journal/partials/furikae_form_meisai.html" with form=row_form form_index=forloop.counter0 %}
                                 {% endfor %}
                             </tbody>
                         </table>

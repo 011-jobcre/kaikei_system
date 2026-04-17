@@ -1,6 +1,6 @@
 {% load static %}
 <aside class="w-64 min-h-screen flex flex-col shadow-xl bg-base-100 md:bg-transparent border-r border-base-300 print:hidden">
-    <!-- ── Brand / Logo ──────────────────────────────────────────────────────── -->
+    <!-- Brand / Logo -->
     <div class="h-auto min-h-20 p-4 border-b border-base-300">
         <a href="{% url 'account:dashboard' %}"
            class="flex items-center justify-center gap-4">
@@ -10,7 +10,7 @@
             <p class="font-bold text-xl text-primary leading-none tracking-tight">会計システム</p>
         </a>
     </div>
-    <!-- ── Navigation ────────────────────────────────────────────────────────── -->
+    <!-- Navigation -->
     <nav class="flex-1 p-2 flex flex-col gap-2 overflow-y-auto">
         <!-- Dashboard -->
         <a href="{% url 'account:dashboard' %}"
@@ -100,11 +100,11 @@
             </a>
         {% endif %}
     </nav>
-    <!-- ── User info + Logout ─────────────────────────────────────────────────── -->
+    <!-- User info + Logout -->
     <div class="h-auto min-h-20 p-4 border-t border-base-300">
         <div class="flex items-center gap-3 px-2 py-1">
             <!-- Initials avatar: uses the first character of the username.
-                 Avoids crashes caused by missing profile image files.       -->
+                 Avoids crashes caused by missing profile image files. -->
             <div class="avatar placeholder">
                 <div class="bg-primary text-primary-content rounded-full w-9 text-sm font-bold flex items-center justify-center">
                     <span>{{ request.user.username|slice:":1"|upper }}</span>

@@ -31,7 +31,7 @@ from .models import ShiwakeDenpyo, ShiwakeMeisai
 # =========================================================
 
 
-class ShiwakeIchiranView(LoginRequiredMixin, HtmxListMixin, ListView):
+class ShiwakeListView(LoginRequiredMixin, HtmxListMixin, ListView):
     """仕訳一覧: Unified list of all vouchers (both Shiwake and Furikae types).
 
     Filter by date range, keyword, and voucher type.
@@ -39,8 +39,9 @@ class ShiwakeIchiranView(LoginRequiredMixin, HtmxListMixin, ListView):
 
     model = ShiwakeDenpyo
     template_name = "journal/shiwake_list.html"
-    partial_template_name = "journal/partials/shiwake_table.html"
+    partial_template_name = "journal/partials/shiwake_list_table.html"
     context_object_name = "denpyo_list"
+    title = "仕訳日記帳"
     paginate_by = 30
 
     def get_queryset(self):
@@ -75,6 +76,7 @@ class ShiwakeIchiranView(LoginRequiredMixin, HtmxListMixin, ListView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx["title"] = self.title
         ctx["q"] = self.request.GET.get("q", "")
         ctx["date_from"] = self.request.GET.get("date_from", "")
         ctx["date_to"] = self.request.GET.get("date_to", "")
@@ -87,14 +89,14 @@ class ShiwakeIchiranView(LoginRequiredMixin, HtmxListMixin, ListView):
 # =========================================================
 
 
-class ShiwakeNikkiGridView(AccountantRequiredMixin, View):
-    """仕訳日記帳: Spreadsheet-style grid for direct 1:1 journal entries.
+class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
+    """仕訳日記帳: Create a general single-line for direct (1:1) journal entry.
 
     Allows entering multiple rows in a table format. Each row is saved as a
     standalone balanced voucher (S- prefix).
     """
 
-    template_name = "journal/shiwake_grid.html"
+    template_name = "journal/shiwake_form.html"
     success_url = reverse_lazy("journal:shiwake-list")
 
     def get(self, request):
@@ -111,7 +113,7 @@ class ShiwakeNikkiGridView(AccountantRequiredMixin, View):
             request,
             self.template_name,
             {
-                "title": "仕訳日記帳 (グリッド入力)",
+                "title": "仕訳日記帳　新規作成",
                 "rows": rows,
                 "recent_shiwake": recent_shiwake,
                 "is_new": True,
@@ -175,13 +177,13 @@ class ShiwakeNikkiGridView(AccountantRequiredMixin, View):
 
             if request.htmx:
                 new_form = ShiwakeGridRowForm(prefix=prefix, initial={"date": timezone.localdate()})
-                row_idx = prefix.split("-")[1] if prefix and "-" in prefix else 0
+                row_index = prefix.split("-")[1] if prefix and "-" in prefix else 0
                 response = render(
                     request,
-                    "journal/partials/grid_row_wrap.html",
+                    "journal/partials/shiwake_form_meisai.html",
                     {
                         "form": new_form,
-                        "row_index": row_idx,
+                        "row_index": row_index,
                     },
                 )
                 response["HX-Trigger"] = "refreshRecentEntries"
@@ -192,8 +194,8 @@ class ShiwakeNikkiGridView(AccountantRequiredMixin, View):
 
         if request.htmx:
             # Return form with errors
-            row_idx = prefix.split("-")[1] if prefix and "-" in prefix else 0
-            return render(request, "journal/partials/grid_row_wrap.html", {"form": form, "row_index": row_idx})
+            row_index = prefix.split("-")[1] if prefix and "-" in prefix else 0
+            return render(request, "journal/partials/shiwake_form_meisai.html", {"form": form, "row_index": row_index})
 
         return self.get(request)
 
@@ -228,7 +230,7 @@ class FurikaeDenpyoCreateView(AccountantRequiredMixin, View):
             {
                 "form": form,
                 "formset": formset,
-                "title": "振替伝票 新規作成 (複合仕訳)",
+                "title": "振替伝票　新規作成",
                 "is_new": True,
             },
         )
@@ -257,7 +259,6 @@ class FurikaeDenpyoCreateView(AccountantRequiredMixin, View):
             {
                 "form": form,
                 "formset": formset,
-                "title": "振替伝票 新規作成 (複合仕訳)",
                 "is_new": True,
             },
         )
@@ -292,7 +293,7 @@ class FurikaeDenpyoUpdateView(AccountantRequiredMixin, View):
                 "form": form,
                 "formset": formset,
                 "denpyo": denpyo,
-                "title": f"{denpyo.get_denpyo_type_display()}伝票 編集: {denpyo.denpyo_no}",
+                "title": f"{denpyo.get_denpyo_type_display()}伝票　編集： {denpyo.denpyo_no}",
                 "is_new": False,
             },
         )
@@ -322,7 +323,6 @@ class FurikaeDenpyoUpdateView(AccountantRequiredMixin, View):
                 "form": form,
                 "formset": formset,
                 "denpyo": denpyo,
-                "title": f"{denpyo.get_denpyo_type_display()}伝票 編集: {denpyo.denpyo_no}",
                 "is_new": False,
             },
         )
@@ -366,7 +366,7 @@ def add_meisai_row(request):
     form = FurikaeMeisaiForm(prefix=f"meisai-{form_index}")
     return render(
         request,
-        "journal/partials/meisai_row.html",
+        "journal/partials/furikae_form_meisai.html",
         {
             "form": form,
             "form_index": form_index,
@@ -382,7 +382,7 @@ def add_grid_row(request):
     form = ShiwakeGridRowForm(prefix=f"row-{row_index}", initial={"date": timezone.localdate()})
     return render(
         request,
-        "journal/partials/grid_row_wrap.html",
+        "journal/partials/shiwake_form_meisai.html",
         {
             "form": form,
             "row_index": row_index,
@@ -397,7 +397,7 @@ def recent_shiwake_entries(request):
     )
     return render(
         request,
-        "journal/partials/recent_entries_body.html",
+        "journal/partials/shiwake_form_recent.html",
         {
             "recent_shiwake": recent_shiwake,
         },

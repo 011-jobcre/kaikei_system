@@ -1,0 +1,112 @@
+{% extends "layout_main.html" %}
+{% load number_filters %}
+{% block title %}
+    仕訳日記帳 | 会計システム
+{% endblock title %}
+{% block page_header %}
+    {{ title }}
+{% endblock page_header %}
+{% block content %}
+    <div class="space-y-4" x-data="shiwakeGrid()">
+        <!-- Grid Header / Info -->
+        <div class="flex justify-end bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
+            <div class="flex gap-2 items-center justify-end">
+                <button type="button"
+                        hx-get="{% url 'journal:add-grid-row' %}"
+                        hx-vals="js:{row_index: getNextRowIndex()}"
+                        hx-target="#grid-rows"
+                        hx-swap="beforeend"
+                        class="btn btn-primary btn-outline gap-2">
+                    <i class="fa-solid fa-plus"></i>行追加
+                </button>
+                <a href="{% url 'journal:furikae-create' %}"
+                   class="btn btn-primary btn-outline gap-2">
+                    <i class="fa-solid fa-toggle-on"></i>伝票へ切替
+                </a>
+            </div>
+        </div>
+        <!-- Error Alerts for All Rows -->
+        <div x-show="Object.keys(rowErrors).length > 0" x-cloak class="space-y-2">
+            <template x-for="(error, rowIdx) in rowErrors" :key="rowIdx">
+                <div class="alert alert-error text-sm shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span><strong>行 <span x-text="parseInt(rowIdx) + 1"></span>： </strong> <span x-text="error"></span></span>
+                </div>
+            </template>
+        </div>
+        <!-- The Grid -->
+        <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
+            <div class="table-wrapper">
+                <table class="table-accounting table-xs">
+                    <thead>
+                        <tr>
+                            <th class="w-28">日付</th>
+                            <th class="min-w-44 md:w-auto group-header">借方科目</th>
+                            <th class="min-w-44 md:w-auto group-header">借方補助</th>
+                            <th class="min-w-32 md:w-auto group-header">借方金額</th>
+                            <th class="min-w-40 md:w-auto group-header">借方税区分</th>
+                            <th class="min-w-44 md:w-auto group-header credit">貸方科目</th>
+                            <th class="min-w-44 md:w-auto group-header credit">貸方補助</th>
+                            <th class="min-w-32 md:w-auto group-header credit">貸方金額</th>
+                            <th class="min-w-40 md:w-auto group-header credit">貸方税区分</th>
+                            <th class="min-w-40 md:w-auto">摘要</th>
+                            <th class="w-28 text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="grid-rows">
+                        {% for form in rows %}
+                            {% include "journal/partials/shiwake_form_meisai.html" with form=form only %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Recent History (Peek) -->
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-1">
+                <div class="px-4 py-2 bg-base-200 border-b border-base-300 flex items-center justify-between">
+                    <h3 class="text-neutral text-sm font-bold tracking-wider">最近の登録内容</h3>
+                    <span class="text-neutral/60 text-xs">最新10件を表示</span>
+                </div>
+                <div class="table-wrapper">
+                    <table class="table-accounting">
+                        <thead>
+                            <tr>
+                                <th class="w-28">日付</th>
+                                <th class="min-w-36 md:w-auto">伝票No</th>
+                                <th class="min-w-44 md:w-auto group-header">借方</th>
+                                <th class="w-28 text-right group-header">借方金額</th>
+                                <th class="min-w-44 md:w-auto group-header credit">貸方</th>
+                                <th class="w-28 text-right group-header credit">貸方金額</th>
+                                <th class="min-w-52 md:w-auto">摘要</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-entries-tbody"
+                               hx-get="{% url 'journal:shiwake-recent-entries' %}"
+                               hx-trigger="refreshRecentEntries from:body"
+                               hx-swap="innerHTML">
+                            {% include "journal/partials/shiwake_form_recent.html" %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+/* spreadsheet-like input styling */
+.grid-input, .grid-select {
+    @apply w-full bg-transparent border-none focus:ring-1 focus:ring-primary focus:bg-primary/5 px-2 py-1 transition-all text-xs outline-none;
+}
+.grid-input:focus {
+    background-color: white !important;
+    box-shadow: inset 0 0 0 2px theme('colors.primary.DEFAULT') !important;
+}
+.input-invalid {
+    background-color: theme('colors.error.DEFAULT' / 0.05) !important;
+    box-shadow: inset 0 0 0 1px theme('colors.error.DEFAULT' / 0.3) !important;
+}
+    </style>
+    {% block extra_scripts %}
+        {% include "journal/partials/shiwake_scripts.html" %}
+    {% endblock extra_scripts %}
+{% endblock content %}
