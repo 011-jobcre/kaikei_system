@@ -107,7 +107,7 @@ button {
 }
 
 .table-wrapper {
-    @apply overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] relative;
+    @apply overflow-x-auto overflow-y-auto max-h-[calc(100vh-355px)] relative;
 }
 
 /* Sticky header */
@@ -140,7 +140,7 @@ button {
 }
 
 .table-accounting tbody tr:hover {
-    @apply bg-[#f1f5f9] transform scale-101;
+    @apply bg-[#f1f5f9] transform -translate-y-1;
 }
 
 .table-accounting .amount {
@@ -265,6 +265,36 @@ button {
     --noise: 0;
 }
 
+/* Base style for inputs and selects within the accounting grid */
+.grid-input,
+.grid-select {
+    @apply block w-full px-2 py-1 text-sm;
+    @apply bg-base-100 border border-base-300 rounded-md;
+    @apply transition-all duration-200;
+    line-height: 1.5;
+}
+
+.grid-input:hover,
+.grid-select:hover {
+    @apply border-base-content/30;
+}
+
+.grid-input:focus,
+.grid-select:focus {
+    @apply outline-none ring-2 ring-primary/20 border-primary;
+}
+
+/* Ensure TomSelect in grid follows these rules */
+.grid-select.tomselected + .ts-wrapper .ts-control {
+    @apply bg-base-100 border-base-300 rounded-md;
+    padding: 0.25rem 0.5rem !important;
+    min-height: 2rem !important;
+}
+
+.grid-select.tomselected + .ts-wrapper.focus .ts-control {
+    @apply ring-2 ring-primary/20 border-primary;
+}
+
 /* ============================================
    TomSelect + DaisyUI Integration Fix
    ============================================ */
@@ -296,6 +326,19 @@ button {
         border-color 0.2s ease,
         box-shadow 0.2s ease,
         background-color 0.2s ease;
+}
+
+/* Error state for TomSelect */
+.ts-wrapper.single .ts-control.border-error {
+    border-color: var(--color-error) !important;
+    border-width: 1px !important;
+}
+.ts-wrapper.single .ts-control.border-error .item {
+    color: var(--color-error) !important;
+}
+.ts-wrapper.single .ts-control.border-error:focus,
+.ts-wrapper.single.focus .ts-control.border-error {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
 }
 
 /* DaisyUI Inline Label Integration: strip borders/backgrounds when nested inside label.select */
@@ -425,8 +468,6 @@ select.tomselect.tomselected {
     background-color: var(--color-base-100);
     position: fixed !important;
     z-index: 9999 !important;
-    width: auto !important;
-    min-width: 200px !important;
     margin-top: 0;
     overflow: hidden;
     background-image: none !important;

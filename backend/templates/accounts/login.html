@@ -14,7 +14,7 @@
             <form class="mt-8 space-y-6" method="post">
                 {% csrf_token %}
                 {% if form.non_field_errors %}
-                    <div class="alert alert-error text-sm p-3">
+                    <div class="alert alert-error text-sm p-4">
                         <span>{{ form.non_field_errors|join:", " }}</span>
                     </div>
                 {% endif %}

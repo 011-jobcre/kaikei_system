@@ -121,42 +121,23 @@
     <td class="text-center p-0 relative">
         <div class="flex items-center justify-center gap-1 h-full py-1">
             <button type="button"
-                    class="btn btn-ghost btn-xs text-primary"
+                    class="btn-edit"
                     hx-post="{% url 'journal:shiwake-create' %}?row_index={{ form.prefix|cut:"row-" }}"
                     hx-target="closest tr"
                     hx-swap="outerHTML"
                     hx-include="closest tr"
                     hx-indicator="closest tr"
-                    :class="{ 'opacity-30 cursor-not-allowed': rowHasError({{ form.prefix|cut:"row-" }}) }"
+                    :class="{ 'opacity-60 cursor-not-allowed': rowHasError({{ form.prefix|cut:"row-" }}) }"
                     @click="saveRow($event)"
                     title="保存">
                 <i class="fa-solid fa-save"></i>
             </button>
             <button type="button"
-                    class="btn btn-ghost btn-xs text-error"
+                    class="btn-delete"
                     @click="deleteRow(getRowIndex($el))"
                     title="行削除">
                 <i class="fa-solid fa-trash-can"></i>
             </button>
         </div>
-        <!-- Real-time Validation Tooltip/Icon -->
-        <template x-if="rowHasError(getRowIndex($el))">
-            <div class="absolute right-0 top-0 mt-1 mr-1 z-10">
-                <div class="badge badge-error badge-xs p-1 tooltip tooltip-left"
-                     :data-tip="getRowError(getRowIndex($el))">
-                    <i class="fa-solid fa-circle-exclamation text-[10px]"></i>
-                </div>
-            </div>
-        </template>
-        <span class="server-row-error hidden"
-              data-row="{{ form.prefix|cut:"row-" }}">
-            {% if form.non_field_errors %}
-                {{ form.non_field_errors.0 }}
-            {% else %}
-                {% for field in form %}
-                    {% if field.errors %}{{ field.errors.0 }}{% endif %}
-                {% endfor %}
-            {% endif %}
-        </span>
     </td>
 </tr>

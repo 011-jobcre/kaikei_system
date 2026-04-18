@@ -13,6 +13,16 @@ class BaseMasterForm(forms.ModelForm):
     class Meta:
         error_messages = {"code": {"unique": "このコードは既に存在しています。別のコードを入力してください。"}}
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        if self.errors:
+            for field_name, field in self.fields.items():
+                if field_name in self.errors:
+                    # Add error styling to fields with validation errors
+                    existing_classes = field.widget.attrs.get("class", "")
+                    field.widget.attrs["class"] = f"{existing_classes} border-error text-error".strip()
+
     def clean(self):
         cleaned_data = super().clean()
 

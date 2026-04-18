@@ -117,6 +117,12 @@ class FurikaeMeisaiForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         setup_master_fields(self)
 
+        if self.errors:
+            for field_name, field in self.fields.items():
+                if field_name in self.errors:
+                    existing_classes = field.widget.attrs.get("class", "")
+                    field.widget.attrs["class"] = f"{existing_classes} border-error text-error".strip()
+
 
 class BaseMeisaiFormSet(BaseInlineFormSet):
     """Custom FormSet validation for Shiwake Nikki.
@@ -256,6 +262,14 @@ class ShiwakeMeisaiForm(forms.Form):
         label="取引先",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.errors:
+            for field_name, field in self.fields.items():
+                if field_name in self.errors:
+                    existing_classes = field.widget.attrs.get("class", "")
+                    field.widget.attrs["class"] = f"{existing_classes} border-error text-error".strip()
 
     def clean(self):
         cleaned = super().clean()

@@ -101,6 +101,14 @@ function initTomSelects() {
             el.dispatchEvent(new Event("change", { bubbles: true }));
         });
 
+        // Mark as initialized to prevent re-running on next global call
+        el.classList.add("tomselected");
+
+        // Copy error styling from original select to TomSelect control
+        if (el.classList.contains("border-error") && instance.control) {
+            instance.control.classList.add("border-error");
+        }
+
         // Guard against DaisyUI select class leaking into TomSelect wrapper/control.
         el.classList.remove("select");
         if (instance.wrapper) {
@@ -118,6 +126,7 @@ function initTomSelects() {
             instance.dropdown.style.left = `${controlRect.left}px`;
             instance.dropdown.style.top = `${controlRect.bottom + 4}px`;
             instance.dropdown.style.width = `${controlRect.width}px`;
+            instance.dropdown.style.minWidth = `${controlRect.width}px`;
             instance.dropdown.style.zIndex = "9999";
         };
 

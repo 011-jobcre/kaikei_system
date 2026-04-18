@@ -33,21 +33,14 @@
                                 </span>
                             </div>
                         {% endif %}
-                        {% if field.field.help_text %}
+                        {% if field.help_text %}
                             <div class="label pt-1">
-                                <span class="text-info/50 text-sm">{{ field.field.help_text }}</span>
+                                <span class="text-info/50 text-sm">{{ field.help_text }}</span>
                             </div>
                         {% endif %}
                     </div>
                 {% endfor %}
             </div>
-            <!-- Non-field (form-level) validation errors -->
-            {% if form.non_field_errors %}
-                <div class="alert alert-error mt-4 text-sm gap-2">
-                    <i class="fa-solid fa-triangle-exclamation shrink-0"></i>
-                    <span>{{ form.non_field_errors|join:", " }}</span>
-                </div>
-            {% endif %}
             <div class="modal-action justify-end gap-3">
                 <button type="button"
                         onclick="document.getElementById('htmx-modal').remove()"
@@ -64,8 +57,28 @@
     </form>
 </dialog>
 <script>
-    // Initialize TomSelect for searchable dropdowns
-    if (typeof initTomSelects === 'function') {
+    // Destroy existing TomSelect instances before re-initializing
+    function destroyTomSelects(container) {
+        if (typeof TomSelect === 'undefined') return;
+
+        // Find all select elements that have been initialized as TomSelect
+        const selects = container ? container.querySelectorAll('select.tomselected') : document.querySelectorAll('select.tomselected');
+        selects.forEach(el => {
+            if (el.tomselect) {
+                el.tomselect.destroy();
+                el.classList.remove('tomselected');
+            }
+        });
+    }
+
+    // Initialize TomSelect for searchable dropdowns within this modal scope only
+    const modal = document.getElementById('htmx-modal');
+    if (modal) {
+        destroyTomSelects(modal);
+        if (typeof initTomSelects === 'function') {
+            initTomSelects(modal);
+        }
+    } else if (typeof initTomSelects === 'function') {
         initTomSelects();
     }
 

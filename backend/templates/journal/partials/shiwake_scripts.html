@@ -13,10 +13,10 @@ function shiwakeGrid() {
             this.revalidateAllRows();
 
             // Focus the first input on load
-            this.$nextTick(() => {
+            /*this.$nextTick(() => {
                 const firstInput = document.querySelector('.grid-input, .grid-select');
                 if (firstInput) firstInput.focus();
-            });
+            });*/
 
             // HTMX afterSwap handler
             document.body.addEventListener('htmx:afterSwap', (evt) => {
