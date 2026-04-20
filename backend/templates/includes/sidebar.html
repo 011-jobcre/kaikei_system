@@ -1,5 +1,5 @@
 {% load static %}
-<aside class="w-64 min-h-screen flex flex-col shadow-xl bg-base-100 md:bg-transparent border-r border-base-300 print:hidden">
+<aside class="w-64 md:w-md min-h-screen flex flex-col shadow-xl bg-base-100 border-r border-base-300 print:hidden">
     <!-- Brand / Logo -->
     <div class="h-auto min-h-20 p-4 border-b border-base-300">
         <a href="{% url 'account:dashboard' %}"
@@ -94,9 +94,10 @@
             <i class="fa-solid fa-receipt"></i>消費税集計表
         </a>
         {% if is_admin %}
+            <p class="px-4 mt-4 mb-2 text-sm font-bold text-base-content/40 tracking-widest">管理</p>
             <a href="{% url 'admin:index' %}"
                class="sidebar-link {% if request.resolver_match.url_name == 'admin:index' %}active{% endif %}">
-                <i class="fa-solid fa-user-shield"></i>管理者
+                <i class="fa-solid fa-gear"></i>管理システム
             </a>
         {% endif %}
     </nav>

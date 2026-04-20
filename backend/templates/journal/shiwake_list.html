@@ -16,21 +16,21 @@
                        name="q"
                        value="{{ q }}"
                        placeholder="伝票No・摘要検索"
-                       class="input text-neutral w-full md:w-1/5" />
+                       class="input outline-none text-neutral w-full md:w-1/5" />
                 <!-- Date range -->
                 <div class="flex items-center gap-1">
                     <input type="date"
                            name="date_from"
                            value="{{ date_from }}"
-                           class="input text-neutral w-full md:w-40" />
+                           class="input outline-none text-neutral w-full md:w-40" />
                     <span class="text-base-content/40 font-bold px-1">〜</span>
                     <input type="date"
                            name="date_to"
                            value="{{ date_to }}"
-                           class="input text-neutral w-full md:w-40" />
+                           class="input outline-none text-neutral w-full md:w-40" />
                 </div>
                 <!-- Voucher type filter -->
-                <label class="select cursor-pointer w-full md:w-1/5">
+                <label class="select outline-none cursor-pointer w-full md:w-1/5">
                     <span class="label min-w-20">伝票種別</span>
                     <select name="denpyo_type">
                         <option value="">全種別</option>

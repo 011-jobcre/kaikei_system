@@ -133,7 +133,7 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
     def get(self, request):
         # We'll provide 5 empty rows initially
         today = timezone.localdate()
-        rows = [ShiwakeMeisaiForm(prefix=f"row-{i}", initial={"date": today}) for i in range(5)]
+        rows = [ShiwakeMeisaiForm(prefix=f"row-{i}", initial={"date": today}) for i in range(3)]
 
         # Also get recent entries for display below the input grid
         recent_shiwake = ShiwakeDenpyo.objects.filter(denpyo_type="SHIWAKE").order_by("-id")[:10]

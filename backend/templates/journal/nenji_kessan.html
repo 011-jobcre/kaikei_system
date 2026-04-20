@@ -37,7 +37,9 @@
                             <label class="label">
                                 <span class="label min-w-auto mb-1">会計年度 (開始年) <span class="text-error ml-1">*</span></span>
                             </label>
-                            <select name="fiscal_year" class="select w-full cursor-pointer" required>
+                            <select name="fiscal_year"
+                                    class="select outline-none w-full cursor-pointer"
+                                    required>
                                 <option value="" disabled selected>年度を選択してください</option>
                                 {% for year in fiscal_year_list %}
                                     <option value="{{ year }}">{{ year }}年度 ({{ year }}/04/01 ~ {{ year|add:1 }}/03/31)</option>
