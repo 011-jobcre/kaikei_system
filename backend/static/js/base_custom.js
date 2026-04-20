@@ -93,8 +93,8 @@ function initTomSelects() {
             render: {
                 option: function (data, escape) {
                     const text = data.text.trim();
-                    // Pattern: "CODE NAME [FURIGANA]"
-                    // Group 1: Code, Group 2: Name
+                    // Pattern: "CODE NAME [FURIGANA]" or "CODE NAME"
+                    // Group 1: Code, Group 2: Name, Group 3: Furigana part (optional)
                     const match = text.match(/^(\S+)\s+(.*?)(\s+\[.*\]|$)/);
                     const displayName = match ? match[2].trim() : text;
                     return `<div class="px-2 py-1">${escape(displayName)}</div>`;

@@ -216,7 +216,7 @@ class HojoKamokuListView(BaseMasterListView):
     context_object_name = "hojo_list"
 
     def get_queryset(self):
-        qs = HojoKamokuMaster.objects.select_related("kamoku")
+        qs = super().get_queryset().select_related("kamoku")
         kamoku_id = self.request.GET.get("kamoku", "")
         if kamoku_id:
             qs = qs.filter(kamoku_id=kamoku_id)

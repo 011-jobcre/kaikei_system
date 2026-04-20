@@ -52,24 +52,44 @@ class HojoKamokuChoiceField(forms.ModelChoiceField):
         return f"{obj.code} {obj.name} [{obj.furigana or ''}]"
 
 
+class BumonChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return f"{obj.code} {obj.name}"
+
+
+class TorihikiSakiChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return f"{obj.code} {obj.name}"
+
+
 def setup_master_fields(form):
     """Configure common master data field querysets and empty labels."""
     form.fields["kamoku"] = KanjoKamokuChoiceField(
         queryset=get_active_level4_kamoku_queryset(),
         empty_label="勘定科目（必須）",
-        required=True
+        required=True,
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
     )
     form.fields["hojo"] = HojoKamokuChoiceField(
         queryset=get_active_hojo_queryset(),
         empty_label="補助科目（任意）",
-        required=False
+        required=False,
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
     )
 
-    form.fields["bumon"].queryset = get_active_bumon_queryset()
-    form.fields["bumon"].empty_label = "部門（任意）"
+    form.fields["bumon"] = BumonChoiceField(
+        queryset=get_active_bumon_queryset(),
+        empty_label="部門（任意）",
+        required=False,
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
+    )
 
-    form.fields["torihikisaki"].queryset = get_active_torihiki_queryset()
-    form.fields["torihikisaki"].empty_label = "取引先（任意）"
+    form.fields["torihikisaki"] = TorihikiSakiChoiceField(
+        queryset=get_active_torihiki_queryset(),
+        empty_label="取引先（任意）",
+        required=False,
+        widget=forms.Select(attrs={"class": SELECT_CLASS})
+    )
 
     form.fields["zei_kubun"].queryset = get_active_zei_queryset()
     form.fields["zei_kubun"].empty_label = "税区分（任意）"
@@ -266,13 +286,13 @@ class ShiwakeMeisaiForm(forms.Form):
     )
 
     # --- Metadata (optional for grid) ---
-    bumon = forms.ModelChoiceField(
+    bumon = BumonChoiceField(
         queryset=get_active_bumon_queryset(),
         required=False,
         label="部門",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
-    torihikisaki = forms.ModelChoiceField(
+    torihikisaki = TorihikiSakiChoiceField(
         queryset=get_active_torihiki_queryset(),
         required=False,
         label="取引先",

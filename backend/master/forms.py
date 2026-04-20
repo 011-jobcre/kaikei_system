@@ -61,6 +61,7 @@ class KanjoKamokuForm(BaseMasterForm):
         # Restrict parent choices to levels 1–3 so leaf accounts (level 4)
         # cannot become parents, which would break the 4-level hierarchy.
         self.fields["parent"].queryset = KanjoKamokuMaster.objects.filter(level__lt=4).order_by("code")
+        self.fields["parent"].label_from_instance = lambda obj: f"{obj.code} {obj.name} [{obj.furigana or ''}]"
         self.fields["parent"].empty_label = "指定なし"
 
 
@@ -151,4 +152,5 @@ class HojoKamokuForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Only Level-4 (detail/leaf) active accounts can have sub-accounts
         self.fields["kamoku"].queryset = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
+        self.fields["kamoku"].label_from_instance = lambda obj: f"{obj.code} {obj.name} [{obj.furigana or ''}]"
         self.fields["kamoku"].empty_label = "勘定科目を選択"

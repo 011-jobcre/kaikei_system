@@ -20,12 +20,12 @@
                 <!-- Filter by parent account -->
                 <label class="select outline-none cursor-pointer w-full md:w-1/5">
                     <span class="label min-w-20">勘定科目</span>
-                    <select name="kamoku">
+                    <select name="kamoku" class="tomselect">
                         <option value="">全て</option>
                         {% for k in kamoku_choices %}
                             <option value="{{ k.pk }}"
                                     {% if kamoku_id == k.pk|stringformat:"s" %}selected{% endif %}>
-                                {{ k.code }} {{ k.name }}
+                                {{ k.code }} {{ k.name }} [{{ k.furigana|default:'' }}]
                             </option>
                         {% endfor %}
                     </select>

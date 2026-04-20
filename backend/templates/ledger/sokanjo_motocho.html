@@ -20,7 +20,7 @@
                         {% for k in kamoku_list %}
                             <option value="{{ k.pk }}"
                                     {% if selected_kamoku_id == k.pk|stringformat:"s" %}selected{% endif %}>
-                                {{ k.code }} {{ k.name }}
+                                {{ k.code }} {{ k.name }} [{{ k.furigana|default:'' }}]
                             </option>
                         {% endfor %}
                     </select>
