@@ -91,11 +91,11 @@ button {
 
 /* Sidebar navigation */
 .sidebar-link {
-    @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-neutral text-base font-medium;
+    @apply flex items-center gap-3 px-4 py-3 rounded-box transition-all duration-200 text-neutral text-base font-semibold border-l-4 border-transparent;
 }
 .sidebar-link.active,
 .sidebar-link:hover {
-    @apply bg-transparent text-primary border-l-6 border-primary shadow-lg;
+    @apply bg-base-200 text-primary border-primary shadow-sm;
 }
 .sidebar-link i {
     @apply w-6 text-center text-lg;
@@ -103,7 +103,7 @@ button {
 
 /* Accounting tables */
 .table-accounting {
-    @apply w-full border-collapse border-spacing-0 table table-auto md:table-fixed;
+    @apply w-full border-collapse border-spacing-0 table table-auto md:table-fixed text-xs md:text-sm;
 }
 
 .table-wrapper {
@@ -112,12 +112,16 @@ button {
 
 /* Sticky header */
 .table-accounting thead {
-    @apply sticky top-0 z-10 bg-base-200 shadow-md;
+    @apply sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm shadow-sm;
+}
+
+.table-accounting thead tr {
+    @apply divide-x divide-base-300;
 }
 
 .table-accounting thead th {
-    @apply font-semibold text-neutral align-top uppercase tracking-wider py-4 px-4;
-    @apply border-b-2 border-solid border-neutral-500 whitespace-nowrap;
+    @apply font-semibold text-neutral align-middle text-center tracking-wider py-3 px-4;
+    @apply border-b-2 border-solid border-base-300 whitespace-nowrap;
 }
 
 /* Group header */
@@ -131,20 +135,24 @@ button {
 
 /* Table body */
 .table-accounting tbody tr {
-    @apply transition-all duration-150;
+    @apply transition-colors duration-150 border-b border-base-300 divide-x divide-base-200/50 hover:bg-base-200;
+}
+
+.table-accounting tbody td.group-detail {
+    @apply bg-info/5;
+}
+
+.table-accounting tbody td.group-detail.credit {
+    @apply bg-error/5;
 }
 
 /* Zebra Striping */
 .table-accounting tbody tr:nth-child(even) {
-    @apply bg-base-200;
-}
-
-.table-accounting tbody tr:hover {
-    @apply bg-base-300 transform -translate-y-1;
+    @apply bg-base-200/30;
 }
 
 .table-accounting .amount {
-    @apply font-mono text-right tabular-nums tracking-tighter;
+    @apply font-mono text-right tabular-nums tracking-tight font-medium;
 }
 
 /* Amount */
@@ -224,9 +232,9 @@ button {
     --color-primary: #0052ff;
     --color-primary-content: #ffffff;
 
-    /* Secondary - Cool Gray (#eef0f3) */
-    --color-secondary: #eef0f3;
-    --color-secondary-content: #0a0b0d;
+    /* Secondary - Dark Card / Features (#282b31) */
+    --color-secondary: #282b31;
+    --color-secondary-content: #ffffff;
 
     /* Accent - Muted Blue border / Hover Blue (#578bfa) */
     --color-accent: #578bfa;
@@ -254,8 +262,8 @@ button {
 
     /* Radius - 56px Pill CTA, Subtler boxes */
     --radius-selector: 3.5rem; /* 56px */
-    --radius-field: 1rem;      /* 16px */
-    --radius-box: 1rem;        /* 16px */
+    --radius-field: 1rem; /* 16px */
+    --radius-box: 1rem; /* 16px */
 
     /* Sizing */
     --size-selector: 0.25rem;
@@ -276,7 +284,7 @@ button {
 
 .ts-wrapper.single .ts-control,
 .ts-wrapper.single.input-active .ts-control {
-    border-radius: 0.5rem;
+    border-radius: var(--radius-field, 1rem);
     min-height: calc(var(--size-field, 0.25rem) * 10);
     padding: 0 1rem;
     display: flex;
@@ -433,7 +441,7 @@ select.tomselect.tomselected {
 /* TomSelect dropdown wrapper - position fixed to escape overflow containers */
 .ts-dropdown {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-box, 1rem);
     border: 1px solid var(--color-base-300) !important;
     background-color: var(--color-base-100);
     position: fixed !important;
@@ -504,7 +512,7 @@ select.tomselect.tomselected {
     width: 100%;
     padding: 0.375rem 0.5rem;
     border: 1px solid var(--color-base-300);
-    border-radius: 0.375rem;
+    border-radius: var(--radius-field, 0.5rem);
     background-color: var(--color-base-100);
     color: var(--color-base-content);
     outline: none;

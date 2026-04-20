@@ -1,7 +1,7 @@
 <tr id="{{ form.prefix }}"
-    :class="{ 'bg-error/5 ring-1 ring-inset ring-error/40': rowHasError(getRowIndex($el)) }"
+    :class="{ 'group-detail credit ring-1 ring-inset ring-error/40': rowHasError(getRowIndex($el)) }"
     @keyup="handleGridKey($event)">
-    <td class="p-0">
+    <td>
         {% csrf_token %}
         <input type="hidden" name="_row_prefix" value="{{ form.prefix }}" />
         <input type="date"
@@ -12,7 +12,7 @@
                data-col="0"
                x-init="if (!$el.value) $el.value = new Date().toISOString().split('T')[0]" />
     </td>
-    <td class="p-0 bg-info/10">
+    <td class="group-detail">
         <select name="{{ form.prefix }}-kari_kamoku"
                 class="select w-full tomselect"
                 :class="{ 'input-invalid': validationTick && !($el.value) }"
@@ -26,7 +26,7 @@
             {% endfor %}
         </select>
     </td>
-    <td class="p-0 bg-info/10">
+    <td class="group-detail">
         <select name="{{ form.prefix }}-kari_hojo"
                 class="select w-full tomselect"
                 data-row="{{ form.prefix|cut:"row-" }}"
@@ -39,7 +39,7 @@
             {% endfor %}
         </select>
     </td>
-    <td class="p-0 bg-info/10">
+    <td class="group-detail">
         <input type="number"
                name="{{ form.prefix }}-kari_kingaku"
                value="{{ form.kari_kingaku.value|default:'' }}"
@@ -48,7 +48,7 @@
                data-row="{{ form.prefix|cut:"row-" }}"
                data-col="3" />
     </td>
-    <td class="p-0 bg-info/10">
+    <td class="group-detail">
         <select name="{{ form.prefix }}-kari_zei"
                 class="select w-full tomselect"
                 data-row="{{ form.prefix|cut:"row-" }}"
@@ -61,7 +61,7 @@
             {% endfor %}
         </select>
     </td>
-    <td class="p-0 bg-accent/10">
+    <td class="group-detail credit">
         <select name="{{ form.prefix }}-kashi_kamoku"
                 class="select w-full tomselect"
                 :class="{ 'input-invalid': validationTick && !($el.value) }"
@@ -75,7 +75,7 @@
             {% endfor %}
         </select>
     </td>
-    <td class="p-0 bg-accent/10">
+    <td class="group-detail credit">
         <select name="{{ form.prefix }}-kashi_hojo"
                 class="select w-full tomselect"
                 data-row="{{ form.prefix|cut:"row-" }}"
@@ -88,7 +88,7 @@
             {% endfor %}
         </select>
     </td>
-    <td class="p-0 bg-accent/10">
+    <td class="group-detail credit">
         <input type="number"
                name="{{ form.prefix }}-kashi_kingaku"
                value="{{ form.kashi_kingaku.value|default:'' }}"
@@ -97,7 +97,7 @@
                data-row="{{ form.prefix|cut:"row-" }}"
                data-col="7" />
     </td>
-    <td class="p-0 bg-accent/10">
+    <td class="group-detail credit">
         <select name="{{ form.prefix }}-kashi_zei"
                 class="select w-full tomselect"
                 data-row="{{ form.prefix|cut:"row-" }}"

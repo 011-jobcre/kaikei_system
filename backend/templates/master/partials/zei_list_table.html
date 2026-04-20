@@ -8,12 +8,11 @@
         <table class="table-accounting">
             <thead>
                 <tr>
-                    <th class="min-w-56 md:w-auto">税区分名</th>
-                    <!-- Right-aligned for numeric tax rate -->
-                    <th class="w-40 text-right">税率（%）</th>
-                    <th class="min-w-56 md:w-auto text-center">適用期間</th>
-                    <th class="w-40 text-center">ステータス</th>
-                    {% if is_admin %}<th class="w-40 text-center">操作</th>{% endif %}
+                    <th class="min-w-64">税区分名</th>
+                    <th class="min-w-32">税率（%）</th>
+                    <th class="min-w-56">適用期間</th>
+                    <th class="min-w-28">ステータス</th>
+                    {% if is_admin %}<th class="w-24">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody>

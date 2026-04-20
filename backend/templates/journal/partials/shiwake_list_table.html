@@ -8,17 +8,17 @@
         <table class="table-accounting">
             <thead>
                 <tr>
-                    <th class="min-w-28 md:w-28">日付</th>
-                    <th class="min-w-36 md:w-36">伝票No</th>
-                    <th class="min-w-28 text-center">種別</th>
-                    <th class="min-w-56 md:w-auto group-header">借方科目</th>
-                    <th class="min-w-32 md:w-auto text-right group-header">借方金額</th>
-                    <th class="min-w-56 md:w-auto group-header credit">貸方科目</th>
-                    <th class="min-w-32 md:w-auto text-right group-header credit">貸方金額</th>
-                    <th class="min-w-52 md:w-52">税区分</th>
-                    <th class="min-w-52 md:w-auto">摘要</th>
-                    <th class="w-28 text-center">状態</th>
-                    {% if is_accountant %}<th class="w-28 text-center">操作</th>{% endif %}
+                    <th class="min-w-24">日付</th>
+                    <th class="min-w-32">伝票No</th>
+                    <th class="min-w-24">種別</th>
+                    <th class="min-w-52 group-header">借方科目</th>
+                    <th class="min-w-32 group-header">借方金額</th>
+                    <th class="min-w-52 group-header credit">貸方科目</th>
+                    <th class="min-w-32 group-header credit">貸方金額</th>
+                    <th class="min-w-52">税区分</th>
+                    <th class="min-w-52">摘要</th>
+                    <th class="w-24">状態</th>
+                    {% if is_accountant %}<th class="w-24">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -40,21 +40,21 @@
                                     </td>
                                 {% endif %}
                                 {% if meisai.kari_kashi == "KA" %}
-                                    <td class="text-col">
+                                    <td class="text-col group-detail">
                                         {{ meisai.kamoku.name }}
                                         {% if meisai.hojo %}<span class="text-base-content/40">/ {{ meisai.hojo.name }}</span>{% endif %}
                                     </td>
-                                    <td class="amount amount-positive">{{ meisai.kingaku|format_number }}</td>
-                                    <td class="text-base-content/40">—</td>
-                                    <td class="text-right text-base-content/40">—</td>
+                                    <td class="amount amount-positive group-detail">{{ meisai.kingaku|format_number }}</td>
+                                    <td class="text-base-content/40 group-detail credit">—</td>
+                                    <td class="text-right text-base-content/40 group-detail credit">—</td>
                                 {% else %}
-                                    <td class="text-base-content/40">—</td>
-                                    <td class="text-right text-base-content/40">—</td>
-                                    <td class="text-col">
+                                    <td class="text-base-content/40 group-detail">—</td>
+                                    <td class="text-right text-base-content/40 group-detail">—</td>
+                                    <td class="text-col group-detail credit">
                                         {{ meisai.kamoku.name }}
                                         {% if meisai.hojo %}<span class="text-base-content/40">/ {{ meisai.hojo.name }}</span>{% endif %}
                                     </td>
-                                    <td class="amount amount-negative">{{ meisai.kingaku|format_number }}</td>
+                                    <td class="amount amount-negative group-detail credit">{{ meisai.kingaku|format_number }}</td>
                                 {% endif %}
                                 <td class="text-col">{{ meisai.zei_kubun.zei_name|default:"—" }}</td>
                                 {% if forloop.first %}
@@ -104,7 +104,7 @@
                             <td class="text-center">
                                 {% if denpyo.denpyo_type == "SHIWAKE" %}<span class="badge-enable">仕訳</span>{% endif %}
                             </td>
-                            <td class="text-col">
+                            <td class="text-col group-detail">
                                 {% for meisai in denpyo.meisai.all %}
                                     {% if meisai.kari_kashi == "KA" %}
                                         {{ meisai.kamoku.name }}
@@ -112,12 +112,12 @@
                                     {% endif %}
                                 {% endfor %}
                             </td>
-                            <td class="amount amount-positive">
+                            <td class="amount amount-positive group-detail">
                                 {% for meisai in denpyo.meisai.all %}
                                     {% if meisai.kari_kashi == "KA" %}{{ meisai.kingaku|format_number }}{% endif %}
                                 {% endfor %}
                             </td>
-                            <td class="text-col">
+                            <td class="text-col group-detail credit">
                                 {% for meisai in denpyo.meisai.all %}
                                     {% if meisai.kari_kashi == "SHI" %}
                                         {{ meisai.kamoku.name }}
@@ -125,7 +125,7 @@
                                     {% endif %}
                                 {% endfor %}
                             </td>
-                            <td class="amount amount-negative">
+                            <td class="amount amount-negative group-detail credit">
                                 {% for meisai in denpyo.meisai.all %}
                                     {% if meisai.kari_kashi == "SHI" %}{{ meisai.kingaku|format_number }}{% endif %}
                                 {% endfor %}

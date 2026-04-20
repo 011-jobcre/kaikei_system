@@ -122,7 +122,9 @@ class DashboardView(LoginRequiredMixin, View):
             chart_labels.append(target_month.strftime("%Y/%m"))
 
         # Activity & Counts
-        recent_vouchers = ShiwakeDenpyo.objects.all().order_by("-id")[:5]
+        recent_vouchers = ShiwakeDenpyo.objects.annotate(
+            total_kingaku=Sum("meisai__kingaku")
+        ).order_by("-id")[:5]
         unlocked_in_month = ShiwakeDenpyo.objects.filter(
             date__gte=month_start, date__lte=now, is_locked=False
         ).count()

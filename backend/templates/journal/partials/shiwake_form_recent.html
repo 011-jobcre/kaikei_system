@@ -3,10 +3,10 @@
     <tr>
         <td class="date-col">{{ d.date|date:"Y/m/d" }}</td>
         <td class="denp-no">{{ d.denpyo_no }}</td>
-        <td class="text-col">{{ d.meisai.all.0.kamoku.name }}</td>
-        <td class="amount amount-positive">{{ d.meisai.all.0.kingaku|format_number }}</td>
-        <td class="text-col">{{ d.meisai.all.1.kamoku.name }}</td>
-        <td class="amount amount-negative">{{ d.meisai.all.1.kingaku|format_number }}</td>
+        <td class="text-col group-detail">{{ d.meisai.all.0.kamoku.name }}</td>
+        <td class="amount amount-positive group-detail">{{ d.meisai.all.0.kingaku|format_number }}</td>
+        <td class="text-col group-detail credit">{{ d.meisai.all.1.kamoku.name }}</td>
+        <td class="amount amount-negative group-detail credit">{{ d.meisai.all.1.kingaku|format_number }}</td>
         <td class="description-col">{{ d.memo }}</td>
     </tr>
 {% empty %}

@@ -1,5 +1,5 @@
 {% load number_filters %}
-<tr>
+<tr data-form-row>
     <!-- Hidden fields for Django's Formset Management -->
     <td class="hidden">
         {{ form.id }}
@@ -15,7 +15,7 @@
         {% endif %}
     </td>
     <!-- 勘定科目 -->
-    <td class="align-top py-2">
+    <td class="align-top py-2 ka-side">
         {{ form.kamoku }}
         {% if form.kamoku.errors %}
             <div class="label pt-1 text-xs">
@@ -24,7 +24,7 @@
         {% endif %}
     </td>
     <!-- 補助科目 -->
-    <td class="align-top py-2">
+    <td class="align-top py-2 ka-side">
         {{ form.hojo }}
         {% if form.hojo.errors %}
             <div class="label pt-1 text-xs">
@@ -51,7 +51,7 @@
         {% endif %}
     </td>
     <!-- 金額 + 税額表示 -->
-    <td class="align-top py-2">
+    <td class="align-top py-2 ka-side">
         {{ form.kingaku }}
         {% if form.instance.pk and form.instance.zei_kubun %}
             <div class="text-xs text-base-content/40 text-right mt-1">
@@ -94,3 +94,51 @@
         </button>
     </td>
 </tr>
+<script>
+    (function() {
+        const script = document.currentScript;
+        if (!script) return;
+
+        // Find tr by using previousElementSibling (script is outside tr)
+        const row = script.previousElementSibling;
+        if (!row || row.tagName !== 'TR') return;
+
+        // Find kari_kashi select by name attribute
+        const kariKashiSelect = row.querySelector('select[name*="kari_kashi"]');
+        if (!kariKashiSelect) return;
+
+        function updateKaSideClass() {
+            const kaSideCells = row.querySelectorAll('.ka-side');
+            let value = kariKashiSelect.value;
+
+            // If TomSelect is initialized, get value from it
+            if (kariKashiSelect.tomselect) {
+                value = kariKashiSelect.tomselect.getValue();
+            }
+
+            const isKa = value === 'KA';
+            const isShi = value === 'SHI';
+
+            kaSideCells.forEach(cell => {
+                if (isKa) {
+                    cell.classList.add('group-detail');
+                } else if (isShi) {
+                    cell.classList.add('group-detail', 'credit');
+                } else {
+                    cell.classList.remove('group-detail', 'credit');
+                }
+            });
+        }
+
+        // Listen for change event
+        kariKashiSelect.addEventListener('change', updateKaSideClass);
+
+        // Also listen for TomSelect change if available
+        if (kariKashiSelect.tomselect) {
+            kariKashiSelect.tomselect.on('change', updateKaSideClass);
+        }
+
+        // Initialize based on current value
+        updateKaSideClass();
+    })();
+</script>
