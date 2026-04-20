@@ -122,11 +122,11 @@ button {
 
 /* Group header */
 .table-accounting thead th.group-header {
-    @apply bg-[#e0f2fe] border-b-2 border-solid border-[#7dd3fc];
+    @apply bg-info/10 border-b-2 border-solid border-info/40;
 }
 
 .table-accounting thead th.group-header.credit {
-    @apply bg-[#fee2e2] border-b-2 border-solid border-[#f87171];
+    @apply bg-error/10 border-b-2 border-solid border-error/40;
 }
 
 /* Table body */
@@ -140,7 +140,7 @@ button {
 }
 
 .table-accounting tbody tr:hover {
-    @apply bg-[#f1f5f9] transform -translate-y-1;
+    @apply bg-base-300 transform -translate-y-1;
 }
 
 .table-accounting .amount {
@@ -149,10 +149,10 @@ button {
 
 /* Amount */
 .amount-positive {
-    @apply text-blue-500;
+    @apply text-info;
 } /* 借方 */
 .amount-negative {
-    @apply text-red-500;
+    @apply text-error;
 } /* 貸方 */
 .amount-neutral {
     @apply text-neutral;
@@ -185,23 +185,23 @@ button {
 /* Status badges */
 
 .badge-level-1 {
-    @apply badge bg-[#dbeafe] text-[#1e40af] border-[#93c5fd] border border-solid w-20 font-semibold shrink-0;
+    @apply badge bg-info/20 text-info border-info/50 border border-solid w-20 font-semibold shrink-0;
 }
 
 .badge-level-2 {
-    @apply badge bg-[#fed7aa] text-[#9a3412] border-[#fb923c] border border-solid w-20 font-semibold shrink-0;
+    @apply badge bg-warning/20 text-warning border-warning/50 border border-solid w-20 font-semibold shrink-0;
 }
 
 .badge-level-3 {
-    @apply badge bg-[#e9d5ff] text-[#6b21a8] border-[#c084fc] border border-solid w-20 font-semibold shrink-0;
+    @apply badge bg-secondary/20 text-secondary border-secondary/50 border border-solid w-20 font-semibold shrink-0;
 }
 
 .badge-level-4 {
-    @apply badge bg-[#d1fae5] text-[#166534] border-[#4ade80] border border-solid w-20 font-semibold shrink-0;
+    @apply badge bg-success/20 text-success border-success/50 border border-solid w-20 font-semibold shrink-0;
 }
 
 .badge-level-5 {
-    @apply badge bg-error/30 text-error border-error/70 border border-solid w-20 font-semibold shrink-0;
+    @apply badge bg-error/20 text-error border-error/50 border border-solid w-20 font-semibold shrink-0;
 }
 
 /* ============================================
@@ -216,46 +216,46 @@ button {
 
     /* Base - Paper white, clean background */
     --color-base-100: #ffffff;
-    --color-base-200: #f8fafc;
-    --color-base-300: #e2e8f0;
-    --color-base-content: #1e293b;
+    --color-base-200: #eef0f3;
+    --color-base-300: #d1d5db;
+    --color-base-content: #0a0b0d;
 
-    /* Primary - Japan Navy Blue (Trust, Professional) */
-    --color-primary: #1e3a5f;
+    /* Primary - Coinbase Blue (#0052ff) */
+    --color-primary: #0052ff;
     --color-primary-content: #ffffff;
 
-    /* Secondary - Forest Green (Growth, Success, Money) */
-    --color-secondary: #059669;
-    --color-secondary-content: #ffffff;
+    /* Secondary - Cool Gray (#eef0f3) */
+    --color-secondary: #eef0f3;
+    --color-secondary-content: #0a0b0d;
 
-    /* Accent - Japan Red (Important, Warning, Attention) */
-    --color-accent: #dc2626;
+    /* Accent - Muted Blue border / Hover Blue (#578bfa) */
+    --color-accent: #578bfa;
     --color-accent-content: #ffffff;
 
-    /* Neutral - Slate Gray (Text, Borders) */
-    --color-neutral: #475569;
-    --color-neutral-content: #f8fafc;
+    /* Neutral - Dark Card / Text (#0a0b0d) */
+    --color-neutral: #0a0b0d;
+    --color-neutral-content: #ffffff;
 
-    /* Info - Sky Blue */
-    --color-info: #0ea5e9;
+    /* Info - Link Blue (#0667d0) */
+    --color-info: #0667d0;
     --color-info-content: #ffffff;
 
-    /* Success - Emerald (same as secondary) */
+    /* Success */
     --color-success: #10b981;
     --color-success-content: #ffffff;
 
-    /* Warning - Amber/Gold */
+    /* Warning */
     --color-warning: #f59e0b;
     --color-warning-content: #ffffff;
 
-    /* Error - Red (same as accent) */
+    /* Error */
     --color-error: #ef4444;
     --color-error-content: #ffffff;
 
-    /* Radius - Subtle rounded corners */
-    --radius-selector: 0.375rem;
-    --radius-field: 0.5rem;
-    --radius-box: 0.75rem;
+    /* Radius - 56px Pill CTA, Subtler boxes */
+    --radius-selector: 3.5rem; /* 56px */
+    --radius-field: 1rem;      /* 16px */
+    --radius-box: 1rem;        /* 16px */
 
     /* Sizing */
     --size-selector: 0.25rem;
