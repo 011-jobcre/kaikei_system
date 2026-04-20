@@ -26,7 +26,7 @@ class KanjoKamokuMaster(BaseModel):
 
     code = models.CharField(verbose_name="勘定科目コード", max_length=10, unique=True)
     name = models.CharField(verbose_name="勘定科目名", max_length=100)
-    # search_name = models.CharField(verbose_name="検索名", max_length=100, blank=True)
+    furigana = models.CharField(verbose_name="フリガナ", max_length=100, blank=True, help_text="ローマ字検索用")
     level = models.PositiveSmallIntegerField(verbose_name="レベル", blank=True)
     parent = models.ForeignKey(
         "self",
@@ -107,6 +107,7 @@ class HojoKamokuMaster(BaseModel):
     )
     code = models.CharField(verbose_name="補助科目コード", max_length=10)
     name = models.CharField(verbose_name="補助科目名", max_length=100)
+    furigana = models.CharField(verbose_name="フリガナ", max_length=100, blank=True, help_text="ローマ字検索用")
     is_active = models.BooleanField(verbose_name="有効", default=True)
 
     class Meta:

@@ -46,10 +46,11 @@ class KanjoKamokuForm(BaseMasterForm):
 
     class Meta(BaseMasterForm.Meta):
         model = KanjoKamokuMaster
-        fields = ["code", "name", "parent", "is_active"]
+        fields = ["code", "name", "furigana", "parent", "is_active"]
         widgets = {
             "code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: 111010"}),
             "name": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: 現金"}),
+            "furigana": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: genkin"}),
             "parent": forms.Select(attrs={"class": SELECT_CLASS}),
             "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
         }
@@ -136,10 +137,11 @@ class HojoKamokuForm(forms.ModelForm):
 
     class Meta:
         model = HojoKamokuMaster
-        fields = ["code", "name", "kamoku", "is_active"]
+        fields = ["code", "name", "furigana", "kamoku", "is_active"]
         widgets = {
             "code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: H100"}),
             "name": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: みずほ銀行"}),
+            "furigana": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: mizuho ginkou"}),
             "kamoku": forms.Select(attrs={"class": SELECT_CLASS}),
             "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
         }

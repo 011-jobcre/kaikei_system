@@ -40,14 +40,30 @@ def get_active_zei_queryset():
     return ZeiMaster.objects.filter(is_active=True).order_by("order_no")
 
 
+class KanjoKamokuChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        # Include furigana in brackets so TomSelect can search it
+        # Pattern: "CODE NAME [FURIGANA]"
+        return f"{obj.code} {obj.name} [{obj.furigana or ''}]"
+
+
+class HojoKamokuChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return f"{obj.code} {obj.name} [{obj.furigana or ''}]"
+
+
 def setup_master_fields(form):
     """Configure common master data field querysets and empty labels."""
-    form.fields["kamoku"].queryset = get_active_level4_kamoku_queryset()
-    form.fields["kamoku"].empty_label = "勘定科目（必須）"
-    form.fields["kamoku"].required = True
-
-    form.fields["hojo"].queryset = get_active_hojo_queryset()
-    form.fields["hojo"].empty_label = "補助科目（任意）"
+    form.fields["kamoku"] = KanjoKamokuChoiceField(
+        queryset=get_active_level4_kamoku_queryset(),
+        empty_label="勘定科目（必須）",
+        required=True
+    )
+    form.fields["hojo"] = HojoKamokuChoiceField(
+        queryset=get_active_hojo_queryset(),
+        empty_label="補助科目（任意）",
+        required=False
+    )
 
     form.fields["bumon"].queryset = get_active_bumon_queryset()
     form.fields["bumon"].empty_label = "部門（任意）"
@@ -187,12 +203,12 @@ class ShiwakeMeisaiForm(forms.Form):
     date = forms.DateField(label="日付", widget=forms.DateInput(attrs={"type": "date", "class": INPUT_CLASS}))
 
     # --- Debit Side (借方) ---
-    kari_kamoku = forms.ModelChoiceField(
+    kari_kamoku = KanjoKamokuChoiceField(
         queryset=get_active_level4_kamoku_queryset(),
         label="借方科目",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
-    kari_hojo = forms.ModelChoiceField(
+    kari_hojo = HojoKamokuChoiceField(
         queryset=get_active_hojo_queryset(),
         required=False,
         label="借方補助",
@@ -224,12 +240,12 @@ class ShiwakeMeisaiForm(forms.Form):
     )
 
     # --- Credit Side (貸方) ---
-    kashi_kamoku = forms.ModelChoiceField(
+    kashi_kamoku = KanjoKamokuChoiceField(
         queryset=get_active_level4_kamoku_queryset(),
         label="貸方科目",
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
-    kashi_hojo = forms.ModelChoiceField(
+    kashi_hojo = HojoKamokuChoiceField(
         queryset=get_active_hojo_queryset(),
         required=False,
         label="貸方補助",

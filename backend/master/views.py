@@ -123,7 +123,7 @@ class BaseMasterListView(LoginRequiredMixin, HtmxListMixin, ListView):
         qs = super().get_queryset()
         q = self.request.GET.get("q", "")
         if q:
-            qs = qs.filter(code__icontains=q) | qs.filter(name__icontains=q)
+            qs = qs.filter(code__icontains=q) | qs.filter(name__icontains=q) | qs.filter(furigana__icontains=q)
         return qs
 
     def get_context_data(self, **kwargs):

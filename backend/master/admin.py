@@ -14,21 +14,21 @@ from .models import (
 
 @admin.register(KanjoKamokuMaster)
 class KanjoKamokuAdmin(admin.ModelAdmin):
-    fields = ("code", "name", "parent", "is_active")
-    list_display = ["code", "name", "level", "parent", "taisha_kubun", "is_active"]
+    fields = ("code", "name", "furigana", "parent", "is_active")
+    list_display = ["code", "name", "furigana", "level", "parent", "taisha_kubun", "is_active"]
 
     list_filter = ["level", "taisha_kubun", "is_active"]
-    search_fields = ["code", "name"]
+    search_fields = ["code", "name", "furigana"]
     ordering = ["code"]
 
 
 @admin.register(HojoKamokuMaster)
 class HojoKamokuAdmin(admin.ModelAdmin):
-    fields = ("code", "name", "kamoku", "is_active")
-    list_display = ["code", "name", "kamoku", "is_active"]
+    fields = ("code", "name", "furigana", "kamoku", "is_active")
+    list_display = ["code", "name", "furigana", "kamoku", "is_active"]
 
     list_filter = ["is_active"]
-    search_fields = ["code", "name"]
+    search_fields = ["code", "name", "furigana"]
     ordering = ["kamoku__code", "code"]
 
 

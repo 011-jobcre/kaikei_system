@@ -92,7 +92,18 @@ function initTomSelects() {
             plugins: ["dropdown_input"],
             render: {
                 option: function (data, escape) {
-                    return "<div>" + escape(data.text) + "</div>";
+                    const text = data.text.trim();
+                    // Pattern: "CODE NAME [FURIGANA]"
+                    // Group 1: Code, Group 2: Name
+                    const match = text.match(/^(\S+)\s+(.*?)(\s+\[.*\]|$)/);
+                    const displayName = match ? match[2].trim() : text;
+                    return `<div class="px-2 py-1">${escape(displayName)}</div>`;
+                },
+                item: function (data, escape) {
+                    const text = data.text.trim();
+                    const match = text.match(/^(\S+)\s+(.*?)(\s+\[.*\]|$)/);
+                    const displayName = match ? match[2].trim() : text;
+                    return `<div>${escape(displayName)}</div>`;
                 },
             },
         });
