@@ -45,22 +45,22 @@
                 <table class="table-accounting">
                     <thead>
                         <tr>
-                            <th class="min-w-40 md:w-auto group-header text-right border-r">借方 残高</th>
-                            <th class="min-w-40 md:w-auto group-header text-right border-r">借方 発生</th>
-                            <th class="min-w-40 md:w-auto text-center">勘定科目</th>
-                            <th class="min-w-40 md:w-auto group-header credit text-right border-l">貸方 発生</th>
-                            <th class="min-w-40 md:w-auto group-header credit text-right border-l">貸方 残高</th>
+                            <th class="min-w-40 group-header">借方 残高</th>
+                            <th class="min-w-40 group-header">借方 発生</th>
+                            <th class="min-w-64">勘定科目</th>
+                            <th class="min-w-40 group-header credit">貸方 発生</th>
+                            <th class="min-w-40 group-header credit">貸方 残高</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for row in rows %}
                             <tr>
                                 <!-- Debit Balance -->
-                                <td class="amount amount-positive bg-info/10 border-r border-base-300">
+                                <td class="amount amount-positive group-detail">
                                     {% if row.kamoku.is_kari_zandaka and row.zandaka > 0 %}{{ row.zandaka|format_number }}{% endif %}
                                 </td>
                                 <!-- Debit Occurrence -->
-                                <td class="amount amount-positive bg-info/10 border-r border-base-300">
+                                <td class="amount amount-positive group-detail">
                                     {% if row.kari_hassei > 0 %}{{ row.kari_hassei|format_number }}{% endif %}
                                 </td>
                                 <!-- Account Subject (Link to Ledger) -->
@@ -69,11 +69,11 @@
                                        class="hover:text-accent transition-colors block">{{ row.kamoku.name }}</a>
                                 </td>
                                 <!-- Credit Occurrence -->
-                                <td class="amount amount-negative bg-accent/10 border-l border-base-300">
+                                <td class="amount amount-negative group-detail credit">
                                     {% if row.kashi_hassei > 0 %}{{ row.kashi_hassei|format_number }}{% endif %}
                                 </td>
                                 <!-- Credit Balance -->
-                                <td class="amount amount-negative bg-accent/10 border-l border-base-300">
+                                <td class="amount amount-negative group-detail credit">
                                     {% if not row.kamoku.is_kari_zandaka and row.zandaka > 0 %}{{ row.zandaka|format_number }}{% endif %}
                                 </td>
                             </tr>
@@ -83,9 +83,9 @@
                     <tfoot>
                         <tr>
                             <td class="text-right">-</td>
-                            <td class="amount amount-positive border-r border-base-300">{{ total_kari|format_number }}</td>
+                            <td class="amount amount-positive">{{ total_kari|format_number }}</td>
                             <td class="text-center text-neutral text-xl tracking-[0.5em]">合 計</td>
-                            <td class="amount amount-negative border-l border-base-300">{{ total_kashi|format_number }}</td>
+                            <td class="amount amount-negative">{{ total_kashi|format_number }}</td>
                             <td class="text-right">-</td>
                         </tr>
                     </tfoot>

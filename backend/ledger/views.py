@@ -16,7 +16,6 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils.dateparse import parse_date
 from django.views import View
-from django.views.generic import TemplateView
 
 from master.models import KanjoKamokuMaster, TorihikiSakiMaster
 from journal.models import ShiwakeMeisai

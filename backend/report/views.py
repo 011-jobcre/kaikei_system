@@ -5,7 +5,6 @@
 
 import csv
 import io
-from datetime import date as date_type
 from decimal import Decimal
 
 import openpyxl

@@ -12,46 +12,46 @@
         <!-- Financial KPI Top Row -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Revenue -->
-            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300">
-                <div class="stat-figure text-success">
-                    <i class="fa-solid fa-arrow-trend-up text-3xl"></i>
+            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300 p-5">
+                <div class="stat-figure text-success/20">
+                    <i class="fa-solid fa-arrow-trend-up text-4xl"></i>
                 </div>
-                <div class="stat-title text-xs font-bold opacity-60">今月の売上 (収益)</div>
-                <div class="stat-value text-success text-2xl">¥{{ monthly_revenue|format_number }}</div>
-                <div class="stat-desc">当月累計</div>
+                <div class="stat-title text-xs font-bold uppercase tracking-widest opacity-60">今月の売上 (収益)</div>
+                <div class="stat-value text-success text-2xl tracking-tight">¥{{ monthly_revenue|format_number }}</div>
+                <div class="stat-desc font-medium mt-1">当月累計</div>
             </div>
             <!-- Expenses -->
-            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300">
-                <div class="stat-figure text-error">
-                    <i class="fa-solid fa-receipt text-3xl"></i>
+            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300 p-5">
+                <div class="stat-figure text-error/20">
+                    <i class="fa-solid fa-receipt text-4xl"></i>
                 </div>
-                <div class="stat-title text-xs font-bold opacity-60">今月の費用</div>
-                <div class="stat-value text-error text-2xl">¥{{ monthly_expense|format_number }}</div>
-                <div class="stat-desc">当月累計</div>
+                <div class="stat-title text-xs font-bold uppercase tracking-widest opacity-60">今月の支出</div>
+                <div class="stat-value text-error text-2xl tracking-tight">¥{{ monthly_expense|format_number }}</div>
+                <div class="stat-desc font-medium mt-1">当月累計</div>
             </div>
             <!-- Profit -->
-            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300">
-                <div class="stat-figure text-primary">
-                    <i class="fa-solid fa-piggy-bank text-3xl"></i>
+            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300 p-5">
+                <div class="stat-figure text-primary/20">
+                    <i class="fa-solid fa-piggy-bank text-4xl"></i>
                 </div>
-                <div class="stat-title text-xs font-bold opacity-60">当期利益</div>
-                <div class="stat-value text-primary text-2xl">¥{{ net_income|format_number }}</div>
-                <div class="stat-desc {% if net_income >= 0 %}text-success{% else %}text-error{% endif %}">
+                <div class="stat-title text-xs font-bold uppercase tracking-widest opacity-60">当月の利益</div>
+                <div class="stat-value text-primary text-2xl tracking-tight">¥{{ net_income|format_number }}</div>
+                <div class="stat-desc {% if net_income >= 0 %}text-success{% else %}text-error{% endif %} font-bold mt-1">
                     {% if net_income >= 0 %}
-                        黒字経営
+                        利益
                     {% else %}
-                        赤字傾向
+                        損失
                     {% endif %}
                 </div>
             </div>
             <!-- Cash Balance -->
-            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300">
-                <div class="stat-figure text-warning">
-                    <i class="fa-solid fa-coins text-3xl"></i>
+            <div class="stat bg-base-100 rounded-box shadow-sm border border-base-300 p-5">
+                <div class="stat-figure text-warning/20">
+                    <i class="fa-solid fa-coins text-4xl"></i>
                 </div>
-                <div class="stat-title text-xs font-bold opacity-60">現預金残高</div>
-                <div class="stat-value text-warning text-2xl">¥{{ cash_balance|format_number }}</div>
-                <div class="stat-desc">手元流動性</div>
+                <div class="stat-title text-xs font-bold uppercase tracking-widest opacity-60">当月の現金残高</div>
+                <div class="stat-value text-warning text-2xl tracking-tight">¥{{ cash_balance|format_number }}</div>
+                <div class="stat-desc font-medium mt-1">流動性</div>
             </div>
         </div>
         <!-- Middle Row: Chart & Stats -->
@@ -92,25 +92,26 @@
                     </div>
                 </div>
                 <!-- Quick Actions -->
-                <div class="card bg-primary text-primary-content shadow-sm">
+                <div class="card bg-base-100 shadow-sm border border-base-300">
                     <div class="card-body p-5">
-                        <h2 class="text-sm font-bold mb-4">クイックアクセス</h2>
-                        <div class="grid grid-cols-1 gap-2">
+                        <h2 class="text-xs font-bold uppercase tracking-widest opacity-60 mb-4">クイックアクセス</h2>
+                        <div class="grid grid-cols-1 gap-3">
                             <a href="{% url 'journal:shiwake-create' %}"
-                               class="btn btn-sm btn-secondary gap-2 normal-case">
-                                <i class="fa-solid fa-book"></i>仕訳日記帳（入力）
+                               class="btn btn-md btn-primary btn-outline gap-3 normal-case justify-start">
+                                <i class="fa-solid fa-book text-info"></i>仕訳日記帳（入力）
                             </a>
                             <a href="{% url 'journal:furikae-create' %}"
-                               class="btn btn-sm btn-secondary gap-2 normal-case">
-                                <i class="fa-solid fa-arrow-right-arrow-left"></i>振替伝票（入力）
+                               class="btn btn-md btn-primary btn-outline gap-3 normal-case justify-start">
+                                <i class="fa-solid fa-arrow-right-arrow-left text-warning"></i>振替伝票（入力）
                             </a>
+                            <div class="divider my-0"></div>
                             <a href="{% url 'ledger:genkin' %}"
-                               class="btn btn-sm btn-ghost bg-white/10 hover:bg-white/20 gap-2 normal-case">
-                                <i class="fa-solid fa-coins"></i>現金出納帳
+                               class="btn btn-ghost hover:bg-base-200 gap-3 normal-case justify-start">
+                                <i class="fa-solid fa-coins opacity-60"></i>現金出納帳
                             </a>
                             <a href="{% url 'ledger:zandaka' %}"
-                               class="btn btn-sm btn-ghost bg-white/10 hover:bg-white/20 gap-2 normal-case">
-                                <i class="fa-solid fa-chart-pie"></i>残高試算表
+                               class="btn btn-ghost hover:bg-base-200 gap-3 normal-case justify-start">
+                                <i class="fa-solid fa-chart-pie opacity-60"></i>残高試算表
                             </a>
                         </div>
                     </div>
@@ -120,45 +121,68 @@
         <!-- Bottom Row: Recent Vouchers -->
         <div class="card bg-base-100 shadow-sm border border-base-300">
             <div class="card-body p-0">
-                <div class="p-6 pb-2">
-                    <h2 class="card-title text-sm font-bold flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left text-neutral"></i>最近の登録伝票
+                <div class="p-4 pb-2">
+                    <h2 class="card-title text-sm font-bold tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left"></i>最近の登録伝票
                     </h2>
                 </div>
                 <div class="table-wrapper">
                     <table class="table-accounting">
                         <thead>
                             <tr>
-                                <th>日付</th>
-                                <th>伝票番号</th>
-                                <th>摘要</th>
-                                <th>金額</th>
-                                <th>状態</th>
-                                <th>操作</th>
+                                <th class="min-w-24">日付</th>
+                                <th class="min-w-32">伝票No</th>
+                                <th class="min-w-52 group-header">借方科目</th>
+                                <th class="min-w-32 group-header">金額</th>
+                                <th class="min-w-52 group-header credit">貸方科目</th>
+                                <th class="min-w-32 group-header credit">金額</th>
+                                <th class="min-w-52">摘要</th>
+                                <th class="min-w-28">操作</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for v in recent_vouchers %}
                                 <tr>
-                                    <td class="date-col">{{ v.date|date:"Y/m/d" }}</td>
+                                    <td class="date-col">{{ v.date|date:"m/d" }}</td>
                                     <td class="denp-no">{{ v.denpyo_no }}</td>
-                                    <td class="description-col">{{ v.memo|default:"-" }}</td>
-                                    <td class="amount amount-neutral">¥{{ v.total_kingaku|format_number }}</td>
-                                    <td class="text-center">
-                                        {% if v.is_locked %}
-                                            <div class="tooltip" data-tip="ロック済 (編集不可)">
-                                                <i class="fa-solid fa-lock text-info"></i>
-                                            </div>
-                                        {% else %}
-                                            <div class="tooltip" data-tip="未締 (編集可能)">
-                                                <i class="fa-solid fa-lock-open text-error"></i>
-                                            </div>
-                                        {% endif %}
+                                    <!-- Debit -->
+                                    <td class="text-col group-detail">
+                                        {% for m in v.meisai.all %}
+                                            {% if m.kari_kashi == "KA" %}<div class="whitespace-nowrap">{{ m.kamoku.name }}</div>{% endif %}
+                                        {% endfor %}
                                     </td>
+                                    <td class="amount amount-positive group-detail text-xs">
+                                        {% for m in v.meisai.all %}
+                                            {% if m.kari_kashi == "KA" %}<div>{{ m.kingaku|format_number }}</div>{% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <!-- Credit -->
+                                    <td class="text-col group-detail credit">
+                                        {% for m in v.meisai.all %}
+                                            {% if m.kari_kashi == "SHI" %}<div class="whitespace-nowrap">{{ m.kamoku.name }}</div>{% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td class="amount amount-negative group-detail credit text-xs">
+                                        {% for m in v.meisai.all %}
+                                            {% if m.kari_kashi == "SHI" %}<div>{{ m.kingaku|format_number }}</div>{% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td class="description-col">{{ v.memo|default:"—" }}</td>
                                     <td class="text-center">
-                                        <a href="{{ v.get_edit_url }}" class="btn btn-ghost btn-xs btn-primary">
-                                            詳細<i class="fa-solid fa-chevron-right"></i>
-                                        </a>
+                                        <div class="flex items-center justify-center gap-4">
+                                            {% if v.is_locked %}
+                                                <div class="tooltip tooltip-left" data-tip="ロック済 (編集不可)">
+                                                    <i class="fa-solid fa-lock text-info text-xs"></i>
+                                                </div>
+                                            {% else %}
+                                                <div class="tooltip tooltip-left" data-tip="未締 (編集可能)">
+                                                    <i class="fa-solid fa-lock-open text-error text-xs"></i>
+                                                </div>
+                                            {% endif %}
+                                            <a href="{{ v.get_edit_url }}" class="btn btn-ghost btn-primary btn-xs">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             {% empty %}

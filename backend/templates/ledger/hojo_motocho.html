@@ -80,13 +80,13 @@
                     <table class="table-accounting">
                         <thead>
                             <tr>
-                                <th class="w-40">日付</th>
-                                <th class="min-w-36 md:w-auto">伝票No</th>
-                                <th class="min-w-52 md:w-auto">摘要 / [相手科目]</th>
-                                <th class="min-w-44 md:w-auto">部門</th>
-                                <th class="min-w-36 md:w-auto text-right group-header border-l border-base-300">借方 (増加)</th>
-                                <th class="min-w-36 md:w-auto text-right group-header credit border-r border-base-300">貸方 (減少)</th>
-                                <th class="min-w-36 md:w-auto text-right">差引残高</th>
+                                <th class="min-w-24">日付</th>
+                                <th class="min-w-32">伝票No</th>
+                                <th class="min-w-52">摘要 / [相手科目]</th>
+                                <th class="min-w-44">部門</th>
+                                <th class="min-w-32 group-header">借方 (増加)</th>
+                                <th class="min-w-32 group-header credit">貸方 (減少)</th>
+                                <th class="min-w-32">差引残高</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -108,11 +108,11 @@
                                     </td>
                                     <td class="text-col">{{ row.meisai.bumon.name|default:"-" }}</td>
                                     <!-- Debit Amount -->
-                                    <td class="amount amount-positive border-l border-base-300">
+                                    <td class="amount amount-positive group-detail">
                                         {% if row.meisai.kari_kashi == 'KA' %}{{ row.meisai.kingaku|format_number }}{% endif %}
                                     </td>
                                     <!-- Credit Amount -->
-                                    <td class="amount amount-negative border-r border-base-300">
+                                    <td class="amount amount-negative group-detail credit">
                                         {% if row.meisai.kari_kashi == 'SHI' %}{{ row.meisai.kingaku|format_number }}{% endif %}
                                     </td>
                                     <!-- Running Balance -->

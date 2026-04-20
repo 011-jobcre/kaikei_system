@@ -40,17 +40,17 @@
                 <table class="table-accounting">
                     <thead>
                         <tr>
-                            <th class="min-w-36 md:w-auto">日付</th>
-                            <th class="min-w-56 md:w-auto group-header">借方科目</th>
-                            <th class="min-w-56 md:w-auto group-header">借方補助</th>
-                            <th class="min-w-32 md:w-auto group-header">借方金額</th>
-                            <th class="min-w-48 md:w-auto group-header">借方税区分</th>
-                            <th class="min-w-56 md:w-auto group-header credit">貸方科目</th>
-                            <th class="min-w-56 md:w-auto group-header credit">貸方補助</th>
-                            <th class="min-w-32 md:w-auto group-header credit">貸方金額</th>
-                            <th class="min-w-48 md:w-auto group-header credit">貸方税区分</th>
-                            <th class="min-w-48 md:w-auto">摘要</th>
-                            <th class="w-28 text-center">操作</th>
+                            <th class="min-w-24">日付</th>
+                            <th class="min-w-52 group-header">借方科目</th>
+                            <th class="min-w-52 group-header">借方補助</th>
+                            <th class="min-w-32 group-header">借方金額</th>
+                            <th class="min-w-52 group-header">借方税区分</th>
+                            <th class="min-w-52 group-header credit">貸方科目</th>
+                            <th class="min-w-52 group-header credit">貸方補助</th>
+                            <th class="min-w-32 group-header credit">貸方金額</th>
+                            <th class="min-w-52 group-header credit">貸方税区分</th>
+                            <th class="min-w-52">摘要</th>
+                            <th class="min-w-28">操作</th>
                         </tr>
                     </thead>
                     <tbody id="grid-rows">
@@ -62,23 +62,25 @@
             </div>
         </div>
         <!-- Recent History (Peek) -->
-        <div class="card bg-base-100 shadow-sm">
-            <div class="card-body p-1">
-                <div class="px-4 py-2 bg-base-200 flex items-center justify-between">
-                    <h3 class="card-title text-neutral text-sm font-bold tracking-wider">最近の登録内容</h3>
+        <div class="card bg-base-100 shadow-sm border border-base-300">
+            <div class="card-body p-0">
+                <div class="p-4 pb-2 flex items-center justify-between">
+                    <h3 class="card-title text-sm font-bold tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left"></i>最近の登録内容
+                    </h3>
                     <span class="text-neutral/60 text-xs">最新10件を表示</span>
                 </div>
                 <div class="table-wrapper">
                     <table class="table-accounting">
                         <thead>
                             <tr>
-                                <th class="min-w-28 md:w-auto">日付</th>
-                                <th class="min-w-36 md:w-auto">伝票No</th>
-                                <th class="min-w-44 md:w-auto group-header">借方</th>
-                                <th class="min-w-32 md:w-auto text-right group-header">借方金額</th>
-                                <th class="min-w-44 md:w-auto group-header credit">貸方</th>
-                                <th class="min-w-32 md:w-auto text-right group-header credit">貸方金額</th>
-                                <th class="min-w-52 md:w-auto">摘要</th>
+                                <th class="min-w-28">日付</th>
+                                <th class="min-w-36">伝票No</th>
+                                <th class="min-w-52 group-header">借方</th>
+                                <th class="min-w-32 group-header">借方金額</th>
+                                <th class="min-w-52 group-header credit">貸方</th>
+                                <th class="min-w-32 group-header credit">貸方金額</th>
+                                <th class="min-w-52">摘要</th>
                             </tr>
                         </thead>
                         <tbody id="recent-entries-tbody"

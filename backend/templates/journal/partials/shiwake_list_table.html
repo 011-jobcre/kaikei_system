@@ -17,8 +17,8 @@
                     <th class="min-w-32 group-header credit">貸方金額</th>
                     <th class="min-w-52">税区分</th>
                     <th class="min-w-52">摘要</th>
-                    <th class="w-24">状態</th>
-                    {% if is_accountant %}<th class="w-24">操作</th>{% endif %}
+                    <th class="min-w-28">状態</th>
+                    {% if is_accountant %}<th class="min-w-28">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -61,11 +61,11 @@
                                     <td class="description-col" rowspan="{{ denpyo.meisai_count }}">{{ denpyo.memo|default:"—" }}</td>
                                     <td class="text-center" rowspan="{{ denpyo.meisai_count }}">
                                         {% if denpyo.is_locked %}
-                                            <div class="tooltip" data-tip="ロック済 (編集不可)">
+                                            <div class="tooltip tooltip-left" data-tip="ロック済 (編集不可)">
                                                 <i class="fa-solid fa-lock text-info"></i>
                                             </div>
                                         {% else %}
-                                            <div class="tooltip" data-tip="未締 (編集可能)">
+                                            <div class="tooltip tooltip-left" data-tip="未締 (編集可能)">
                                                 <i class="fa-solid fa-lock-open text-error"></i>
                                             </div>
                                         {% endif %}
@@ -142,11 +142,11 @@
                             <td class="description-col">{{ denpyo.memo|default:"—" }}</td>
                             <td class="text-center">
                                 {% if denpyo.is_locked %}
-                                    <div class="tooltip" data-tip="ロック済 (編集不可)">
+                                    <div class="tooltip tooltip-left" data-tip="ロック済 (編集不可)">
                                         <i class="fa-solid fa-lock text-info"></i>
                                     </div>
                                 {% else %}
-                                    <div class="tooltip" data-tip="未締 (編集可能)">
+                                    <div class="tooltip tooltip-left" data-tip="未締 (編集可能)">
                                         <i class="fa-solid fa-lock-open text-error"></i>
                                     </div>
                                 {% endif %}

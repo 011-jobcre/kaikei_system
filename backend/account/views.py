@@ -2,15 +2,19 @@
 # Authentication & Dashboard Views
 # =========================================================
 
+import calendar
 from decimal import Decimal
+from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Sum, Q
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views import View
 
-from journal.models import ShiwakeDenpyo
+from journal.models import ShiwakeDenpyo, ShiwakeMeisai
 from master.models import KanjoKamokuMaster, TorihikiSakiMaster
 
 
@@ -41,12 +45,6 @@ class DashboardView(LoginRequiredMixin, View):
     template_name = "accounts/dashboard.html"
 
     def get(self, request):
-        from django.utils import timezone
-        import calendar
-        from dateutil.relativedelta import relativedelta
-        from journal.models import ShiwakeMeisai
-        from django.db.models import Sum, Q
-
         now = timezone.localdate()
         month_start = now.replace(day=1)
 
@@ -94,9 +92,7 @@ class DashboardView(LoginRequiredMixin, View):
         for i in range(5, -1, -1):
             target_month = now - relativedelta(months=i)
             t_start = target_month.replace(day=1)
-            t_end = target_month.replace(
-                day=calendar.monthrange(target_month.year, target_month.month)[1]
-            )
+            t_end = target_month.replace(day=calendar.monthrange(target_month.year, target_month.month)[1])
 
             # Revenue for target month
             r_agg = ShiwakeMeisai.objects.filter(
@@ -122,12 +118,8 @@ class DashboardView(LoginRequiredMixin, View):
             chart_labels.append(target_month.strftime("%Y/%m"))
 
         # Activity & Counts
-        recent_vouchers = ShiwakeDenpyo.objects.annotate(
-            total_kingaku=Sum("meisai__kingaku")
-        ).order_by("-id")[:5]
-        unlocked_in_month = ShiwakeDenpyo.objects.filter(
-            date__gte=month_start, date__lte=now, is_locked=False
-        ).count()
+        recent_vouchers = ShiwakeDenpyo.objects.all().order_by("-id")[:5]
+        unlocked_in_month = ShiwakeDenpyo.objects.filter(date__gte=month_start, date__lte=now, is_locked=False).count()
 
         kamoku_count = KanjoKamokuMaster.objects.filter(is_active=True).count()
         torihiki_count = TorihikiSakiMaster.objects.filter(is_active=True).count()
@@ -150,9 +142,3 @@ class DashboardView(LoginRequiredMixin, View):
                 "current_month": now.strftime("%Y年%m月"),
             },
         )
-
-
-class TestView(LoginRequiredMixin, View):
-    def get(self, request):
-        # Test view
-        return render(request, self.template_name)
