@@ -191,3 +191,93 @@ class TorihikiSakiMaster(BaseModel):
 
     def __str__(self):
         return f"{self.code} {self.name}"
+
+
+class ShiwakeDictionary(BaseModel):
+    """Journal Dictionary — Pre-defined 1:1 journal patterns for fast entry."""
+
+    name = models.CharField(verbose_name="辞書名", max_length=100)
+    shortcut_code = models.CharField(verbose_name="検索キー", max_length=10, blank=True)
+
+    # --- Debit Side (借方) ---
+    kari_kamoku = models.ForeignKey(
+        KanjoKamokuMaster,
+        verbose_name="借方科目",
+        related_name="dict_kari_kamoku",
+        on_delete=models.CASCADE,
+        limit_choices_to={"level": 4, "is_active": True},
+    )
+    kari_hojo = models.ForeignKey(
+        HojoKamokuMaster,
+        verbose_name="借方補助",
+        related_name="dict_kari_hojo",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={"is_active": True},
+    )
+    kari_zei = models.ForeignKey(
+        ZeiMaster,
+        verbose_name="借方税区分",
+        related_name="dict_kari_zei",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={"is_active": True},
+    )
+
+    # --- Credit Side (貸方) ---
+    kashi_kamoku = models.ForeignKey(
+        KanjoKamokuMaster,
+        verbose_name="貸方科目",
+        related_name="dict_kashi_kamoku",
+        on_delete=models.CASCADE,
+        limit_choices_to={"level": 4, "is_active": True},
+    )
+    kashi_hojo = models.ForeignKey(
+        HojoKamokuMaster,
+        verbose_name="貸方補助",
+        related_name="dict_kashi_hojo",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={"is_active": True},
+    )
+    kashi_zei = models.ForeignKey(
+        ZeiMaster,
+        verbose_name="貸方税区分",
+        related_name="dict_kashi_zei",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={"is_active": True},
+    )
+
+    # --- Common ---
+    tekiyou = models.CharField(verbose_name="摘要", max_length=200, blank=True)
+    bumon = models.ForeignKey(
+        BumonMaster,
+        verbose_name="部門",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={"is_active": True},
+    )
+    torihikisaki = models.ForeignKey(
+        TorihikiSakiMaster,
+        verbose_name="取引先",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={"is_active": True},
+    )
+    is_active = models.BooleanField(verbose_name="有効", default=True)
+
+    class Meta:
+        verbose_name = "仕訳辞書"
+        verbose_name_plural = "仕訳辞書"
+        ordering = ["shortcut_code", "name"]
+
+    def __str__(self):
+        prefix = f"[{self.shortcut_code}] " if self.shortcut_code else ""
+        return f"{prefix}{self.name}"

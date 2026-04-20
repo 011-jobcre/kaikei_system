@@ -3,7 +3,7 @@
 # =========================================================
 
 from django import forms
-from .models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, ZeiMaster, TorihikiSakiMaster
+from .models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, ZeiMaster, TorihikiSakiMaster, ShiwakeDictionary
 from common.forms_widgets import INPUT_CLASS, SELECT_CLASS, TEXTAREA_CLASS, CHECKBOX_CLASS
 
 
@@ -15,7 +15,7 @@ class BaseMasterForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         if self.errors:
             for field_name, field in self.fields.items():
                 if field_name in self.errors:
@@ -154,3 +154,66 @@ class HojoKamokuForm(forms.ModelForm):
         self.fields["kamoku"].queryset = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
         self.fields["kamoku"].label_from_instance = lambda obj: f"{obj.code} {obj.name} [{obj.furigana or ''}]"
         self.fields["kamoku"].empty_label = "勘定科目を選択"
+
+
+class ShiwakeDictionaryForm(forms.ModelForm):
+    """Form for creating / editing a Journal Dictionary pattern (仕訳辞書)."""
+
+    class Meta:
+        model = ShiwakeDictionary
+        fields = [
+            "name",
+            "shortcut_code",
+            "kari_kamoku",
+            "kari_hojo",
+            "kari_zei",
+            "kashi_kamoku",
+            "kashi_hojo",
+            "kashi_zei",
+            "tekiyou",
+            "bumon",
+            "torihikisaki",
+            "is_active",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: 水道光熱費支払"}),
+            "shortcut_code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: D100"}),
+            "kari_kamoku": forms.Select(attrs={"class": SELECT_CLASS}),
+            "kari_hojo": forms.Select(attrs={"class": SELECT_CLASS}),
+            "kari_zei": forms.Select(attrs={"class": SELECT_CLASS}),
+            "kashi_kamoku": forms.Select(attrs={"class": SELECT_CLASS}),
+            "kashi_hojo": forms.Select(attrs={"class": SELECT_CLASS}),
+            "kashi_zei": forms.Select(attrs={"class": SELECT_CLASS}),
+            "tekiyou": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "bumon": forms.Select(attrs={"class": SELECT_CLASS}),
+            "torihikisaki": forms.Select(attrs={"class": SELECT_CLASS}),
+            "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Helper to format account labels consistently (Code Name [Furigana])
+        account_label_fn = lambda obj: f"{obj.code} {obj.name} [{obj.furigana or ''}]"
+
+        # Apply constraints and formatting to choice fields
+        active_kamoku = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
+        active_hojo = HojoKamokuMaster.objects.filter(is_active=True).order_by("kamoku__code", "code")
+        active_zei = ZeiMaster.objects.filter(is_active=True).order_by("order_no")
+        active_bumon = BumonMaster.objects.filter(is_active=True).order_by("code")
+        active_torihiki = TorihikiSakiMaster.objects.filter(is_active=True).order_by("code")
+
+        # Kari side
+        self.fields["kari_kamoku"].queryset = active_kamoku
+        self.fields["kari_kamoku"].label_from_instance = account_label_fn
+        self.fields["kari_hojo"].queryset = active_hojo
+        self.fields["kari_zei"].queryset = active_zei
+
+        # Kashi side
+        self.fields["kashi_kamoku"].queryset = active_kamoku
+        self.fields["kashi_kamoku"].label_from_instance = account_label_fn
+        self.fields["kashi_hojo"].queryset = active_hojo
+        self.fields["kashi_zei"].queryset = active_zei
+
+        # Metadata
+        self.fields["bumon"].queryset = active_bumon
+        self.fields["torihikisaki"].queryset = active_torihiki

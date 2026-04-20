@@ -12,8 +12,13 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from common.permissions import AdminRequiredMixin
 
-from .forms import KanjoKamokuForm, HojoKamokuForm, BumonForm, TorihikiSakiForm, ZeiForm
-from .models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, TorihikiSakiMaster, ZeiMaster
+from .forms import KanjoKamokuForm, HojoKamokuForm, BumonForm, TorihikiSakiForm, ZeiForm, ShiwakeDictionaryForm
+from .models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, TorihikiSakiMaster, ZeiMaster, ShiwakeDictionary
+
+
+# =========================================================
+# Mixins: shared HTMX behaviour for master data views
+# =========================================================
 
 
 # =========================================================
@@ -408,3 +413,59 @@ class TorihikiSakiDeleteView(BaseMasterDeleteView):
     success_url = reverse_lazy("master:torihiki-list")
     url_name_prefix = "master:torihiki"
     delete_error_message = "この取引先はすでに仕訳に使用されているため削除できません。"
+
+
+# =========================================================
+# Journal Dictionary Master (仕訳辞書)
+# =========================================================
+
+
+class ShiwakeDictionaryListView(BaseMasterListView):
+    """Lists all journal patterns with name/shortcut search."""
+
+    model = ShiwakeDictionary
+    template_name = "master/dict_list.html"
+    partial_template_name = "master/partials/dict_list_table.html"
+    context_object_name = "dict_list"
+
+    def get_queryset(self):
+        # Override BaseMasterListView search because model uses shortcut_code instead of code
+        qs = ShiwakeDictionary.objects.select_related("kari_kamoku", "kashi_kamoku", "kari_hojo", "kashi_hojo")
+        q = self.request.GET.get("q", "")
+        if q:
+            qs = qs.filter(name__icontains=q) | qs.filter(shortcut_code__icontains=q)
+        return qs.order_by("shortcut_code", "name")
+
+
+class ShiwakeDictionaryCreateView(BaseMasterModalView, CreateView):
+    """Modal form to create a new journal pattern."""
+
+    model = ShiwakeDictionary
+    form_class = ShiwakeDictionaryForm
+    template_name = "master/partials/form_modal.html"
+    success_url = reverse_lazy("master:dict-list")
+    action_name = "新規登録"
+    model_name_ja = "仕訳辞書"
+    url_name_prefix = "master:dict"
+
+
+class ShiwakeDictionaryUpdateView(BaseMasterModalView, UpdateView):
+    """Modal form to edit an existing journal pattern."""
+
+    model = ShiwakeDictionary
+    form_class = ShiwakeDictionaryForm
+    template_name = "master/partials/form_modal.html"
+    success_url = reverse_lazy("master:dict-list")
+    action_name = "更新"
+    model_name_ja = "仕訳辞書"
+    url_name_prefix = "master:dict"
+
+
+class ShiwakeDictionaryDeleteView(BaseMasterDeleteView):
+    """Confirms and processes deletion of a journal pattern."""
+
+    model = ShiwakeDictionary
+    template_name = "master/partials/delete_confirm.html"
+    success_url = reverse_lazy("master:dict-list")
+    url_name_prefix = "master:dict"
+    delete_error_message = "この仕訳辞書は削除できません。"

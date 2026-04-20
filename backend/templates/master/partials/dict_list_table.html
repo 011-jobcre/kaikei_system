@@ -1,0 +1,73 @@
+<div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden"
+     id="dict-table-container"
+     hx-get="{% url 'master:dict-list' %}"
+     hx-trigger="refreshList from:body"
+     hx-swap="outerHTML">
+    <div class="table-wrapper">
+        <table class="table-accounting">
+            <thead>
+                <tr>
+                    <th class="min-w-24">検索キー</th>
+                    <th class="min-w-52">辞書名</th>
+                    <th class="min-w-52 group-header">借方科目</th>
+                    <th class="min-w-52 group-header">借方補助</th>
+                    <th class="min-w-52 group-header credit">貸方科目</th>
+                    <th class="min-w-52 group-header credit">貸方補助</th>
+                    <th class="min-w-52">摘要</th>
+                    <th class="min-w-28">ステータス</th>
+                    {% if is_admin %}<th class="min-w-28">操作</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody id="dict-list-body">
+                {% for d in dict_list %}
+                    <tr>
+                        <td class="text-col">{{ d.shortcut_code|default:"-" }}</td>
+                        <td class="text-col">{{ d.name }}</td>
+                        <td class="text-col group-detail">{{ d.kari_kamoku.name }}</td>
+                        <td class="text-col group-detail">{{ d.kari_hojo.name|default:"-" }}</td>
+                        <td class="text-col group-detail credit">{{ d.kashi_kamoku.name }}</td>
+                        <td class="text-col group-detail credit">{{ d.kashi_hojo.name|default:"-" }}</td>
+                        <td class="description-col">{{ d.tekiyou|default:"-" }}</td>
+                        <td class="text-center">
+                            {% if d.is_active %}
+                                <span class="badge-enable">有効</span>
+                            {% else %}
+                                <span class="badge-disable">無効</span>
+                            {% endif %}
+                        </td>
+                        <!-- Row action buttons: Edit and Delete via HTMX modal -->
+                        {% if is_admin %}
+                            <td class="text-center">
+                                <div class="flex justify-center gap-1">
+                                    <button hx-get="{% url 'master:dict-update' d.pk %}"
+                                            hx-target="body"
+                                            hx-swap="beforeend"
+                                            class="btn-edit"
+                                            title="編集">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button hx-get="{% url 'master:dict-delete' d.pk %}"
+                                            hx-target="body"
+                                            hx-swap="beforeend"
+                                            class="btn-delete"
+                                            title="削除">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="{% if is_admin %}9{% else %}8{% endif %}"
+                            class="text-center">
+                            <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
+                            データがありません
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "includes/pagination.html" %}
+</div>

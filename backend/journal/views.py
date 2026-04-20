@@ -19,7 +19,7 @@ from django.views import View
 from django.views.generic import DeleteView, ListView
 
 from common.permissions import AccountantRequiredMixin, AdminRequiredMixin
-from master.models import KanjoKamokuMaster
+from master.models import KanjoKamokuMaster, ShiwakeDictionary
 from master.views import HtmxListMixin
 
 from .forms import MeisaiFormSet, FurikaeHeaderForm, FurikaeMeisaiForm, ShiwakeMeisaiForm
@@ -138,6 +138,9 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
         # Also get recent entries for display below the input grid
         recent_shiwake = ShiwakeDenpyo.objects.filter(denpyo_type="SHIWAKE").order_by("-id")[:10]
 
+        # Get active journal patterns for the dictionary selection dropdown
+        dictionary_patterns = ShiwakeDictionary.objects.filter(is_active=True).order_by("shortcut_code", "name")
+
         return render(
             request,
             self.template_name,
@@ -145,6 +148,7 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
                 "title": "仕訳日記帳 新規作成",
                 "rows": rows,
                 "recent_shiwake": recent_shiwake,
+                "dictionary_patterns": dictionary_patterns,
                 "is_new": True,
             },
         )
@@ -374,13 +378,34 @@ def add_form_row(request):
 
     form_type = request.GET.get("form_type", "shiwake")
     index = int(request.GET.get("index", 0))
+    dict_id = request.GET.get("dict_id")
 
     if form_type == "furikae":
         form = FurikaeMeisaiForm(prefix=f"meisai-{index}")
         template = "journal/partials/furikae_form_meisai.html"
         context = {"form": form, "form_index": index}
     else:  # shiwake
-        form = ShiwakeMeisaiForm(prefix=f"row-{index}", initial={"date": timezone.localdate()})
+        initial = {"date": timezone.localdate()}
+        if dict_id:
+            try:
+                pattern = ShiwakeDictionary.objects.get(pk=dict_id)
+                initial.update(
+                    {
+                        "kari_kamoku": pattern.kari_kamoku,
+                        "kari_hojo": pattern.kari_hojo,
+                        "kari_zei": pattern.kari_zei,
+                        "kashi_kamoku": pattern.kashi_kamoku,
+                        "kashi_hojo": pattern.kashi_hojo,
+                        "kashi_zei": pattern.kashi_zei,
+                        "tekiyou": pattern.tekiyou,
+                        "bumon": pattern.bumon,
+                        "torihikisaki": pattern.torihikisaki,
+                    }
+                )
+            except ShiwakeDictionary.DoesNotExist:
+                pass
+
+        form = ShiwakeMeisaiForm(prefix=f"row-{index}", initial=initial)
         template = "journal/partials/shiwake_form_meisai.html"
         context = {"form": form, "row_index": index}
 

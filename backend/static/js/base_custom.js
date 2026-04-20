@@ -127,8 +127,14 @@ function initTomSelects(container) {
             dropdownParent: "body",
             plugins: ["dropdown_input"],
             render: {
-                option: (data, escape) => `<div class="px-2 py-1">${escape(parseAccountLabel(data.text))}</div>`,
-                item: (data, escape) => `<div>${escape(parseAccountLabel(data.text))}</div>`,
+                option: (data, escape) => {
+                    const text = el.dataset.noParse === "true" ? data.text : parseAccountLabel(data.text);
+                    return `<div class="px-2 py-1">${escape(text)}</div>`;
+                },
+                item: (data, escape) => {
+                    const text = el.dataset.noParse === "true" ? data.text : parseAccountLabel(data.text);
+                    return `<div>${escape(text)}</div>`;
+                },
             },
         });
 

@@ -34,4 +34,9 @@ urlpatterns = [
     path("torihiki/new/", views.TorihikiSakiCreateView.as_view(), name="torihiki-create"),
     path("torihiki/<int:pk>/edit/", views.TorihikiSakiUpdateView.as_view(), name="torihiki-update"),
     path("torihiki/<int:pk>/delete/", views.TorihikiSakiDeleteView.as_view(), name="torihiki-delete"),
+    # Journal Dictionary (仕訳辞書)
+    path("dict/", views.ShiwakeDictionaryListView.as_view(), name="dict-list"),
+    path("dict/new/", views.ShiwakeDictionaryCreateView.as_view(), name="dict-create"),
+    path("dict/<int:pk>/edit/", views.ShiwakeDictionaryUpdateView.as_view(), name="dict-update"),
+    path("dict/<int:pk>/delete/", views.ShiwakeDictionaryDeleteView.as_view(), name="dict-delete"),
 ]

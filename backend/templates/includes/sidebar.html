@@ -54,6 +54,12 @@
                             <i class="fa-solid fa-handshake"></i>取引先管理
                         </a>
                     </li>
+                    <li>
+                        <a href="{% url 'master:dict-list' %}"
+                           class="sidebar-link {% if request.resolver_match.url_name == 'dict-list' %}active{% endif %}">
+                            <i class="fa-solid fa-spell-check"></i>仕訳辞書設定
+                        </a>
+                    </li>
                 </ul>
             </details>
         </li>
