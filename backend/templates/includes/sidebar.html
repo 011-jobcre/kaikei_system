@@ -61,7 +61,7 @@
         <li>
             <details open>
                 <summary class="px-4 text-sm text-base-content/40 tracking-widest">仕訳・伝票</summary>
-                <ul>
+                <ul class="flex flex-col gap-1">
                     <li>
                         <a href="{% url 'journal:shiwake-list' %}"
                            class="sidebar-link {% if request.resolver_match.url_name == 'shiwake-list' %}active{% endif %}">
@@ -99,7 +99,7 @@
         <li>
             <details open>
                 <summary class="px-4 text-sm text-base-content/40 tracking-widest">帳簿</summary>
-                <ul>
+                <ul class="flex flex-col gap-1">
                     <li>
                         <a href="{% url 'ledger:sokanjo' %}"
                            class="sidebar-link {% if request.resolver_match.url_name == 'sokanjo' %}active{% endif %}">
@@ -131,7 +131,7 @@
         <li>
             <details open>
                 <summary class="px-4 text-sm text-base-content/40 tracking-widest">レポート</summary>
-                <ul>
+                <ul class="flex flex-col gap-1">
                     <li>
                         <a href="{% url 'report:balance-sheet' %}"
                            class="sidebar-link {% if request.resolver_match.url_name == 'balance-sheet' %}active{% endif %}">
@@ -156,7 +156,7 @@
         <li>
             <details open>
                 <summary class="px-4 text-sm text-base-content/40 tracking-widest">管理</summary>
-                <ul>
+                <ul class="flex flex-col gap-1">
                     <li>
                         <a href="{% url 'admin:index' %}"
                            class="sidebar-link {% if request.resolver_match.url_name == 'admin:index' %}active{% endif %}">
