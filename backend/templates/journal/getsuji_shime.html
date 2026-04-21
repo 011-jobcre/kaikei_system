@@ -31,12 +31,12 @@
                     <table class="table-accounting">
                         <thead>
                             <tr>
-                                <th class="min-w-16">#</th>
-                                <th class="min-w-28">対象月</th>
-                                <th class="min-w-28">伝票数</th>
-                                <th class="min-w-28">ロック済</th>
-                                <th class="min-w-28">状態</th>
-                                <th class="min-w-28">操作</th>
+                                <th class="min-w-16 md:w-10">#</th>
+                                <th class="min-w-32 md:w-24">対象月</th>
+                                <th class="min-w-32 md:w-24">伝票数</th>
+                                <th class="min-w-32 md:w-24">ロック済</th>
+                                <th class="min-w-32 md:w-24">状態</th>
+                                {% if is_accountant %}<th class="min-w-24 md:w-10">操作</th>{% endif %}
                             </tr>
                         </thead>
                         <tbody>
@@ -111,8 +111,7 @@
                 </div>
             {% else %}
                 <div class="text-center py-4">
-                    <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
-                    データがありません
+                    <i class="fa-solid fa-inbox m-2 block"></i>データがありません
                 </div>
             {% endif %}
         </div>

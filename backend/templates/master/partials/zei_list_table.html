@@ -8,20 +8,18 @@
         <table class="table-accounting">
             <thead>
                 <tr>
-                    <th class="min-w-64">税区分名</th>
-                    <th class="min-w-32">税率（%）</th>
-                    <th class="min-w-56">適用期間</th>
-                    <th class="min-w-28">ステータス</th>
-                    {% if is_admin %}<th class="min-w-28">操作</th>{% endif %}
+                    <th class="min-w-52 md:w-32">税区分名</th>
+                    <th class="min-w-32 md:w-20">税率（%）</th>
+                    <th class="min-w-52 md:w-32">適用期間</th>
+                    <th class="min-w-24 md:w-10">ステータス</th>
+                    {% if is_admin %}<th class="min-w-24 md:w-10">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for obj in zei_list %}
                     <tr>
                         <td class="text-col">{{ obj.zei_name }}</td>
-                        <!-- Tax rate displayed with monospace font for alignment -->
-                        <td class="amount amount-neutral">{{ obj.tax_rate }}%</td>
-                        <!-- Date range: shown as "YYYY/MM/DD ～ YYYY/MM/DD" or dashes -->
+                        <td class="amount amount-neutral">{{ obj.tax_rate|floatformat:"0" }}%</td>
                         <td class="date-col text-center ">
                             {{ obj.valid_from|date:"Y/m/d"|default:"—" }}
                             〜
@@ -61,8 +59,7 @@
                     <tr>
                         <td colspan="{% if is_admin %}5{% else %}4{% endif %}"
                             class="text-center">
-                            <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
-                            データがありません
+                            <i class="fa-solid fa-inbox m-2 block"></i>データがありません
                         </td>
                     </tr>
                 {% endfor %}

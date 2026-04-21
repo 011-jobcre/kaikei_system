@@ -68,27 +68,27 @@ def setup_master_fields(form):
         queryset=get_active_level4_kamoku_queryset(),
         empty_label="勘定科目（必須）",
         required=True,
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     form.fields["hojo"] = HojoKamokuChoiceField(
         queryset=get_active_hojo_queryset(),
         empty_label="補助科目（任意）",
         required=False,
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
 
     form.fields["bumon"] = BumonChoiceField(
         queryset=get_active_bumon_queryset(),
         empty_label="部門（任意）",
         required=False,
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
 
     form.fields["torihikisaki"] = TorihikiSakiChoiceField(
         queryset=get_active_torihiki_queryset(),
         empty_label="取引先（任意）",
         required=False,
-        widget=forms.Select(attrs={"class": SELECT_CLASS})
+        widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
 
     form.fields["zei_kubun"].queryset = get_active_zei_queryset()

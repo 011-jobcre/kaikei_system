@@ -8,17 +8,17 @@
         <table class="table-accounting">
             <thead>
                 <tr>
-                    <th class="min-w-24">日付</th>
-                    <th class="min-w-32">伝票No</th>
-                    <th class="min-w-24">種別</th>
-                    <th class="min-w-52 group-header">借方科目</th>
-                    <th class="min-w-32 group-header">借方金額</th>
-                    <th class="min-w-52 group-header credit">貸方科目</th>
-                    <th class="min-w-32 group-header credit">貸方金額</th>
-                    <th class="min-w-52">税区分</th>
-                    <th class="min-w-52">摘要</th>
-                    <th class="min-w-28">状態</th>
-                    {% if is_accountant %}<th class="min-w-28">操作</th>{% endif %}
+                    <th class="min-w-24 md:w-10">日付</th>
+                    <th class="min-w-32 md:w-16">伝票No</th>
+                    <th class="min-w-24 md:w-12">種別</th>
+                    <th class="min-w-52 md:w-24 group-header">借方科目</th>
+                    <th class="min-w-32 md:w-16 group-header">借方金額</th>
+                    <th class="min-w-52 md:w-24 group-header credit">貸方科目</th>
+                    <th class="min-w-32 md:w-16 group-header credit">貸方金額</th>
+                    <th class="min-w-52 md:w-24">税区分</th>
+                    <th class="min-w-52 md:w-24">摘要</th>
+                    <th class="min-w-24 md:w-10">状態</th>
+                    {% if is_accountant %}<th class="min-w-24 md:w-10">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -175,8 +175,7 @@
                     <tr>
                         <td colspan="{% if is_accountant %}11{% else %}10{% endif %}"
                             class="text-center">
-                            <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
-                            データがありません
+                            <i class="fa-solid fa-inbox m-2 block"></i>データがありません
                         </td>
                     </tr>
                 {% endfor %}

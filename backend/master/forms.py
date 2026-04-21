@@ -88,7 +88,7 @@ class ZeiForm(forms.ModelForm):
         fields = ["zei_name", "tax_rate", "valid_from", "valid_to", "order_no", "is_active"]
         widgets = {
             "zei_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
-            "tax_rate": forms.NumberInput(attrs={"class": INPUT_CLASS, "step": "0.01", "min": "0", "max": "100"}),
+            "tax_rate": forms.NumberInput(attrs={"class": INPUT_CLASS, "step": "1", "min": "0", "max": "100"}),
             "valid_from": forms.DateInput(attrs={"class": INPUT_CLASS, "type": "date"}),
             "valid_to": forms.DateInput(attrs={"class": INPUT_CLASS, "type": "date"}),
             "order_no": forms.NumberInput(attrs={"class": INPUT_CLASS}),
@@ -99,12 +99,26 @@ class ZeiForm(forms.ModelForm):
             "valid_to": {"max_value": "適用終了日は2100/12/31以前の日付を入力してください。"},
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Ensure tax_rate is displayed as an integer in the form input
+        if self.instance and self.instance.pk:
+            self.initial["tax_rate"] = int(self.instance.tax_rate)
+        elif "tax_rate" in self.initial and self.initial["tax_rate"] is not None:
+            self.initial["tax_rate"] = int(self.initial["tax_rate"])
+
     def clean_valid_to(self):
         valid_from = self.cleaned_data.get("valid_from")
         valid_to = self.cleaned_data.get("valid_to")
         if valid_from and valid_to and valid_to < valid_from:
             raise forms.ValidationError("適用終了日は適用開始日以降の日付を入力してください。")
         return valid_to
+
+    def clean_tax_rate(self):
+        tax_rate = self.cleaned_data.get("tax_rate")
+        if tax_rate > 100 or tax_rate < 0:
+            raise forms.ValidationError("税率は100%以下、0%以上で入力してください。")
+        return tax_rate
 
 
 class TorihikiSakiForm(BaseMasterForm):

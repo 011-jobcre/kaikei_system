@@ -9,12 +9,12 @@
         <table class="table-accounting">
             <thead>
                 <tr>
-                    <th class="min-w-40">部門コード</th>
-                    <th class="min-w-64">部門名</th>
-                    <th class="min-w-64">担当者名</th>
-                    <th class="min-w-32">年間予算</th>
-                    <th class="min-w-28">ステータス</th>
-                    {% if is_admin %}<th class="min-w-28">操作</th>{% endif %}
+                    <th class="min-w-32 md:w-20">部門コード</th>
+                    <th class="min-w-80 md:w-64">部門名</th>
+                    <th class="min-w-80 md:w-64">担当者名</th>
+                    <th class="min-w-32 md:w-20">年間予算</th>
+                    <th class="min-w-28 md:w-10">ステータス</th>
+                    {% if is_admin %}<th class="min-w-28 md:w-10">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -65,8 +65,7 @@
                     <tr>
                         <td colspan="{% if is_admin %}6{% else %}5{% endif %}"
                             class="text-center">
-                            <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
-                            データがありません
+                            <i class="fa-solid fa-inbox m-2 block"></i>データがありません
                         </td>
                     </tr>
                 {% endfor %}

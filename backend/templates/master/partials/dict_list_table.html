@@ -7,15 +7,15 @@
         <table class="table-accounting">
             <thead>
                 <tr>
-                    <th class="min-w-24">検索キー</th>
-                    <th class="min-w-52">辞書名</th>
-                    <th class="min-w-52 group-header">借方科目</th>
-                    <th class="min-w-52 group-header">借方補助</th>
-                    <th class="min-w-52 group-header credit">貸方科目</th>
-                    <th class="min-w-52 group-header credit">貸方補助</th>
-                    <th class="min-w-52">摘要</th>
-                    <th class="min-w-28">ステータス</th>
-                    {% if is_admin %}<th class="min-w-28">操作</th>{% endif %}
+                    <th class="min-w-32 md:w-12">検索キー</th>
+                    <th class="min-w-80 md:w-40">辞書名</th>
+                    <th class="min-w-52 md:w-24 group-header">借方科目</th>
+                    <th class="min-w-52 md:w-24 group-header">借方補助</th>
+                    <th class="min-w-52 md:w-24 group-header credit">貸方科目</th>
+                    <th class="min-w-52 md:w-24 group-header credit">貸方補助</th>
+                    <th class="min-w-52 md:w-24">摘要</th>
+                    <th class="min-w-24 md:w-10">ステータス</th>
+                    {% if is_admin %}<th class="min-w-24 md:w-10">操作</th>{% endif %}
                 </tr>
             </thead>
             <tbody id="dict-list-body">
@@ -61,8 +61,7 @@
                     <tr>
                         <td colspan="{% if is_admin %}9{% else %}8{% endif %}"
                             class="text-center">
-                            <i class="fa-solid fa-inbox text-2xl mb-2 mx-2 block"></i>
-                            データがありません
+                            <i class="fa-solid fa-inbox m-2 block"></i>データがありません
                         </td>
                     </tr>
                 {% endfor %}

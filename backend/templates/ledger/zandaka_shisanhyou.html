@@ -45,11 +45,11 @@
                 <table class="table-accounting">
                     <thead>
                         <tr>
-                            <th class="min-w-40 group-header">借方 残高</th>
-                            <th class="min-w-40 group-header">借方 発生</th>
-                            <th class="min-w-64">勘定科目</th>
-                            <th class="min-w-40 group-header credit">貸方 発生</th>
-                            <th class="min-w-40 group-header credit">貸方 残高</th>
+                            <th class="min-w-40 md:w-32 group-header">借方 残高</th>
+                            <th class="min-w-40 md:w-32 group-header">借方 発生</th>
+                            <th class="min-w-64 md:w-48">勘定科目</th>
+                            <th class="min-w-40 md:w-32 group-header credit">貸方 発生</th>
+                            <th class="min-w-40 md:w-32 group-header credit">貸方 残高</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -64,7 +64,7 @@
                                     {% if row.kari_hassei > 0 %}{{ row.kari_hassei|format_number }}{% endif %}
                                 </td>
                                 <!-- Account Subject (Link to Ledger) -->
-                                <td class="text-center text-neutral text-base">
+                                <td class="text-center text-neutral">
                                     <a href="{% url 'ledger:sokanjo' %}?kamoku_id={{ row.kamoku.pk }}&date_to={{ date_to }}"
                                        class="hover:text-accent transition-colors block">{{ row.kamoku.name }}</a>
                                 </td>
@@ -84,7 +84,7 @@
                         <tr>
                             <td class="text-right">-</td>
                             <td class="amount amount-positive">{{ total_kari|format_number }}</td>
-                            <td class="text-center text-neutral text-xl tracking-[0.5em]">合 計</td>
+                            <td class="text-center text-neutral text-lg tracking-[0.5em]">合 計</td>
                             <td class="amount amount-negative">{{ total_kashi|format_number }}</td>
                             <td class="text-right">-</td>
                         </tr>

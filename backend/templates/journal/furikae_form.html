@@ -84,19 +84,19 @@
                         <table class="table-accounting" id="meisai-table">
                             <thead>
                                 <tr>
-                                    <th class="min-w-36">借/貸</th>
-                                    <th class="min-w-56">
+                                    <th class="min-w-36 md:w-14">借/貸</th>
+                                    <th class="min-w-52 md:w-24">
                                         勘定科目<span class="text-error ml-1">*</span>
                                     </th>
-                                    <th class="min-w-56">補助科目</th>
-                                    <th class="min-w-44">部門</th>
-                                    <th class="min-w-44">取引先</th>
-                                    <th class="min-w-32">
+                                    <th class="min-w-52 md:w-24">補助科目</th>
+                                    <th class="min-w-52 md:w-24">部門</th>
+                                    <th class="min-w-52 md:w-24">取引先</th>
+                                    <th class="min-w-32 md:w-16">
                                         金額<span class="text-error ml-1">*</span>
                                     </th>
-                                    <th class="min-w-48">税区分</th>
-                                    <th class="min-w-48">摘要</th>
-                                    <th class="min-w-28">操作</th>
+                                    <th class="min-w-52 md:w-24">税区分</th>
+                                    <th class="min-w-52 md:w-24">摘要</th>
+                                    {% if is_accountant %}<th class="min-w-24 md:w-10">操作</th>{% endif %}
                                 </tr>
                             </thead>
                             <tbody id="meisai-rows" class="divide-y divide-base-200/50">
