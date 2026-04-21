@@ -4,78 +4,157 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('furikaeForm', () => ({
         kariTotal: 0,
         kashiTotal: 0,
-        triggerCalc: 0,
         
         init() {
-            // Delay slightly to let HTMX mount the elements
+            // Initial scan
             setTimeout(() => {
+                this.initializeAllRows();
                 this.calcBalance();
             }, 50);
             
-            // Client-side validation styles for inputs
+            // HTMX integration: Re-init when new rows are added
+            document.body.addEventListener('htmx:afterSwap', (e) => {
+                const target = e.detail.target;
+                if (target.id === 'meisai-rows' || target.closest('#meisai-rows')) {
+                    this.initializeAllRows();
+                    this.calcBalance();
+                    if (typeof initTomSelects === 'function') initTomSelects(target);
+                }
+            });
+
+            // Global input listener for real-time updates
             const form = document.querySelector('#furikae-form');
             if (form) {
-                form.querySelectorAll('input[required], select[required]').forEach(el => {
-                    el.addEventListener('blur', () => this.validateField(el));
-                    el.addEventListener('input', () => {
-                        if (el.classList.contains('border-error')) this.validateField(el);
-                    });
+                form.addEventListener('input', (e) => {
+                    if (e.target.required) this.validateField(e.target);
+                    this.calcBalance();
                 });
+                form.addEventListener('change', () => this.calcBalance());
             }
         },
 
-        // Scan all rows, sum debits/credits, and notify HTMX
+        // Centralized row setup (replaces per-row script tags)
+        initializeAllRows() {
+            const rows = document.querySelectorAll('#meisai-rows tr[data-form-row]');
+            rows.forEach((row, rowIdx) => {
+                // 1. Assign Grid Coordinates
+                const wrappers = row.querySelectorAll('[data-col-wrapper]');
+                wrappers.forEach(wrapper => {
+                    const colIdx = wrapper.dataset.colWrapper;
+                    const el = wrapper.querySelector('select, input:not([type="hidden"])');
+                    if (el) {
+                        el.dataset.row = rowIdx;
+                        el.dataset.col = colIdx;
+                    }
+                });
+
+                // 2. Setup Side-switching logic (KA/SHI colors)
+                const kariKashiSelect = row.querySelector('select[name*="kari_kashi"]');
+                if (kariKashiSelect && !kariKashiSelect.dataset.initialized) {
+                    const updateSide = () => {
+                        const val = kariKashiSelect.tomselect ? kariKashiSelect.tomselect.getValue() : kariKashiSelect.value;
+                        row.querySelectorAll('.ka-side').forEach(cell => {
+                            cell.classList.toggle('group-detail', val === 'KA' || val === 'SHI');
+                            cell.classList.toggle('credit', val === 'SHI');
+                        });
+                    };
+                    kariKashiSelect.addEventListener('change', updateSide);
+                    if (kariKashiSelect.tomselect) kariKashiSelect.tomselect.on('change', updateSide);
+                    updateSide(); // Run once
+                    kariKashiSelect.dataset.initialized = "true";
+                }
+            });
+        },
+
         calcBalance() {
-            let kari = 0;
-            let kashi = 0;
-            
+            let kari = 0, kashi = 0;
             const rows = document.querySelectorAll('#meisai-rows tr:not([style*="display: none"])');
-            
             rows.forEach(row => {
                 const select = row.querySelector('select[name$="-kari_kashi"]');
                 const input = row.querySelector('input[name$="-kingaku"]');
                 const del = row.querySelector('input[name$="-DELETE"]');
-                
                 if (!del || !del.checked) {
                     const val = parseFloat(input?.value) || 0;
                     if (select?.value === 'KA') kari += val;
-                    if (select?.value === 'SHI') kashi += val;
+                    else if (select?.value === 'SHI') kashi += val;
                 }
             });
-            
             this.kariTotal = kari;
             this.kashiTotal = kashi;
             
-            // Sync values to hidden inputs (for standard form submission)
+            // Sync totals to hidden fields
             document.querySelectorAll('input[name="kari"], input[name="kashi"]').forEach(el => {
-                if (el.name === 'kari') el.value = kari;
-                if (el.name === 'kashi') el.value = kashi;
+                el.value = (el.name === 'kari' ? kari : kashi);
             });
             
-            // Tell HTMX to fetch and redraw the balance bar using the AJAX API.
-            // This is more robust than hx-trigger because we pass values directly.
+            // AJAX Balance Bar Update
             if (typeof htmx !== 'undefined') {
-                const balanceBar = document.getElementById('balance-bar');
-                if (balanceBar) {
-                    htmx.ajax('GET', '{% url "journal:balance-check" %}', {
-                        target: '#balance-bar',
-                        values: { kari: kari, kashi: kashi }
-                    });
+                const bar = document.getElementById('balance-bar');
+                if (bar) htmx.ajax('GET', '{% url "journal:balance-check" %}', {
+                    target: '#balance-bar',
+                    values: { kari, kashi }
+                });
+            }
+        },
+        
+        isBalanced() { return this.kariTotal > 0 && this.kariTotal === this.kashiTotal; },
+
+        handleGridKey(e) {
+            const target = e.target;
+            const row = target.dataset.row, col = target.dataset.col;
+            if (row === undefined || col === undefined) return;
+            this.handleKey(e, parseInt(row), parseInt(col));
+        },
+
+        handleKey(e, rowIdx, colIdx) {
+            const colCount = 8;
+            const target = e.target;
+            const ts = target.parentElement?.querySelector('select')?.tomselect || target.tomselect;
+
+            if ((e.key === 'Enter' && target.tagName !== 'BUTTON') || e.key === 'Tab') {
+                if (e.key === 'Enter' && ts && ts.isOpen) return;
+
+                e.preventDefault();
+                if (e.key === 'Tab') e.stopPropagation();
+                if (ts && ts.isOpen) ts.close();
+
+                if (e.shiftKey) {
+                    if (colIdx === 0 && rowIdx > 0) this.focusCell(rowIdx - 1, colCount - 1);
+                    else if (colIdx > 0) this.focusCell(rowIdx, colIdx - 1);
+                } else {
+                    if (colIdx === colCount - 1) this.focusCell(rowIdx + 1, 0);
+                    else this.focusCell(rowIdx, colIdx + 1);
+                }
+            } else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                if (ts && ts.isOpen) return;
+                if (e.key === 'ArrowRight' && target.tagName !== 'SELECT' && target.selectionEnd === target.value.length) {
+                    e.preventDefault(); this.focusCell(rowIdx, colIdx + 1);
+                } else if (e.key === 'ArrowLeft' && target.tagName !== 'SELECT' && target.selectionStart === 0) {
+                    e.preventDefault(); this.focusCell(rowIdx, colIdx - 1);
+                } else if (e.key === 'ArrowDown' && target.tagName !== 'SELECT') {
+                    e.preventDefault(); this.focusCell(rowIdx + 1, colIdx);
+                } else if (e.key === 'ArrowUp' && target.tagName !== 'SELECT') {
+                    e.preventDefault(); this.focusCell(rowIdx - 1, colIdx);
                 }
             }
         },
-        
-        isBalanced() {
-            return this.kariTotal > 0 && this.kariTotal === this.kashiTotal;
+
+        focusCell(row, col) {
+            const el = document.querySelector(`#meisai-rows [data-row="${row}"][data-col="${col}"]`);
+            if (!el) return;
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    if (el.tomselect) el.tomselect.focus();
+                    else {
+                        el.focus();
+                        if (el.select && el.tagName === 'INPUT' && el.type === 'number') el.select();
+                    }
+                }, 10);
+            });
         },
         
-        // Helper: Apply red border to empty required fields
         validateField(el) {
-            if (el.required && !el.value.trim()) {
-                el.classList.add('border-error');
-            } else {
-                el.classList.remove('border-error');
-            }
+            el.classList.toggle('border-error', el.required && !el.value.trim());
         }
     }));
 });

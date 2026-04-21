@@ -120,6 +120,7 @@ function initTomSelects(container) {
             allowEmptyOption: true,
             openOnFocus: true,
             closeAfterSelect: true,
+            selectOnTab: true,
             placeholder: placeholder,
             searchField: ["text"],
             dropdownClass: "ts-dropdown",

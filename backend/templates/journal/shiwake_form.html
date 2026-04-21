@@ -12,7 +12,7 @@
         <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
             <div class="flex items-center gap-2 w-full">
                 <i class="fa-solid fa-lightbulb text-warning"></i>
-                <span class="text-neutral text-xs">パターンを選択して「行追加」を押すと、自動入力された行が追加されます。</span>
+                <span class="text-neutral text-xs">パターンを選択して「行を追加」を押すと、自動入力された行が追加されます。</span>
             </div>
             <div class="flex flex-wrap md:flex-nowrap items-center justify-end gap-2">
                 <!-- Journal Dictionary Selection -->
@@ -38,11 +38,10 @@
                         hx-vals="js:{index: getNextRowIndex(), dict_id: document.getElementById('dict-pattern-select')?.value}"
                         hx-target="#grid-rows"
                         hx-swap="beforeend"
-                        class="btn btn-primary btn-outline gap-2">
-                    <i class="fa-solid fa-plus"></i>行追加
+                        class="btn-add-row">
+                    <i class="fa-solid fa-plus"></i>行を追加
                 </button>
-                <a href="{% url 'journal:furikae-create' %}"
-                   class="btn btn-primary btn-outline gap-2">
+                <a href="{% url 'journal:furikae-create' %}" class="btn-submit">
                     <i class="fa-solid fa-toggle-on"></i>伝票へ切替
                 </a>
             </div>

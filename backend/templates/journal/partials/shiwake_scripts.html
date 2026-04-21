@@ -3,13 +3,10 @@ function shiwakeGrid() {
     return {
         // State
         validationTick: 0,
-        rowErrors: {},  // Track errors for each row: { rowIdx: errorMessage }
+        rowErrors: {}, 
 
-        // Initialization
         init() {
-            if (typeof initTomSelects === 'function') {
-                initTomSelects();
-            }
+            if (typeof initTomSelects === 'function') initTomSelects();
             this.revalidateAllRows();
 
 
@@ -158,56 +155,93 @@ function shiwakeGrid() {
             const target = e.target;
             const row = target.dataset.row;
             const col = target.dataset.col;
-            if (!row || col === undefined) return;
+            if (row === undefined || col === undefined) return;
             this.handleKey(e, parseInt(row), parseInt(col));
         },
 
         handleKey(e, rowIdx, colIdx) {
             const colCount = 10;
+            const target = e.target;
+            // Find TomSelect instance if it exists for this target
+            const ts = target.parentElement?.querySelector('select')?.tomselect || target.tomselect;
 
-            if (e.key === 'Enter') {
-                e.preventDefault(); // Prevent form submission
-                // HTMX handles the save. We just need to move focus if it's the last cell
+            // 1. Handle Navigation Keys (Enter/Tab)
+            if (e.key === 'Enter' && target.tagName !== 'BUTTON') {
+                if (ts && ts.isOpen) return; // Let TomSelect select the item
+
+                e.preventDefault(); 
                 if (colIdx === colCount - 1) {
                     this.focusCell(rowIdx + 1, 0);
                 } else {
                     this.focusCell(rowIdx, colIdx + 1);
                 }
             } else if (e.key === 'Tab') {
-                e.preventDefault(); // Prevent default tab behavior
+                e.preventDefault();
+                e.stopPropagation(); // Prevent TomSelect internal tab logic
+
+                // If moving away from an open TomSelect, close it first
+                if (ts && ts.isOpen) {
+                    ts.close();
+                }
+
                 if (e.shiftKey) {
-                    // Shift+Tab: move left
-                    if (colIdx > 0) {
-                        this.focusCell(rowIdx, colIdx - 1);
-                    } else {
+                    if (colIdx === 0 && rowIdx > 0) {
                         this.focusCell(rowIdx - 1, colCount - 1);
+                    } else if (colIdx > 0) {
+                        this.focusCell(rowIdx, colIdx - 1);
                     }
                 } else {
-                    // Tab: move right
-                    if (colIdx < colCount - 1) {
-                        this.focusCell(rowIdx, colIdx + 1);
-                    } else {
+                    if (colIdx === colCount - 1) {
                         this.focusCell(rowIdx + 1, 0);
+                    } else {
+                        this.focusCell(rowIdx, colIdx + 1);
                     }
                 }
-            } else if (e.key === 'ArrowRight') {
-                e.preventDefault();
-                this.focusCell(rowIdx, colIdx + 1);
-            } else if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                this.focusCell(rowIdx, colIdx - 1);
-            } else if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                this.focusCell(rowIdx + 1, colIdx);
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                this.focusCell(rowIdx - 1, colIdx);
+            } 
+            // 2. Handle Arrow Keys
+            else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                if (ts && ts.isOpen) return;
+
+                if (e.key === 'ArrowRight' && target.tagName !== 'SELECT') {
+                    if (target.selectionEnd === target.value.length) {
+                        e.preventDefault();
+                        this.focusCell(rowIdx, colIdx + 1);
+                    }
+                } else if (e.key === 'ArrowLeft' && target.tagName !== 'SELECT') {
+                    if (target.selectionStart === 0) {
+                        e.preventDefault();
+                        this.focusCell(rowIdx, colIdx - 1);
+                    }
+                } else if (e.key === 'ArrowDown' && target.tagName !== 'SELECT') {
+                    e.preventDefault();
+                    this.focusCell(rowIdx + 1, colIdx);
+                } else if (e.key === 'ArrowUp' && target.tagName !== 'SELECT') {
+                    e.preventDefault();
+                    this.focusCell(rowIdx - 1, colIdx);
+                }
             }
         },
 
         focusCell(row, col) {
             const el = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-            if (el) el.focus();
+            if (!el) return;
+
+            // requestAnimationFrame + setTimeout is the most robust way to handle 
+            // focus transitions in Chrome/Edge to prevent address bar jumps.
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    if (el.tomselect) {
+                        el.tomselect.focus();
+                        // Optional: if you want it to open immediately on tab
+                        // el.tomselect.open(); 
+                    } else {
+                        el.focus();
+                        if (el.select && el.tagName === 'INPUT' && el.type === 'number') {
+                            el.select();
+                        }
+                    }
+                }, 10);
+            });
         }
     }
 }

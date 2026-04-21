@@ -97,20 +97,20 @@
                         <h2 class="text-xs font-bold uppercase tracking-widest opacity-60 mb-4">クイックアクセス</h2>
                         <div class="grid grid-cols-1 gap-3">
                             <a href="{% url 'journal:shiwake-create' %}"
-                               class="btn btn-md btn-primary btn-outline gap-3 normal-case justify-start">
-                                <i class="fa-solid fa-book text-info"></i>仕訳日記帳（入力）
+                               class="btn-submit-outline justify-start">
+                                <i class="fa-solid fa-book"></i>仕訳日記帳（入力）
                             </a>
                             <a href="{% url 'journal:furikae-create' %}"
-                               class="btn btn-md btn-primary btn-outline gap-3 normal-case justify-start">
-                                <i class="fa-solid fa-arrow-right-arrow-left text-warning"></i>振替伝票（入力）
+                               class="btn-submit-outline justify-start">
+                                <i class="fa-solid fa-arrow-right-arrow-left"></i>振替伝票（入力）
                             </a>
                             <div class="divider my-0"></div>
                             <a href="{% url 'ledger:genkin' %}"
-                               class="btn btn-ghost hover:bg-base-200 gap-3 normal-case justify-start">
+                               class="btn btn-ghost hover:bg-base-200 gap-2 justify-start">
                                 <i class="fa-solid fa-coins opacity-60"></i>現金出納帳
                             </a>
                             <a href="{% url 'ledger:zandaka' %}"
-                               class="btn btn-ghost hover:bg-base-200 gap-3 normal-case justify-start">
+                               class="btn btn-ghost hover:bg-base-200 gap-2 justify-start">
                                 <i class="fa-solid fa-chart-pie opacity-60"></i>残高試算表
                             </a>
                         </div>
@@ -179,7 +179,7 @@
                                                     <i class="fa-solid fa-lock-open text-error text-xs"></i>
                                                 </div>
                                             {% endif %}
-                                            <a href="{{ v.get_edit_url }}" class="btn btn-ghost btn-primary btn-xs">
+                                            <a href="{{ v.get_edit_url }}" class="btn-ico-square btn-xs">
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>
                                         </div>

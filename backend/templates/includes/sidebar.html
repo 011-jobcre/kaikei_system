@@ -190,10 +190,8 @@
             <!-- Logout form — uses POST to satisfy Django's CSRF requirement -->
             <form action="{% url 'account:logout' %}" method="post" class="flex-none">
                 {% csrf_token %}
-                <button type="submit"
-                        class="btn btn-ghost btn-primary btn-square"
-                        title="ログアウト">
-                    <i class="fa-solid fa-arrow-right-from-bracket text-xl"></i>
+                <button type="submit" class="btn-ico-square" title="ログアウト">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-lg"></i>
                 </button>
             </form>
         </div>

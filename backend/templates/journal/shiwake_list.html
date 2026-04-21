@@ -45,19 +45,6 @@
                     <a href="{% url 'journal:shiwake-list' %}" class="btn-clear">クリア</a>
                 </div>
             </form>
-            <!-- Create buttons -->
-            {% if is_accountant %}
-                <div class="flex gap-2 items-center justify-end">
-                    <a href="{% url 'journal:shiwake-create' %}"
-                       class="btn btn-primary gap-2 flex-1 md:flex-none">
-                        <i class="fa-solid fa-book"></i>仕訳日記帳
-                    </a>
-                    <a href="{% url 'journal:furikae-create' %}"
-                       class="btn btn-primary gap-2 flex-1 md:flex-none">
-                        <i class="fa-solid fa-arrow-right-arrow-left"></i>振替伝票
-                    </a>
-                </div>
-            {% endif %}
         </div>
         <!-- Data Table: HTMX-enabled for dynamic updates -->
         {% include "journal/partials/shiwake_list_table.html" %}

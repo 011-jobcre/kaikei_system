@@ -1,6 +1,6 @@
 <tr id="{{ form.prefix }}"
     :class="{ 'group-detail credit ring-1 ring-inset ring-error/40': rowHasError(getRowIndex($el)) }"
-    @keyup="handleGridKey($event)">
+    @keydown="handleGridKey($event)">
     <td>
         {% csrf_token %}
         <input type="hidden" name="_row_prefix" value="{{ form.prefix }}" />
