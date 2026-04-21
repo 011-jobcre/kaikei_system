@@ -9,37 +9,36 @@
     {% load number_filters %}
     <div class="space-y-4">
         <!-- Filter / Query Toolbar -->
-        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
-            <form method="get"
-                  class="flex flex-wrap md:flex-nowrap items-center gap-2 w-full">
-                <!-- Selected Kamoku display (Fixed for Cash Book) -->
-                <div class="px-3 border-r border-base-300">
-                    <span class="font-bold whitespace-nowrap text-primary">
-                        {% if selected_kamoku %}
-                            現金出納帳（{{ selected_kamoku.name }}）
-                        {% else %}
-                            <span class="text-error">現金科目が未設定</span>
-                        {% endif %}
-                    </span>
+        <div class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
+            <form method="get" class="flex flex-col gap-3 w-full">
+                <div class="flex flex-wrap md:flex-nowrap items-start gap-4">
+                    <!-- Date Section (Custom Picker) -->
+                    <div class="flex-1">
+                        {% include "common/date_range_picker.html" with date_from=date_from date_to=date_to %}
+                    </div>
+
+                    <!-- Selected Kamoku (Mobile Hidden/Table Top) -->
+                    <div class="hidden md:flex flex-col gap-2 w-full md:w-1/3">
+                        <div class="px-3 border-l-4 border-primary bg-primary/5 py-2 rounded">
+                            <span class="font-bold text-sm text-primary block">表示対象</span>
+                            <span class="text-base font-bold">
+                                {% if selected_kamoku %}
+                                    {{ selected_kamoku.name }}
+                                {% else %}
+                                    <span class="text-error">現金科目が未設定</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex md:hidden items-center gap-2 mt-2">
+                             <button type="submit" class="btn-submit w-full">
+                                <i class="fa-solid fa-list-check"></i>表示
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <!-- Date range filters -->
-                <div class="flex items-center gap-1">
-                    <input type="date"
-                           name="date_from"
-                           value="{{ date_from }}"
-                           class="input outline-none text-neutral w-full md:w-40" />
-                    <span class="text-base-content/40 font-bold px-1">〜</span>
-                    <input type="date"
-                           name="date_to"
-                           value="{{ date_to }}"
-                           class="input outline-none text-neutral w-full md:w-40" />
-                </div>
-                <button type="submit" class="btn-submit flex-1 md:flex-none">
-                    <i class="fa-solid fa-list-check"></i>表示
-                </button>
-                <a href="{% url 'ledger:genkin' %}" class="btn-clear">クリア</a>
             </form>
         </div>
+
         {% if selected_kamoku %}
             <!-- Summary Statistics -->
             <div class="stats stats-vertical md:stats-horizontal shadow-sm w-full gap-2">
@@ -82,9 +81,9 @@
                                         <div class="text-col">{{ row.meisai.tekyou }}</div>
                                         <div class="text-neutral/50 text-xs mt-1">
                                             {% if row.meisai.kari_kashi == 'KA' %}
-                                                [貸方科目] <!-- Inverse side -->
+                                                [相手: 貸方科目]
                                             {% else %}
-                                                [借方科目]
+                                                [相手: 借方科目]
                                             {% endif %}
                                         </div>
                                     </td>

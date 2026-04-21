@@ -198,3 +198,120 @@ function initTomSelects(container) {
 
 // Global exposure for specific manual triggers (rarely needed with htmx:onLoad)
 window.initTomSelectsInModal = (container) => initTomSelects(container);
+
+// --- Alpine.js Date Range Picker Component ---
+document.addEventListener("alpine:init", () => {
+    Alpine.data("dateRangePicker", (initialFrom, initialTo) => ({
+        dateFrom: initialFrom || "",
+        dateTo: initialTo || "",
+        fiscalYear: 0,
+        selectionState: 0,
+        years: [],
+
+        init() {
+            // Generate year list (Current year + 1 down to 15 years ago)
+            const currentYear = new Date().getFullYear();
+            for (let i = currentYear + 1; i >= currentYear - 15; i--) {
+                this.years.push(i);
+            }
+
+            // Determine initial fiscal year from dateFrom or current date
+            const d = this.dateFrom ? new Date(this.dateFrom) : new Date();
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            this.fiscalYear = month >= 4 ? year : year - 1;
+        },
+
+        /**
+         * Updates the base fiscal year and resets to full year for that period.
+         */
+        setYear(year) {
+            this.fiscalYear = parseInt(year);
+            this.setFullYear();
+        },
+
+        setMonth(monthIdx) {
+            const range = this.calcMonthRange(monthIdx);
+            if (this.selectionState === 0) {
+                this.dateFrom = range.from;
+                this.dateTo = range.to;
+                this.selectionState = 1;
+            } else {
+                const start = new Date(this.dateFrom);
+                const target = new Date(range.from);
+                if (target >= start) {
+                    this.dateTo = range.to;
+                } else {
+                    this.dateFrom = range.from;
+                }
+                this.selectionState = 0;
+            }
+        },
+
+        resetAll() {
+            // 1. Reset Alpine state
+            const now = new Date();
+            const year = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+            this.fiscalYear = currentMonth >= 4 ? year : year - 1;
+            this.dateFrom = "";
+            this.dateTo = "";
+            this.selectionState = 0;
+
+            // 2. Reset parent form inputs (Keyword, etc.)
+            const form = this.$el.closest("form");
+            if (form) {
+                form.reset();
+                // Manually clear all text inputs just in case
+                form.querySelectorAll('input[type="text"]').forEach((i) => (i.value = ""));
+                // Handle standard selects
+                form.querySelectorAll("select").forEach((s) => (s.selectedIndex = 0));
+
+                // 3. Handle TomSelect if present
+                form.querySelectorAll(".tomselected").forEach((s) => {
+                    if (s.tomselect) s.tomselect.clear();
+                });
+            }
+        },
+
+        calcMonthRange(monthIdx) {
+            let targetMonth = monthIdx + 4; // Index 0 is April
+            let targetYear = this.fiscalYear;
+
+            if (targetMonth > 12) {
+                targetMonth -= 12;
+                targetYear += 1;
+            }
+
+            const firstDay = new Date(targetYear, targetMonth - 1, 1);
+            const lastDay = new Date(targetYear, targetMonth, 0);
+            return {
+                from: this.formatDate(firstDay),
+                to: this.formatDate(lastDay),
+            };
+        },
+
+        setFullYear() {
+            this.dateFrom = `${this.fiscalYear}-04-01`;
+            this.dateTo = `${this.fiscalYear + 1}-03-31`;
+            this.selectionState = 0;
+        },
+
+        formatDate(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, "0");
+            const d = String(date.getDate()).padStart(2, "0");
+            return `${y}-${m}-${d}`;
+        },
+
+        isMonthActive(monthIdx) {
+            if (!this.dateFrom || !this.dateTo) return false;
+            const range = this.calcMonthRange(monthIdx);
+            const start = new Date(this.dateFrom);
+            const end = new Date(this.dateTo);
+            const targetStart = new Date(range.from);
+            const targetEnd = new Date(range.to);
+            return targetStart >= start && targetEnd <= end;
+        },
+    }));
+});

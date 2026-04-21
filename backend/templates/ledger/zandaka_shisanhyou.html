@@ -8,102 +8,97 @@
 {% block content %}
     {% load number_filters %}
     <div class="space-y-4">
-        <!-- Toolbar -->
-        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-base-100 p-4 rounded-box shadow-sm border border-base-300 print:hidden">
-            <form method="get"
-                  class="flex flex-wrap md:flex-nowrap items-center gap-2 w-full">
-                <label class="input outline-none w-full md:w-auto">
-                    <span class="label min-w-auto">集計基準日</span>
-                    <input type="date"
-                           name="date_to"
-                           value="{{ date_to }}"
-                           class="text-neutral w-full md:w-40" />
-                </label>
-                <button type="submit" class="btn-submit flex-1 md:flex-none">
-                    <i class="fa-solid fa-chart-line"></i>集計
-                </button>
-                <a href="{% url 'ledger:zandaka' %}" class="btn-clear">クリア</a>
+        <!-- Filter Toolbar -->
+        <div class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
+            <form method="get" class="flex flex-col gap-3 w-full">
+                <div class="flex flex-wrap md:flex-nowrap items-start gap-4">
+                    <!-- Date Section (Custom Picker) -->
+                    <div class="flex-1">
+                        <div class="text-xs font-bold text-base-content/50 mb-1 ml-1">対象期間（年月）</div>
+                        {% include "common/date_range_picker.html" with date_from=date_from date_to=date_to %}
+                    </div>
+
+                    <!-- Export Actions -->
+                    <div class="flex flex-col gap-2 w-full md:w-1/4">
+                         <div class="flex items-center gap-2">
+                             <button type="submit" class="btn-submit flex-1">
+                                <i class="fa-solid fa-sync"></i>集計更新
+                            </button>
+                             <div class="dropdown dropdown-end">
+                                <label tabindex="0" class="btn btn-neutral btn-sm h-10 px-4">
+                                    <i class="fa-solid fa-download mr-1"></i>出力
+                                </label>
+                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40 border border-base-300">
+                                    <li><a href="?date_from={{ date_from }}&date_to={{ date_to }}&format=xlsx"><i class="fa-solid fa-file-excel text-success"></i>Excel (.xlsx)</a></li>
+                                    <li><a href="?date_from={{ date_from }}&date_to={{ date_to }}&format=csv"><i class="fa-solid fa-file-csv text-info"></i>CSV (.csv)</a></li>
+                                </ul>
+                            </div>
+                         </div>
+                         <div class="text-[10px] text-base-content/40 text-center italic">
+                            ※指定期間の合計および残高を表示します
+                         </div>
+                    </div>
+                </div>
             </form>
-            <!-- Export dropdown -->
-            {% url 'ledger:zandaka-export' 'csv' as csv_base %}
-            {% url 'ledger:zandaka-export' 'excel' as excel_base %}
-            {% include "includes/export_dropdown.html" with csv_url=csv_base|add:"?date_to="|add:date_to excel_url=excel_base|add:"?date_to="|add:date_to %}
         </div>
-        <!-- Trial Balance Report -->
-        <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden print:shadow-none print:border-none">
-            <div class="text-center py-6 border-b border-base-300">
-                <h2 class="text-2xl font-bold tracking-tight">合計残高試算表</h2>
-                <p class="text-base-content/40 mt-2">
-                    {% if date_to_obj %}
-                        期首 〜 <strong class="text-neutral">{{ date_to_obj|date:"Y年m月d日" }}</strong>
-                    {% else %}
-                        <strong>全期間</strong>
-                    {% endif %}
-                </p>
-            </div>
+
+        <!-- Trial Balance Table -->
+        <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
             <div class="table-wrapper">
-                <table class="table-accounting">
+                <table class="table-accounting border-collapse">
                     <thead>
-                        <tr>
-                            <th class="min-w-40 md:w-32 group-header">借方 残高</th>
-                            <th class="min-w-40 md:w-32 group-header">借方 発生</th>
-                            <th class="min-w-64 md:w-48">勘定科目</th>
-                            <th class="min-w-40 md:w-32 group-header credit">貸方 発生</th>
-                            <th class="min-w-40 md:w-32 group-header credit">貸方 残高</th>
+                        <tr class="bg-base-200/50">
+                            <th rowspan="2" class="border-r border-base-300 min-w-40">勘定科目</th>
+                            <th colspan="2" class="text-center group-header border-b border-base-300">期首残高</th>
+                            <th colspan="2" class="text-center group-header border-b border-base-300">期間合計</th>
+                            <th colspan="2" class="text-center group-header border-b border-base-300 pl-4">期末残高</th>
+                        </tr>
+                        <tr class="bg-base-200/50">
+                            <th class="w-1/6 group-detail">借方</th>
+                            <th class="w-1/6 group-detail border-r border-base-300">貸方</th>
+                            <th class="w-1/6 group-detail">借方</th>
+                            <th class="w-1/6 group-detail border-r border-base-300">貸方</th>
+                            <th class="w-1/6 group-detail">借方</th>
+                            <th class="w-1/6 group-detail">貸方</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for row in rows %}
-                            <tr>
-                                <!-- Debit Balance -->
-                                <td class="amount amount-positive group-detail">
-                                    {% if row.kamoku.is_kari_zandaka and row.zandaka > 0 %}{{ row.zandaka|format_number }}{% endif %}
+                            <tr class="hover:bg-base-200/30 {% if not row.is_kamoku %} font-bold bg-base-100/80 {% endif %}">
+                                <td class="border-r border-base-300">
+                                    <div class="flex items-center gap-2">
+                                        {% if row.is_kamoku %}
+                                            <span class="text-xs text-base-content/30 font-mono">{{ row.obj.code }}</span>
+                                            <span class="text-sm">{{ row.obj.name }}</span>
+                                        {% else %}
+                                            <span class="text-sm">{{ row.obj }}</span>
+                                        {% endif %}
+                                    </div>
                                 </td>
-                                <!-- Debit Occurrence -->
-                                <td class="amount amount-positive group-detail">
-                                    {% if row.kari_hassei > 0 %}{{ row.kari_hassei|format_number }}{% endif %}
-                                </td>
-                                <!-- Account Subject (Link to Ledger) -->
-                                <td class="text-center text-neutral">
-                                    <a href="{% url 'ledger:sokanjo' %}?kamoku_id={{ row.kamoku.pk }}&date_to={{ date_to }}"
-                                       class="hover:text-accent transition-colors block">{{ row.kamoku.name }}</a>
-                                </td>
-                                <!-- Credit Occurrence -->
-                                <td class="amount amount-negative group-detail credit">
-                                    {% if row.kashi_hassei > 0 %}{{ row.kashi_hassei|format_number }}{% endif %}
-                                </td>
-                                <!-- Credit Balance -->
-                                <td class="amount amount-negative group-detail credit">
-                                    {% if not row.kamoku.is_kari_zandaka and row.zandaka > 0 %}{{ row.zandaka|format_number }}{% endif %}
-                                </td>
+                                <!-- Opening Balance -->
+                                <td class="amount amount-neutral group-detail">{{ row.opening_kari|format_number }}</td>
+                                <td class="amount amount-neutral group-detail border-r border-base-300">{{ row.opening_kashi|format_number }}</td>
+                                <!-- Period Totals -->
+                                <td class="amount amount-positive group-detail">{{ row.period_kari|format_number }}</td>
+                                <td class="amount amount-negative group-detail border-r border-base-300">{{ row.period_kashi|format_number }}</td>
+                                <!-- Ending Balance -->
+                                <td class="amount {% if row.closing_kari > 0 %}amount-positive{% else %}amount-neutral{% endif %} group-detail">{{ row.closing_kari|format_number }}</td>
+                                <td class="amount {% if row.closing_kashi > 0 %}amount-negative{% else %}amount-neutral{% endif %} group-detail">{{ row.closing_kashi|format_number }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
-                    <!-- Totals Footers -->
                     <tfoot>
-                        <tr>
-                            <td class="text-right">-</td>
-                            <td class="amount amount-positive">{{ total_kari|format_number }}</td>
-                            <td class="text-center text-neutral text-lg tracking-[0.5em]">合 計</td>
-                            <td class="amount amount-negative">{{ total_kashi|format_number }}</td>
-                            <td class="text-right">-</td>
+                        <tr class="total-row border-t-2 border-base-content/20">
+                            <td class="border-r border-base-300">合計</td>
+                            <td class="amount group-detail">{{ total_opening_kari|format_number }}</td>
+                            <td class="amount group-detail border-r border-base-300">{{ total_opening_kashi|format_number }}</td>
+                            <td class="amount group-detail">{{ total_period_kari|format_number }}</td>
+                            <td class="amount group-detail border-r border-base-300">{{ total_period_kashi|format_number }}</td>
+                            <td class="amount group-detail">{{ total_closing_kari|format_number }}</td>
+                            <td class="amount group-detail">{{ total_closing_kashi|format_number }}</td>
                         </tr>
                     </tfoot>
                 </table>
-            </div>
-            <!-- Balance Validation -->
-            <div class="bg-base-100 text-center py-6 border-t border-base-300 print:hidden">
-                {% if balanced %}
-                    <div class="text-success font-bold text-lg flex flex-col md:flex-row items-center justify-center gap-2">
-                        <i class="fa-solid fa-circle-check text-2xl"></i>
-                        貸借一致を確認しました
-                    </div>
-                {% else %}
-                    <div class="text-error font-bold text-lg flex flex-col md:flex-row items-center justify-center gap-2">
-                        <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
-                        貸借が不一致です（仕訳データエラーの可能性があります）
-                    </div>
-                {% endif %}
             </div>
         </div>
     </div>
