@@ -85,11 +85,15 @@ button {
 
     /* Date Range & Monthly Selector */
     .date-month-bar {
-        @apply flex flex-wrap gap-1 p-2 bg-base-200 rounded-box border border-base-300/50;
+        @apply flex flex-row md:flex-wrap gap-1 p-2 bg-base-200 rounded-box border border-base-300/50;
     }
 
     .btn-month {
         @apply btn btn-ghost btn-secondary px-2 btn-sm shrink-0;
+    }
+
+    .btn-month.active {
+        @apply bg-primary text-white;
     }
 
     .btn-period-all {

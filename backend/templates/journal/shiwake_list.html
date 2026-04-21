@@ -7,28 +7,38 @@
 {% endblock page_header %}
 {% block content %}
     <div class="space-y-4">
-        <!-- Toolbar: filters + create actions -->
+        <!-- Toolbar -->
         <div class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
-            <form method="get" class="flex flex-col items-center justify-center gap-2 ">
-                <div class="flex flex-wrap items-center gap-4">
-                    <!-- Keyword search -->
-                    <input type="text"
-                           name="q"
-                           value="{{ q }}"
-                           placeholder="伝票No・摘要検索"
-                           class="input outline-none text-neutral w-full md:w-1/5" />
-                    <!-- Voucher type filter -->
-                    <label class="select outline-none cursor-pointer w-full md:w-1/5">
-                        <span class="label min-w-20">伝票種別</span>
-                        <select name="denpyo_type">
-                            <option value="">全種別</option>
-                            <option value="SHIWAKE" {% if denpyo_type == "SHIWAKE" %}selected{% endif %}>仕訳</option>
-                            <option value="FURIKAE" {% if denpyo_type == "FURIKAE" %}selected{% endif %}>振替</option>
-                        </select>
-                    </label>
-                    <!-- Date Section (Custom Picker) -->
-                    {% include "common/date_range_picker.html" with date_from=date_from date_to=date_to %}
+            <form method="get" class="space-y-4">
+                <!-- Group 1: General Search Filters -->
+                <div class="flex flex-col md:flex-row items-center gap-4">
+                    <div class="flex-1 w-full relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30"></i>
+                        <input type="text"
+                               name="q"
+                               value="{{ q }}"
+                               placeholder="伝票No・摘要検索"
+                               class="input pl-11 outline-none text-neutral w-full bg-base-200/50 focus:bg-base-100 transition-all border-base-300" />
+                    </div>
+                    <div class="w-full lg:w-72">
+                        <label class="select outline-none cursor-pointer w-full bg-base-200/50 focus-within:bg-base-100 transition-all border-base-300">
+                            <span class="label min-w-24 text-neutral/50 text-xs font-bold">伝票種別</span>
+                            <select name="denpyo_type" class="text-sm">
+                                <option value="">全て表示</option>
+                                <option value="SHIWAKE" {% if denpyo_type == "SHIWAKE" %}selected{% endif %}>仕訳日記帳</option>
+                                <option value="FURIKAE" {% if denpyo_type == "FURIKAE" %}selected{% endif %}>振替伝票</option>
+                            </select>
+                        </label>
+                    </div>
                 </div>
+                <!-- Subtle Divider with Label -->
+                <div class="relative h-px bg-base-300 my-2">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 bg-base-100 px-2 text-[10px] font-bold tracking-widest text-base-content/30 uppercase italic">
+                        Period Filters
+                    </span>
+                </div>
+                <!-- Group 2: Period Selection -->
+                <div class="w-full">{% include "common/date_range_picker.html" with date_from=date_from date_to=date_to %}</div>
             </form>
         </div>
         <!-- Data Table: HTMX-enabled for dynamic updates -->
