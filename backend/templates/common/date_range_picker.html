@@ -1,63 +1,43 @@
-<div x-data="dateRangePicker('{{ date_from|default:"" }}', '{{ date_to|default:"" }}')"
-     class="flex flex-col gap-4 w-full">
-    <!-- Row 1: Fiscal Year + Date Range + Search Actions -->
-    <div class="flex flex-col lg:flex-row items-center gap-4">
-        <!-- Year & Range Group -->
-        <div class="flex flex-wrap items-center gap-2 flex-1">
-            <!-- Year Selector -->
-            <div class="w-full md:w-32">
-                <select x-model="fiscalYear"
-                        @change="setYear($event.target.value)"
-                        class="select select-sm w-full outline-none border-base-300 bg-base-200/50 focus:bg-base-100 transition-all">
-                    <template x-for="y in years" :key="y">
-                        <option :value="y" x-text="y + '年度'"></option>
-                    </template>
-                </select>
-            </div>
-            <div class="hidden md:block w-px h-6 bg-base-300 mx-2"></div>
-            <!-- Date range inputs -->
-            <div class="flex items-center gap-1 flex-1 md:flex-none">
-                <input type="date"
-                       name="date_from"
-                       x-model="dateFrom"
-                       class="input input-sm outline-none text-neutral w-full md:w-40 border-base-300 bg-base-200/50 focus:bg-base-100 transition-all" />
-                <span class="text-base-content/40 font-bold px-1">〜</span>
-                <input type="date"
-                       name="date_to"
-                       x-model="dateTo"
-                       class="input input-sm outline-none text-neutral w-full md:w-40 border-base-300 bg-base-200/50 focus:bg-base-100 transition-all" />
-            </div>
+<div class="flex flex-col lg:flex-row gap-4 w-fit">
+    <fieldset class="fieldset flex flex-wrap items-center p-2 rounded-box bg-base-100 border border-base-300">
+        <legend class="fieldset-legend opacity-60">期間指定</legend>
+        <!-- Year Selector -->
+        <div class="w-full lg:w-32">
+            <select x-model="fiscalYear"
+                    @change="setYear($event.target.value)"
+                    class="select select-sm outline-none w-full">
+                <template x-for="y in years" :key="y">
+                    <option :value="y" x-text="y + '年度'"></option>
+                </template>
+            </select>
         </div>
-        <!-- Action Buttons -->
-        <div class="flex items-center gap-2 w-full lg:w-auto justify-end">
-            <button type="submit" class="btn btn-primary btn-sm px-6 gap-2">
-                <i class="fa-solid fa-magnifying-glass"></i>表示
-            </button>
-            <button type="button"
-                    @click="resetAll()"
-                    class="btn btn-ghost btn-sm text-xs opacity-50 hover:opacity-100">
-                <i class="fa-solid fa-rotate-left"></i>リセット
-            </button>
-        </div>
-    </div>
-    <!-- Row 2: Monthly Fast Selectors -->
-    <div class="flex flex-wrap items-center gap-1 bg-base-200/30 p-1.5 rounded-lg border border-base-300/30">
-        <div class="px-3 text-[10px] font-bold text-neutral/40 uppercase tracking-tighter border-r border-base-300/50 mr-2">
-            Quick Select
-        </div>
+        <div class="hidden lg:block w-px h-6 bg-base-300 mx-2 self-center"></div>
+        <!-- Monthly Fast Selectors -->
         <template x-for="(label, index) in ['4月','5月','6月','7月','8月','9月','10月','11月','12月','1月','2月','3月']"
                   :key="index">
             <button type="button"
                     @click="setMonth(index)"
-                    :class="{'bg-primary text-white': isMonthActive(index), 'hover:bg-base-300': !isMonthActive(index)}"
-                    class="h-8 px-3 rounded-md text-xs font-semibold transition-all"
+                    :class="{'active': isMonthActive(index)}"
+                    class="btn-month"
                     x-text="label"></button>
         </template>
-        <div class="flex-1"></div>
+        <div class="hidden lg:block w-px h-4 bg-base-300 mx-1 self-center"></div>
+        <!-- All Periods Button -->
         <button type="button"
                 @click="setFullYear()"
-                class="h-8 px-4 rounded-md text-xs font-bold bg-base-300/50 hover:bg-base-300 transition-all">
-            全期間
-        </button>
-    </div>
+                class="btn-submit-outline btn-xs">全期間</button>
+        <div class="hidden lg:block w-px h-4 bg-base-300 mx-1 self-center"></div>
+        <!-- Date Range Inputs -->
+        <div class="flex flex-row items-center gap-1 w-full lg:flex-1">
+            <input type="date"
+                   name="date_from"
+                   x-model="dateFrom"
+                   class="input input-sm outline-none text-neutral w-full lg:w-40" />
+            <span class="hidden lg:block text-base-content/40 font-bold px-1">〜</span>
+            <input type="date"
+                   name="date_to"
+                   x-model="dateTo"
+                   class="input input-sm outline-none text-neutral w-full lg:w-40" />
+        </div>
+    </fieldset>
 </div>

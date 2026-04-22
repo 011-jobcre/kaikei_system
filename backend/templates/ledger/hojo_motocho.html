@@ -8,57 +8,56 @@
 {% block content %}
     {% load number_filters %}
     <div class="space-y-4">
-        <!-- Filter / Query Toolbar -->
-        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
+        <!-- Toolbar -->
+        <div class="bg-base-100 p-3 rounded-box shadow-sm border border-base-300">
             <form method="get"
-                  class="flex flex-wrap md:flex-nowrap items-center gap-2 w-full">
-                <!-- Select search for Kamoku -->
-                <label class="select outline-none cursor-pointer w-full md:w-1/5">
-                    <span class="label min-w-auto">勘定科目 <span class="text-error ml-1">*</span></span>
-                    <select name="kamoku_id" class="tomselect" required>
-                        <option value="">科目を選択...</option>
-                        {% for k in kamoku_list %}
-                            <option value="{{ k.pk }}"
-                                    {% if selected_kamoku_id == k.pk|stringformat:"s" %}selected{% endif %}>
-                                {{ k.code }} {{ k.name }} [{{ k.furigana|default:'' }}]
-                            </option>
-                        {% endfor %}
-                    </select>
-                </label>
-                <!-- Select search for Torihikisaki -->
-                <label class="select outline-none cursor-pointer w-full md:w-1/4">
-                    <span class="label min-w-auto">取引先 <span class="text-error ml-1">*</span></span>
-                    <select name="torihikisaki_id" class="tomselect" required>
-                        <option value="">取引先を選択...</option>
-                        {% for t in torihikisaki_list %}
-                            <option value="{{ t.pk }}"
-                                    {% if selected_torihikisaki_id == t.pk|stringformat:"s" %}selected{% endif %}>
-                                {{ t.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </label>
-                <!-- Date range filters -->
-                <div class="flex items-center gap-1">
-                    <input type="date"
-                           name="date_from"
-                           value="{{ date_from }}"
-                           class="input outline-none text-neutral w-full md:w-40" />
-                    <span class="text-base-content/40 font-bold px-1">〜</span>
-                    <input type="date"
-                           name="date_to"
-                           value="{{ date_to }}"
-                           class="input outline-none text-neutral w-full md:w-40" />
+                  class="space-y-2"
+                  x-data="dateRangePicker('{{ date_from|default:"" }}', '{{ date_to|default:"" }}')">
+                <!-- Group 1: General Search Filters -->
+                <div class="flex flex-col lg:flex-row items-center gap-2 w-full">
+                    <!-- Select search for Kamoku -->
+                    <label class="select outline-none cursor-pointer w-full lg:w-1/4">
+                        <span class="label min-w-auto">勘定科目 <span class="text-error ml-1">*</span></span>
+                        <select name="kamoku_id" class="tomselect" required>
+                            <option value="">科目を選択...</option>
+                            {% for k in kamoku_list %}
+                                <option value="{{ k.pk }}"
+                                        {% if selected_kamoku_id == k.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ k.code }} {{ k.name }} [{{ k.furigana|default:'' }}]
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <!-- Select search for Torihikisaki -->
+                    <label class="select outline-none cursor-pointer w-full lg:w-1/4">
+                        <span class="label min-w-auto">取引先 <span class="text-error ml-1">*</span></span>
+                        <select name="torihikisaki_id" class="tomselect" required>
+                            <option value="">取引先を選択...</option>
+                            {% for t in torihikisaki_list %}
+                                <option value="{{ t.pk }}"
+                                        {% if selected_torihikisaki_id == t.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ t.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-2 w-full justify-end lg:justify-start">
+                        <button type="submit" class="btn-search btn-sm">
+                            <i class="fa-solid fa-magnifying-glass"></i>検索
+                        </button>
+                        <button type="button" @click="resetAndReload()" class="btn-clear btn-sm">
+                            <i class="fa-solid fa-rotate-left"></i>リセット
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="btn-submit flex-1 md:flex-none">
-                    <i class="fa-solid fa-list-check"></i>表示
-                </button>
-                <a href="{% url 'ledger:hojo' %}" class="btn-clear">クリア</a>
+                <!-- Group 2: Period Selection -->
+                {% include "common/date_range_picker.html" with date_from=date_from date_to=date_to %}
             </form>
         </div>
         {% if selected_kamoku and selected_torihikisaki %}
             <!-- Summary Statistics -->
-            <div class="stats stats-vertical md:stats-horizontal shadow-sm w-full gap-2">
+            <div class="stats stats-vertical lg:stats-horizontal shadow-sm w-full gap-2">
                 <div class="stat place-items-center">
                     <div class="stat-title text-success text-base">借方発生額</div>
                     <div class="stat-value text-success text-xl amount">¥{{ kari_total|format_number }}</div>
@@ -80,13 +79,13 @@
                     <table class="table-accounting">
                         <thead>
                             <tr>
-                                <th class="min-w-24 md:w-12">日付</th>
-                                <th class="min-w-32 md:w-16">伝票No</th>
-                                <th class="min-w-80 md:w-64">摘要 / [相手科目]</th>
-                                <th class="min-w-52 md:w-24">部門</th>
-                                <th class="min-w-32 md:w-16 group-header">借方 (増加)</th>
-                                <th class="min-w-32 md:w-16 group-header credit">貸方 (減少)</th>
-                                <th class="min-w-32 md:w-16">差引残高</th>
+                                <th class="min-w-24 lg:w-12">日付</th>
+                                <th class="min-w-32 lg:w-16">伝票No</th>
+                                <th class="min-w-80 lg:w-64">摘要 / [相手科目]</th>
+                                <th class="min-w-52 lg:w-24">部門</th>
+                                <th class="min-w-32 lg:w-16 group-header">借方 (増加)</th>
+                                <th class="min-w-32 lg:w-16 group-header credit">貸方 (減少)</th>
+                                <th class="min-w-32 lg:w-16">差引残高</th>
                             </tr>
                         </thead>
                         <tbody>

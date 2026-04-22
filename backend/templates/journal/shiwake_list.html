@@ -8,37 +8,42 @@
 {% block content %}
     <div class="space-y-4">
         <!-- Toolbar -->
-        <div class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
-            <form method="get" class="space-y-4">
+        <div class="bg-base-100 p-3 rounded-box shadow-sm border border-base-300">
+            <form method="get"
+                  class="space-y-2"
+                  x-data="dateRangePicker('{{ date_from|default:"" }}', '{{ date_to|default:"" }}')">
                 <!-- Group 1: General Search Filters -->
-                <div class="flex flex-col md:flex-row items-center gap-4">
-                    <div class="flex-1 w-full relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-base-content/30"></i>
+                <div class="flex flex-col lg:flex-row items-center gap-2 w-full">
+                    <div class="relative w-full lg:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute z-10 left-4 top-1/2 -translate-y-1/2 text-neutral/50"></i>
                         <input type="text"
                                name="q"
                                value="{{ q }}"
                                placeholder="伝票No・摘要検索"
-                               class="input pl-11 outline-none text-neutral w-full bg-base-200/50 focus:bg-base-100 transition-all border-base-300" />
+                               class="input input-sm pl-11 outline-none w-full" />
                     </div>
-                    <div class="w-full lg:w-72">
-                        <label class="select outline-none cursor-pointer w-full bg-base-200/50 focus-within:bg-base-100 transition-all border-base-300">
-                            <span class="label min-w-24 text-neutral/50 text-xs font-bold">伝票種別</span>
-                            <select name="denpyo_type" class="text-sm">
-                                <option value="">全て表示</option>
+                    <div class="w-full lg:w-80">
+                        <label class="select select-sm outline-none cursor-pointer w-full">
+                            <span class="label min-w-auto">伝票種別</span>
+                            <select name="denpyo_type">
+                                <option value="">全て</option>
                                 <option value="SHIWAKE" {% if denpyo_type == "SHIWAKE" %}selected{% endif %}>仕訳日記帳</option>
                                 <option value="FURIKAE" {% if denpyo_type == "FURIKAE" %}selected{% endif %}>振替伝票</option>
                             </select>
                         </label>
                     </div>
-                </div>
-                <!-- Subtle Divider with Label -->
-                <div class="relative h-px bg-base-300 my-2">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 bg-base-100 px-2 text-[10px] font-bold tracking-widest text-base-content/30 uppercase italic">
-                        Period Filters
-                    </span>
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-2 w-full justify-end lg:justify-start">
+                        <button type="submit" class="btn-search btn-sm">
+                            <i class="fa-solid fa-magnifying-glass"></i>検索
+                        </button>
+                        <button type="button" @click="resetAndReload()" class="btn-clear btn-sm">
+                            <i class="fa-solid fa-rotate-left"></i>リセット
+                        </button>
+                    </div>
                 </div>
                 <!-- Group 2: Period Selection -->
-                <div class="w-full">{% include "common/date_range_picker.html" with date_from=date_from date_to=date_to %}</div>
+                {% include "common/date_range_picker.html" with date_from=date_from date_to=date_to %}
             </form>
         </div>
         <!-- Data Table: HTMX-enabled for dynamic updates -->

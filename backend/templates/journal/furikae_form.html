@@ -17,11 +17,11 @@
         <form method="post" id="furikae-form" novalidate class="space-y-4">
             {% csrf_token %}
             <!-- Header Section -->
-            <div class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
+            <div class="bg-base-100 p-3 rounded-box shadow-sm border border-base-300">
                 <div class="grid grid-cols-1 sm:grid-cols-6 gap-2 w-full">
-                    <div class="form-control w-full md:col-span-2">
+                    <div class="form-control w-full lg:col-span-2">
                         <label class="input outline-none text-neutral w-full">
-                            <span class="label min-w-24 md:min-w-auto">伝票日付<span class="text-error ml-1">*</span></span>
+                            <span class="label min-w-24 lg:min-w-auto">伝票日付<span class="text-error ml-1">*</span></span>
                             {{ form.date }}
                             <script>
                                 (function() {
@@ -41,15 +41,15 @@
                             </div>
                         {% endif %}
                     </div>
-                    <div class="form-control w-full md:col-span-3">
+                    <div class="form-control w-full lg:col-span-3">
                         <label class="input outline-none text-neutral w-full">
-                            <span class="label min-w-24 md:min-w-auto">摘要（全体）</span>
+                            <span class="label min-w-24 lg:min-w-auto">摘要（全体）</span>
                             {{ form.memo }}
                         </label>
                     </div>
-                    <div class="w-full md:col-span-1 flex justify-end">
+                    <div class="w-full lg:col-span-1 flex justify-end">
                         <a href="{% url 'journal:shiwake-create' %}"
-                           class="btn-submit w-full md:w-auto">
+                           class="btn-submit w-full lg:w-auto">
                             <i class="fa-solid fa-toggle-off"></i>仕訳へ切替
                         </a>
                     </div>
@@ -57,8 +57,8 @@
             </div>
             <!-- Live Balance Tracker -->
             <div id="balance-container"
-                 class="bg-base-100 p-4 rounded-box shadow-sm border border-base-300">
-                <div class="flex flex-col md:flex-row items-center justify-center">
+                 class="bg-base-100 p-3 rounded-box shadow-sm border border-base-300">
+                <div class="flex flex-col lg:flex-row items-center justify-center">
                     <div class="space-y-1 text-center">
                         <div class="text-primary font-bold">借貸バランス</div>
                         <div class="text-xs text-info/70">＊ 振替伝票は複式仕訳 (1:n / n:1 / n:n) 入力モードです</div>
@@ -84,19 +84,19 @@
                         <table class="table-accounting" id="meisai-table">
                             <thead>
                                 <tr>
-                                    <th class="min-w-36 md:w-14">借/貸</th>
-                                    <th class="min-w-52 md:w-24">
+                                    <th class="min-w-36 lg:w-14">借/貸</th>
+                                    <th class="min-w-52 lg:w-24">
                                         勘定科目<span class="text-error ml-1">*</span>
                                     </th>
-                                    <th class="min-w-52 md:w-24">補助科目</th>
-                                    <th class="min-w-52 md:w-24">部門</th>
-                                    <th class="min-w-52 md:w-24">取引先</th>
-                                    <th class="min-w-32 md:w-16">
+                                    <th class="min-w-52 lg:w-24">補助科目</th>
+                                    <th class="min-w-52 lg:w-24">部門</th>
+                                    <th class="min-w-52 lg:w-24">取引先</th>
+                                    <th class="min-w-32 lg:w-16">
                                         金額<span class="text-error ml-1">*</span>
                                     </th>
-                                    <th class="min-w-52 md:w-24">税区分</th>
-                                    <th class="min-w-52 md:w-24">摘要</th>
-                                    {% if is_accountant %}<th class="min-w-24 md:w-10">操作</th>{% endif %}
+                                    <th class="min-w-52 lg:w-24">税区分</th>
+                                    <th class="min-w-52 lg:w-24">摘要</th>
+                                    {% if is_accountant %}<th class="min-w-24 lg:w-10">操作</th>{% endif %}
                                 </tr>
                             </thead>
                             <tbody id="meisai-rows" class="divide-y divide-base-200/50">
@@ -131,7 +131,7 @@
             </div>
             <!-- Action Buttons -->
             <div class="mt-4 flex items-center justify-end">
-                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                     <a href="{% url 'journal:shiwake-list' %}" class="btn-cancel">キャンセル</a>
                     <button type="submit" class="btn-submit" :disabled="!isBalanced()">
                         <i class="fa-regular fa-floppy-disk"></i>保存

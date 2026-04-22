@@ -84,12 +84,8 @@ button {
     }
 
     /* Date Range & Monthly Selector */
-    .date-month-bar {
-        @apply flex flex-row md:flex-wrap gap-1 p-2 bg-base-200 rounded-box border border-base-300/50;
-    }
-
     .btn-month {
-        @apply btn btn-ghost btn-secondary px-2 btn-sm shrink-0;
+        @apply btn btn-outline btn-secondary px-2 btn-xs shrink-0;
     }
 
     .btn-month.active {
@@ -97,7 +93,7 @@ button {
     }
 
     .btn-period-all {
-        @apply btn btn-ghost btn-primary btn-sm shrink-0;
+        @apply btn btn-ghost btn-primary px-2 btn-xs shrink-0;
     }
 
     .btn-ico-square {
@@ -105,7 +101,7 @@ button {
     }
 
     .btn-export {
-        @apply btn btn-outline btn-primary gap-2 w-full md:w-40 shrink-0;
+        @apply btn btn-outline btn-primary gap-2 w-full lg:w-40 shrink-0;
     }
 }
 
@@ -113,9 +109,11 @@ button {
 .sidebar-link {
     @apply flex items-center gap-3 px-4 py-3 rounded-box transition-all duration-200 text-neutral text-base font-semibold border-l-4 border-transparent;
 }
-.sidebar-link.active,
+.sidebar-link.active {
+    @apply bg-transparent text-primary border-primary shadow-sm;
+}
 .sidebar-link:hover {
-    @apply bg-base-200 text-primary border-primary shadow-sm;
+    @apply bg-transparent text-primary border-primary shadow-sm transform translate-x-1 transition-all duration-200;
 }
 .sidebar-link i {
     @apply w-6 text-center text-lg;
@@ -123,7 +121,7 @@ button {
 
 /* Accounting tables */
 .table-accounting {
-    @apply w-full border-collapse border-spacing-0 table table-auto md:table-fixed text-xs md:text-sm;
+    @apply w-full border-collapse border-spacing-0 table table-auto lg:table-fixed text-xs lg:text-sm;
 }
 
 .table-wrapper {
@@ -131,12 +129,8 @@ button {
 }
 
 /* Sticky header */
-.table-accounting thead {
-    @apply sticky top-0 z-10 bg-base-200/80 backdrop-blur-sm shadow-sm;
-}
-
 .table-accounting thead tr {
-    @apply bg-base-200/80;
+    @apply sticky top-0 z-10 bg-base-300 backdrop-blur-sm shadow-sm;
 }
 
 .table-accounting thead th {
@@ -159,7 +153,7 @@ button {
 }
 
 .table-accounting tbody td {
-    @apply border border-base-200/80 py-0 px-3 align-middle;
+    @apply border border-base-300 py-0.5 px-3 align-middle;
 }
 
 .table-accounting tbody td.group-detail {
@@ -191,10 +185,10 @@ button {
 }
 
 .table-accounting .date-col {
-    @apply whitespace-nowrap text-neutral;
+    @apply text-neutral whitespace-nowrap overflow-hidden;
 }
 .table-accounting .denp-no {
-    @apply font-mono whitespace-nowrap text-neutral;
+    @apply text-neutral whitespace-nowrap overflow-hidden font-mono;
 }
 .table-accounting .text-col {
     @apply text-neutral overflow-hidden text-ellipsis;

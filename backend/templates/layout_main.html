@@ -15,7 +15,7 @@
                     </label>
                 </div>
                 <!-- Page title / breadcrumb — populated by child template blocks -->
-                <div class="flex-1 px-4 text-neutral font-bold text-xl md:text-2xl tracking-tight truncate overflow-hidden">
+                <div class="flex-1 px-4 text-neutral font-bold text-xl lg:text-2xl tracking-tight truncate overflow-hidden">
                     {% block page_header %}
                     {% endblock page_header %}
                 </div>
@@ -25,16 +25,16 @@
                     <span class="htmx-indicator loading loading-spinner loading-md"></span>
                     <!-- Quick journal-entry shortcut, hidden on small screens -->
                     <a href="{% url 'journal:shiwake-create' %}"
-                       class="btn-submit hidden md:flex">
+                       class="btn-submit hidden lg:flex">
                         <i class="fa-solid fa-book"></i>仕訳日記帳
                     </a>
                     <a href="{% url 'journal:furikae-create' %}"
-                       class="btn-submit hidden md:flex">
+                       class="btn-submit hidden lg:flex">
                         <i class="fa-solid fa-arrow-right-arrow-left"></i>振替伝票
                     </a>
                     <!-- User initials avatar — safe fallback that never crashes.
                          Full user info is shown in the sidebar on desktop. -->
-                    <div class="avatar placeholder md:hidden">
+                    <div class="avatar placeholder lg:hidden">
                         <div class="bg-primary text-primary-content rounded-full w-9 text-sm font-bold flex items-center justify-center">
                             <span>{{ request.user.username|slice:":1"|upper }}</span>
                         </div>
@@ -42,13 +42,13 @@
                 </div>
             </header>
             <!-- Page content area -->
-            <main class="flex-1 p-4 md:p-6 overflow-auto">
+            <main class="flex-1 p-4 lg:p-6 overflow-auto">
                 <!-- Django flash messages — refreshed via HTMX after successful saves -->
                 <div class="space-y-2 mb-2" id="flash-messages">{% include "includes/messages_inline.html" %}</div>
                 {% block content %}
                 {% endblock content %}
             </main>
-            <footer class="footer footer-center p-2 bg-base-100 md:bg-transparent border-t border-base-300 print:hidden">
+            <footer class="footer footer-center p-2 bg-base-100 lg:bg-transparent border-t border-base-300 print:hidden">
                 <span>© 2026 会計システム — 全ての権利を保有します</span>
             </footer>
         </div>

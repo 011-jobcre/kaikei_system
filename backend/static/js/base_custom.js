@@ -211,7 +211,7 @@ document.addEventListener("alpine:init", () => {
         init() {
             // Generate year list (Current year + 1 down to 15 years ago)
             const currentYear = new Date().getFullYear();
-            for (let i = currentYear + 1; i >= currentYear - 15; i--) {
+            for (let i = currentYear; i >= currentYear - 15; i--) {
                 this.years.push(i);
             }
 
@@ -274,9 +274,15 @@ document.addEventListener("alpine:init", () => {
             }
         },
 
+        resetAndReload() {
+            // Reset form and reload page to refresh table data
+            this.resetAll();
+            window.location.href = window.location.pathname;
+        },
+
         calcMonthRange(monthIdx) {
             let targetMonth = monthIdx + 4; // Index 0 is April
-            let targetYear = this.fiscalYear;
+            let targetYear = parseInt(this.fiscalYear); // Ensure fiscalYear is a number
 
             if (targetMonth > 12) {
                 targetMonth -= 12;
@@ -292,8 +298,9 @@ document.addEventListener("alpine:init", () => {
         },
 
         setFullYear() {
-            this.dateFrom = `${this.fiscalYear}-04-01`;
-            this.dateTo = `${this.fiscalYear + 1}-03-31`;
+            const year = parseInt(this.fiscalYear);
+            this.dateFrom = `${year}-04-01`;
+            this.dateTo = `${year + 1}-03-31`;
             this.selectionState = 0;
         },
 
