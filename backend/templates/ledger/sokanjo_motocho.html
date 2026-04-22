@@ -66,8 +66,11 @@
                             <tr>
                                 <th class="min-w-24 lg:w-12">日付</th>
                                 <th class="min-w-32 lg:w-16">伝票No</th>
-                                <th class="min-w-80 lg:w-64">摘要 / [相手科目]</th>
-                                <th class="min-w-52 lg:w-24">部門</th>
+                                <th class="min-w-52 lg:w-24">相手科目</th>
+                                <th class="min-w-52 lg:w-24">摘要</th>
+                                <th class="min-w-40 lg:w-24">摘要（全体）</th>
+                                <th class="min-w-40 lg:w-24">取引先</th>
+                                <th class="min-w-40 lg:w-24">部門</th>
                                 <th class="min-w-32 lg:w-16 group-header">借方 (増加)</th>
                                 <th class="min-w-32 lg:w-16 group-header credit">貸方 (減少)</th>
                                 <th class="min-w-32 lg:w-16">差引残高</th>
@@ -80,31 +83,31 @@
                                     <td class="denp-no">
                                         <a href="{{ row.meisai.denpyo.get_edit_url }}" class="hover:text-accent">{{ row.meisai.denpyo.denpyo_no }}</a>
                                     </td>
-                                    <td class="whitespace-normal">
-                                        <div class="text-col">{{ row.meisai.tekyou }}</div>
-                                        <div class="text-neutral/50 text-xs mt-1">
-                                            {% if row.meisai.kari_kashi == 'KA' %}
-                                                [貸方科目] <!-- Inverse side -->
-                                            {% else %}
-                                                [借方科目]
-                                            {% endif %}
-                                        </div>
+                                    <td class="text-col">{{ row.meisai.aite_kamoku_display }}</td>
+                                    <td class="description-col">
+                                        {% if row.meisai.denpyo.denpyo_type == 'FURIKAE' %}
+                                            {{ row.meisai.voucher_tekyous }}
+                                        {% else %}
+                                            {{ row.meisai.tekyou }}
+                                        {% endif %}
                                     </td>
-                                    <td class="text-col">{{ row.meisai.bumon.name|default:"-" }}</td>
+                                    <td class="description-col">{{ row.meisai.denpyo.memo|default:"-" }}</td>
+                                    <td class="text-col text-xs">{{ row.meisai.torihikisaki.name|default:"-" }}</td>
+                                    <td class="text-col text-xs">{{ row.meisai.bumon.name|default:"-" }}</td>
                                     <!-- Debit Amount -->
                                     <td class="amount amount-positive group-detail">
-                                        {% if row.meisai.kari_kashi == 'KA' %}{{ row.meisai.kingaku|format_number }}{% endif %}
+                                        {% if row.meisai.kari_kashi == 'KA' %}¥{{ row.meisai.kingaku|format_number }}{% endif %}
                                     </td>
                                     <!-- Credit Amount -->
                                     <td class="amount amount-negative group-detail credit">
-                                        {% if row.meisai.kari_kashi == 'SHI' %}{{ row.meisai.kingaku|format_number }}{% endif %}
+                                        {% if row.meisai.kari_kashi == 'SHI' %}¥{{ row.meisai.kingaku|format_number }}{% endif %}
                                     </td>
                                     <!-- Running Balance -->
-                                    <td class="amount amount-neutral text-base">{{ row.running_balance|format_number }}</td>
+                                    <td class="amount amount-neutral text-base">¥{{ row.running_balance|format_number }}</td>
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="7" class="text-center">
+                                    <td colspan="10" class="text-center">
                                         <i class="fa-solid fa-inbox m-2 block"></i>データがありません
                                     </td>
                                 </tr>

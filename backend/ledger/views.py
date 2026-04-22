@@ -54,6 +54,7 @@ class SokanjoMotochoView(LoginRequiredMixin, View):
                 qs = (
                     ShiwakeMeisai.objects.filter(kamoku=selected_kamoku)
                     .select_related("denpyo", "bumon", "zei_kubun")
+                    .prefetch_related("denpyo__meisai__kamoku", "denpyo__meisai__hojo")
                     .order_by("denpyo__date", "denpyo__denpyo_no")
                 )
                 if date_from:
@@ -142,6 +143,7 @@ class HojoMotochoView(LoginRequiredMixin, View):
                 qs = (
                     ShiwakeMeisai.objects.filter(kamoku=selected_kamoku, torihikisaki=selected_torihikisaki)
                     .select_related("denpyo", "bumon", "zei_kubun", "torihikisaki")
+                    .prefetch_related("denpyo__meisai__kamoku", "denpyo__meisai__hojo")
                     .order_by("denpyo__date", "denpyo__denpyo_no")
                 )
                 if date_from:
@@ -227,6 +229,7 @@ class GenkinSuitouchoView(LoginRequiredMixin, View):
                 qs = (
                     ShiwakeMeisai.objects.filter(kamoku=selected_kamoku)
                     .select_related("denpyo", "bumon", "zei_kubun", "torihikisaki")
+                    .prefetch_related("denpyo__meisai__kamoku", "denpyo__meisai__hojo")
                     .order_by("denpyo__date", "denpyo__denpyo_no")
                 )
                 if date_from:

@@ -90,13 +90,26 @@ class ShiwakeListView(LoginRequiredMixin, HtmxListMixin, ListView):
         date_to = self.request.GET.get("date_to", "")
         denpyo_type = self.request.GET.get("denpyo_type", "")
         if q:
-            qs = qs.filter(
+            # Prepare search filter with Q objects
+            search_query = (
                 Q(denpyo_no__icontains=q)
                 | Q(memo__icontains=q)
                 | Q(meisai__tekyou__icontains=q)
                 | Q(meisai__kamoku__name__icontains=q)
                 | Q(meisai__torihikisaki__name__icontains=q)
             )
+
+            # Support numeric search for amounts (kingaku)
+            try:
+                # Remove commas from the query if user typed "1,000"
+                clean_q = q.replace(",", "")
+                amount_val = Decimal(clean_q)
+                search_query |= Q(meisai__kingaku=amount_val)
+            except (ValueError, ArithmeticError):
+                # q is not a valid number, just skip amount search
+                pass
+
+            qs = qs.filter(search_query).distinct()
         if date_from:
             qs = qs.filter(date__gte=date_from)
         if date_to:

@@ -198,7 +198,7 @@ button {
     @apply text-neutral overflow-hidden text-ellipsis;
 }
 .table-accounting .description-col {
-    @apply text-neutral text-xs max-w-64 whitespace-nowrap overflow-hidden text-ellipsis;
+    @apply text-neutral/60 text-xs max-w-64 whitespace-nowrap overflow-hidden text-ellipsis;
 }
 
 /* Responsive: Stack table trên mobile */

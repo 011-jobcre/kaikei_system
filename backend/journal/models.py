@@ -165,6 +165,51 @@ class ShiwakeMeisai(BaseModel):
         return f"{self.get_kari_kashi_display()} {self.kamoku}{hojo_str} ¥{self.kingaku:,.0f}"
 
     @property
+    def aite_kamoku_display(self):
+        """Returns the counter-account name for ledger displays.
+        Standard behavior: If 1 counter-account, show name. If multiple, show '諸口'.
+        """
+        # Get all lines in the voucher (expects denpyo__meisai__kamoku prefetch)
+        all_meisai = list(self.denpyo.meisai.all())
+        opposite_side = [m for m in all_meisai if m.kari_kashi != self.kari_kashi]
+
+        if not opposite_side:
+            return "—"
+
+        # Determine prefix based on the opposite side
+        # If current is KA (Debit), opposite is SHI (Credit) -> [貸方科目]
+        # If current is SHI (Credit), opposite is KA (Debit) -> [借方科目]
+        prefix = "[貸方科目] " if self.kari_kashi == "KA" else "[借方科目] "
+
+        # Unique counter account IDs
+        unique_kamokus = {m.kamoku_id for m in opposite_side}
+
+        if len(unique_kamokus) == 1 and len(opposite_side) == 1:
+            m = opposite_side[0]
+            name = m.kamoku.name
+            if m.hojo:
+                name = f"{name} / {m.hojo.name}"
+            return f"{prefix}{name}"
+        else:
+            # If multiple items on opposite side, return Shokuchi (standard)
+            # Even if they share the same main account, the presence of multiple detail rows usually triggers 諸口
+            # unless we want to roll them up. Accounting standard typically uses 諸口 for multi-line.
+            return f"{prefix}諸口"
+
+    @property
+    def voucher_tekyous(self):
+        """Returns all unique tekyou values from the whole voucher, joined by newlines."""
+        all_meisai = self.denpyo.meisai.all()
+        tekyous = []
+        for m in all_meisai:
+            if m.tekyou and m.tekyou not in tekyous:
+                tekyous.append(m.tekyou)
+
+        if not tekyous:
+            return ""
+        return "\n".join(tekyous)
+
+    @property
     def zei_kingaku(self):
         """Calculated tax amount (tax-inclusive reverse calculation)."""
         if not self.zei_kubun or not self.zei_kubun.tax_rate:
