@@ -15,11 +15,11 @@
                 <!-- Group 1: General Search Filters -->
                 <div class="flex flex-col lg:flex-row items-center gap-2 w-full">
                     <div class="relative w-full lg:w-80">
-                        <i class="fa-solid fa-magnifying-glass absolute z-10 left-4 top-1/2 -translate-y-1/2 text-neutral/50"></i>
+                        <i class="fa-solid fa-magnifying-glass absolute z-10 left-4 top-1/2 -translate-y-1/2 text-base-content/50"></i>
                         <input type="text"
                                name="q"
                                value="{{ q }}"
-                               placeholder="伝票No・摘要検索"
+                               placeholder="伝票No・金額・摘要で検索"
                                class="input input-sm pl-11 outline-none w-full" />
                     </div>
                     <div class="w-full lg:w-80">
@@ -34,16 +34,16 @@
                     </div>
                     <!-- Action Buttons -->
                     <div class="flex items-center gap-2 w-full justify-end lg:justify-start">
-                        <button type="submit" class="btn-search btn-sm">
+                        <button type="submit" class="btn-search">
                             <i class="fa-solid fa-magnifying-glass"></i>検索
                         </button>
-                        <button type="button" @click="resetAndReload()" class="btn-clear btn-sm">
+                        <button type="button" @click="resetAndReload()" class="btn-clear">
                             <i class="fa-solid fa-rotate-left"></i>リセット
                         </button>
                     </div>
                 </div>
                 <!-- Group 2: Period Selection -->
-                {% include "common/date_range_picker.html" with date_from=date_from date_to=date_to %}
+                {% include "includes/date_range_picker.html" with date_from=date_from date_to=date_to %}
             </form>
         </div>
         <!-- Data Table: HTMX-enabled for dynamic updates -->

@@ -73,14 +73,14 @@
                                     {% if is_accountant %}
                                         <td class="text-center" rowspan="{{ denpyo.meisai_count }}">
                                             <div class="flex justify-center gap-1">
-                                                <a href="{{ denpyo.get_edit_url }}" class="btn-edit" title="編集">
+                                                <a href="{{ denpyo.get_edit_url }}" class="btn-edit-square" title="編集">
                                                     <i class="fa-solid fa-pen-to-square"></i>
                                                 </a>
                                                 {% if not denpyo.is_locked %}
                                                     <button hx-get="{% url 'journal:denpyo-delete' denpyo.pk %}"
                                                             hx-target="body"
                                                             hx-swap="beforeend"
-                                                            class="btn-delete"
+                                                            class="btn-delete-square"
                                                             title="削除">
                                                         <i class="fa-solid fa-trash-can"></i>
                                                     </button>
@@ -154,14 +154,14 @@
                             {% if is_accountant %}
                                 <td class="text-center">
                                     <div class="flex justify-center gap-1">
-                                        <a href="{{ denpyo.get_edit_url }}" class="btn-edit" title="編集">
+                                        <a href="{{ denpyo.get_edit_url }}" class="btn-edit-square" title="編集">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
                                         {% if not denpyo.is_locked %}
                                             <button hx-get="{% url 'journal:denpyo-delete' denpyo.pk %}"
                                                     hx-target="body"
                                                     hx-swap="beforeend"
-                                                    class="btn-delete"
+                                                    class="btn-delete-square"
                                                     title="削除">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>

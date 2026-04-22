@@ -1,6 +1,5 @@
 {% load number_filters %}
-<tr data-form-row
-    @keydown="handleGridKey($event)">
+<tr data-form-row @keydown="handleGridKey($event)">
     <!-- Hidden fields for Django's Formset Management -->
     <td class="hidden">
         {{ form.id }}
@@ -8,9 +7,7 @@
     </td>
     <!-- 借/貸 -->
     <td class="align-top py-2">
-        <div data-col-wrapper="0">
-            {{ form.kari_kashi }}
-        </div>
+        <div data-col-wrapper="0">{{ form.kari_kashi }}</div>
         {% if form.kari_kashi.errors %}
             <div class="label pt-1 text-xs">
                 <span class="text-error flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i>{{ form.kari_kashi.errors.0 }}</span>
@@ -19,9 +16,7 @@
     </td>
     <!-- 勘定科目 -->
     <td class="align-top py-2 ka-side">
-        <div data-col-wrapper="1">
-            {{ form.kamoku }}
-        </div>
+        <div data-col-wrapper="1">{{ form.kamoku }}</div>
         {% if form.kamoku.errors %}
             <div class="label pt-1 text-xs">
                 <span class="text-error flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i>{{ form.kamoku.errors.0 }}</span>
@@ -30,9 +25,7 @@
     </td>
     <!-- 補助科目 -->
     <td class="align-top py-2 ka-side">
-        <div data-col-wrapper="2">
-            {{ form.hojo }}
-        </div>
+        <div data-col-wrapper="2">{{ form.hojo }}</div>
         {% if form.hojo.errors %}
             <div class="label pt-1 text-xs">
                 <span class="text-error flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i>{{ form.hojo.errors.0 }}</span>
@@ -41,9 +34,7 @@
     </td>
     <!-- 部門 -->
     <td class="align-top py-2">
-        <div data-col-wrapper="3">
-            {{ form.bumon }}
-        </div>
+        <div data-col-wrapper="3">{{ form.bumon }}</div>
         {% if form.bumon.errors %}
             <div class="label pt-1 text-xs">
                 <span class="text-error flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i>{{ form.bumon.errors.0 }}</span>
@@ -52,9 +43,7 @@
     </td>
     <!-- 取引先 -->
     <td class="align-top py-2">
-        <div data-col-wrapper="4">
-            {{ form.torihikisaki }}
-        </div>
+        <div data-col-wrapper="4">{{ form.torihikisaki }}</div>
         {% if form.torihikisaki.errors %}
             <div class="label pt-1 text-xs">
                 <span class="text-error flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i>{{ form.torihikisaki.errors.0 }}</span>
@@ -63,9 +52,7 @@
     </td>
     <!-- 金額 + 税額表示 -->
     <td class="align-top py-2 ka-side">
-        <div data-col-wrapper="5">
-            {{ form.kingaku }}
-        </div>
+        <div data-col-wrapper="5">{{ form.kingaku }}</div>
         {% if form.instance.pk and form.instance.zei_kubun %}
             <div class="text-xs text-base-content/40 text-right mt-1">
                 税抜: {{ form.instance.kingaku_nuki|format_number }}
@@ -80,9 +67,7 @@
     </td>
     <!-- 税区分 -->
     <td class="align-top py-2">
-        <div data-col-wrapper="6">
-            {{ form.zei_kubun }}
-        </div>
+        <div data-col-wrapper="6">{{ form.zei_kubun }}</div>
         {% if form.zei_kubun.errors %}
             <div class="label pt-1 text-xs">
                 <span class="text-error flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i>{{ form.zei_kubun.errors.0 }}</span>
@@ -91,9 +76,7 @@
     </td>
     <!-- 摘要 -->
     <td class="align-top py-2">
-        <div data-col-wrapper="7">
-            {{ form.tekyou }}
-        </div>
+        <div data-col-wrapper="7">{{ form.tekyou }}</div>
         {% if form.tekyou.errors %}
             <div class="label pt-1 text-xs">
                 <span class="text-error flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i>{{ form.tekyou.errors.0 }}</span>
@@ -103,7 +86,7 @@
     <!-- 削除 -->
     <td class="text-center">
         <button type="button"
-                class="btn-delete"
+                class="btn-delete-square"
                 onclick="removeRow(this)"
                 title="行を削除"
                 tabindex="-1">

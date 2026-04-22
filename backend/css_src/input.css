@@ -55,7 +55,7 @@ button {
 @layer components {
     .btn-search,
     .btn-clear {
-        @apply btn btn-ghost bg-transparent w-auto px-4 gap-2 hover:bg-primary/10 shrink-0;
+        @apply btn btn-sm btn-ghost bg-transparent w-auto px-4 gap-2 hover:bg-primary/10 shrink-0;
     }
 
     .btn-x-close {
@@ -63,29 +63,33 @@ button {
     }
 
     .btn-submit {
-        @apply btn btn-primary hover:bg-primary/80 w-auto px-4 gap-2 shrink-0;
+        @apply btn btn-sm btn-primary hover:bg-primary/80 w-auto px-4 gap-2 shrink-0;
     }
 
     .btn-submit-outline {
-        @apply btn btn-outline btn-primary w-auto px-4 gap-2 shrink-0;
+        @apply btn btn-sm btn-outline btn-primary w-auto px-4 gap-2 shrink-0;
+    }
+
+    .btn-delete {
+        @apply btn btn-sm btn-error hover:bg-error/80 w-auto px-4 gap-2 shrink-0;
     }
 
     .btn-add-row,
     .btn-cancel {
-        @apply btn btn-outline btn-secondary w-auto px-4 gap-2 shrink-0;
+        @apply btn btn-sm btn-outline btn-secondary w-auto px-4 gap-2 shrink-0;
     }
 
-    .btn-edit {
-        @apply btn btn-ghost btn-square btn-sm m-0.5 text-info hover:bg-info/10 shrink-0;
+    .btn-edit-square {
+        @apply btn btn-sm btn-ghost btn-square m-0.5 text-info hover:bg-info/10 shrink-0;
     }
 
-    .btn-delete {
-        @apply btn btn-ghost btn-square btn-sm m-0.5 text-error hover:bg-error/10 shrink-0;
+    .btn-delete-square {
+        @apply btn btn-sm btn-ghost btn-square m-0.5 text-error hover:bg-error/10 shrink-0;
     }
 
     /* Date Range & Monthly Selector */
     .btn-month {
-        @apply btn btn-outline btn-secondary px-2 btn-xs shrink-0;
+        @apply btn btn-xs btn-outline btn-secondary w-auto px-2 shrink-0;
     }
 
     .btn-month.active {
@@ -93,7 +97,7 @@ button {
     }
 
     .btn-period-all {
-        @apply btn btn-ghost btn-primary px-2 btn-xs shrink-0;
+        @apply btn btn-xs btn-outline btn-primary w-auto px-2 shrink-0;
     }
 
     .btn-ico-square {
@@ -101,7 +105,7 @@ button {
     }
 
     .btn-export {
-        @apply btn btn-outline btn-primary gap-2 w-full lg:w-40 shrink-0;
+        @apply btn btn-sm btn-outline btn-primary gap-2 w-full lg:w-40 shrink-0;
     }
 }
 

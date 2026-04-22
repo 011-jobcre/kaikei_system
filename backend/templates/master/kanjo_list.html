@@ -12,13 +12,16 @@
             <form method="get"
                   class="flex flex-wrap lg:flex-nowrap items-center gap-2 w-full">
                 <!-- Keyword search: matches account code or name -->
-                <input type="text"
-                       name="q"
-                       value="{{ q }}"
-                       placeholder="コード・勘定科目名で検索"
-                       class="input outline-none text-neutral w-full lg:w-1/5" />
+                <div class="relative w-full lg:w-1/5">
+                    <i class="fa-solid fa-magnifying-glass absolute z-10 left-4 top-1/2 -translate-y-1/2 text-base-content/50"></i>
+                    <input type="text"
+                           name="q"
+                           value="{{ q }}"
+                           placeholder="勘定科目コード・名で検索"
+                           class="input input-sm pl-11 outline-none w-full" />
+                </div>
                 <!-- Filter by hierarchy level -->
-                <label class="select outline-none cursor-pointer w-full lg:w-1/5">
+                <label class="select select-sm outline-none cursor-pointer w-full lg:w-1/5">
                     <span class="label min-w-20">分類</span>
                     <select name="level">
                         <option value="">全て</option>
@@ -29,7 +32,7 @@
                     </select>
                 </label>
                 <!-- Filter by debit/credit classification -->
-                <label class="select outline-none cursor-pointer w-full lg:w-1/5">
+                <label class="select select-sm outline-none cursor-pointer w-full lg:w-1/5">
                     <span class="label min-w-20">貸借区分</span>
                     <select name="taisha">
                         <option value="">全て</option>

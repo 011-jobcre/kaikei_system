@@ -12,7 +12,7 @@
         <div class="flex flex-col lg:flex-row items-center justify-between gap-3 bg-base-100 p-3 rounded-box shadow-sm border border-base-300 print:hidden">
             <form method="get"
                   class="flex flex-wrap lg:flex-nowrap items-center gap-2 w-full">
-                <label class="input outline-none w-full lg:w-auto">
+                <label class="input input-sm outline-none w-full lg:w-auto">
                     <span class="label min-w-auto">対象期間</span>
                     <input type="date"
                            name="date_from"
@@ -20,16 +20,18 @@
                            class="text-neutral w-full lg:w-40" />
                 </label>
                 <span class="text-base-content/40 font-bold w-full lg:w-auto text-center">〜</span>
-                <label class="input outline-none w-full lg:w-auto">
+                <label class="input input-sm outline-none w-full lg:w-auto">
                     <input type="date"
                            name="date_to"
                            value="{{ date_to }}"
                            class="text-neutral w-full lg:w-40" />
                 </label>
-                <button type="submit" class="btn-submit flex-1 lg:flex-none">
-                    <i class="fa-solid fa-calculator"></i>集計
-                </button>
-                <a href="{% url 'report:zei-summary' %}" class="btn-clear">クリア</a>
+                <div class="flex items-center gap-2 w-full lg:w-auto justify-end lg:justify-start">
+                    <button type="submit" class="btn-submit flex-1 lg:flex-none">
+                        <i class="fa-solid fa-calculator"></i>集計
+                    </button>
+                    <a href="{% url 'report:zei-summary' %}" class="btn-clear">クリア</a>
+                </div>
             </form>
             <!-- Export dropdown -->
             {% url 'report:zei-export' 'csv' as csv_base %}

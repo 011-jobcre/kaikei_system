@@ -12,11 +12,14 @@
             <form method="get"
                   class="flex flex-wrap lg:flex-nowrap items-center gap-2 w-full">
                 <!-- Keyword search: matches pattern name or shortcut key -->
-                <input type="text"
-                       name="q"
-                       value="{{ q }}"
-                       placeholder="辞書名・検索キーで検索"
-                       class="input outline-none text-neutral w-full lg:w-1/3" />
+                <div class="relative w-full lg:w-1/5">
+                    <i class="fa-solid fa-magnifying-glass absolute z-10 left-4 top-1/2 -translate-y-1/2 text-base-content/50"></i>
+                    <input type="text"
+                           name="q"
+                           value="{{ q }}"
+                           placeholder="辞書名・検索キーで検索"
+                           class="input input-sm pl-11 outline-none w-full" />
+                </div>
                 <div class="flex items-center gap-2 w-full lg:w-auto justify-end lg:justify-start">
                     <button type="submit" class="btn-search">
                         <i class="fa-solid fa-magnifying-glass"></i>検索

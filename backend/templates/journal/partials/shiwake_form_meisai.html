@@ -7,14 +7,14 @@
         <input type="date"
                name="{{ form.prefix }}-date"
                value="{{ form.date.value|date:'Y-m-d' }}"
-               class="input w-full outline-none"
+               class="input input-sm outline-none w-full"
                data-row="{{ form.prefix|cut:"row-" }}"
                data-col="0"
                x-init="if (!$el.value) $el.value = new Date().toISOString().split('T')[0]" />
     </td>
     <td class="group-detail">
         <select name="{{ form.prefix }}-kari_kamoku"
-                class="select w-full tomselect"
+                class="select select-sm tomselect w-full"
                 :class="{ 'input-invalid': validationTick && !($el.value) }"
                 data-row="{{ form.prefix|cut:"row-" }}"
                 data-col="1">
@@ -28,7 +28,7 @@
     </td>
     <td class="group-detail">
         <select name="{{ form.prefix }}-kari_hojo"
-                class="select w-full tomselect"
+                class="select select-sm tomselect w-full"
                 data-row="{{ form.prefix|cut:"row-" }}"
                 data-col="2">
             {% for choice in form.kari_hojo.field.choices %}
@@ -43,14 +43,14 @@
         <input type="number"
                name="{{ form.prefix }}-kari_kingaku"
                value="{{ form.kari_kingaku.value|default:'' }}"
-               class="input w-full outline-none text-right"
+               class="input input-sm outline-none w-full text-right"
                :class="{ 'input-invalid': validationTick && (!$el.value || parseFloat($el.value) <= 0) }"
                data-row="{{ form.prefix|cut:"row-" }}"
                data-col="3" />
     </td>
     <td class="group-detail">
         <select name="{{ form.prefix }}-kari_zei"
-                class="select w-full tomselect"
+                class="select select-sm tomselect w-full"
                 data-row="{{ form.prefix|cut:"row-" }}"
                 data-col="4">
             {% for choice in form.kari_zei.field.choices %}
@@ -63,7 +63,7 @@
     </td>
     <td class="group-detail credit">
         <select name="{{ form.prefix }}-kashi_kamoku"
-                class="select w-full tomselect"
+                class="select select-sm tomselect w-full"
                 :class="{ 'input-invalid': validationTick && !($el.value) }"
                 data-row="{{ form.prefix|cut:"row-" }}"
                 data-col="5">
@@ -77,7 +77,7 @@
     </td>
     <td class="group-detail credit">
         <select name="{{ form.prefix }}-kashi_hojo"
-                class="select w-full tomselect"
+                class="select select-sm tomselect w-full"
                 data-row="{{ form.prefix|cut:"row-" }}"
                 data-col="6">
             {% for choice in form.kashi_hojo.field.choices %}
@@ -92,14 +92,14 @@
         <input type="number"
                name="{{ form.prefix }}-kashi_kingaku"
                value="{{ form.kashi_kingaku.value|default:'' }}"
-               class="input w-full outline-none text-right"
+               class="input input-sm outline-none w-full text-right"
                :class="{ 'input-invalid': validationTick && (!$el.value || parseFloat($el.value) <= 0) }"
                data-row="{{ form.prefix|cut:"row-" }}"
                data-col="7" />
     </td>
     <td class="group-detail credit">
         <select name="{{ form.prefix }}-kashi_zei"
-                class="select w-full tomselect"
+                class="select select-sm tomselect w-full"
                 data-row="{{ form.prefix|cut:"row-" }}"
                 data-col="8">
             {% for choice in form.kashi_zei.field.choices %}
@@ -114,14 +114,14 @@
         <input type="text"
                name="{{ form.prefix }}-tekiyou"
                value="{{ form.tekiyou.value|default:'' }}"
-               class="input w-full outline-none"
+               class="input input-sm outline-none w-full"
                data-row="{{ form.prefix|cut:"row-" }}"
                data-col="9" />
     </td>
     <td class="text-center p-0 relative">
         <div class="flex items-center justify-center gap-1 h-full py-1">
             <button type="button"
-                    class="btn-edit"
+                    class="btn-edit-square"
                     hx-post="{% url 'journal:shiwake-create' %}?row_index={{ form.prefix|cut:"row-" }}"
                     hx-target="closest tr"
                     hx-swap="outerHTML"
@@ -133,7 +133,7 @@
                 <i class="fa-solid fa-save"></i>
             </button>
             <button type="button"
-                    class="btn-delete"
+                    class="btn-delete-square"
                     @click="deleteRow(getRowIndex($el))"
                     title="行削除">
                 <i class="fa-solid fa-trash-can"></i>

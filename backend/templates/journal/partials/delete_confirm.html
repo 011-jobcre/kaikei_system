@@ -22,7 +22,7 @@
         <!-- Action buttons -->
         <div class="modal-action justify-center gap-3">
             <button onclick="document.getElementById('htmx-modal').remove()"
-                    class="btn-cancel min-w-24">キャンセル</button>
+                    class="btn-cancel">キャンセル</button>
             <!-- Deletion form — HTMX POST so the list refreshes without a full reload -->
             <form method="post"
                   action="{% url 'journal:denpyo-delete' object.pk %}"
@@ -30,7 +30,7 @@
                   hx-target="#htmx-modal"
                   hx-swap="innerHTML">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-error min-w-24 gap-2">
+                <button type="submit" class="btn-delete">
                     <i class="fa-solid fa-trash-can"></i>
                     削除
                 </button>

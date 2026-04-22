@@ -23,21 +23,19 @@
         </template>
         <div class="hidden lg:block w-px h-4 bg-base-300 mx-1 self-center"></div>
         <!-- All Periods Button -->
-        <button type="button"
-                @click="setFullYear()"
-                class="btn-submit-outline btn-xs">全期間</button>
+        <button type="button" @click="setFullYear()" class="btn-period-all">全期間</button>
         <div class="hidden lg:block w-px h-4 bg-base-300 mx-1 self-center"></div>
         <!-- Date Range Inputs -->
         <div class="flex flex-row items-center gap-1 w-full lg:flex-1">
             <input type="date"
                    name="date_from"
                    x-model="dateFrom"
-                   class="input input-sm outline-none text-neutral w-full lg:w-40" />
+                   class="input input-sm outline-none w-full lg:w-40" />
             <span class="hidden lg:block text-base-content/40 font-bold px-1">〜</span>
             <input type="date"
                    name="date_to"
                    x-model="dateTo"
-                   class="input input-sm outline-none text-neutral w-full lg:w-40" />
+                   class="input input-sm outline-none w-full lg:w-40" />
         </div>
     </fieldset>
 </div>
