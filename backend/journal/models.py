@@ -89,8 +89,10 @@ class ShiwakeDenpyo(BaseModel):
 
     @property
     def get_edit_url(self):
-        """Returns the multi-line editor URL shared by both voucher types."""
-        return reverse("journal:furikae-update", args=[self.pk])
+        """Return the appropriate editor URL for the voucher type."""
+        if self.denpyo_type == "FURIKAE":
+            return reverse("journal:furikae-update", args=[self.pk])
+        return reverse("journal:shiwake-update", args=[self.pk])
 
 
 # =========================================================

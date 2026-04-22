@@ -11,39 +11,46 @@
         <!-- Grid Header / Info -->
         <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-base-100 p-3 rounded-box shadow-sm border border-base-300">
             <div class="flex items-center gap-2 w-full">
-                <i class="fa-solid fa-lightbulb text-warning"></i>
-                <span class="text-neutral text-xs">パターンを選択して「行を追加」を押すと、自動入力された行が追加されます。</span>
+                {% if is_edit %}
+                    <i class="fa-solid fa-pen-to-square text-warning"></i>
+                    <span class="text-neutral text-xs">仕訳伝票の1:1明細を編集しています。編集画面では単一伝票のみ保存できます。</span>
+                {% else %}
+                    <i class="fa-solid fa-lightbulb text-warning"></i>
+                    <span class="text-neutral text-xs">パターンを選択して「行を追加」を押すと、自動入力された行が追加されます。</span>
+                {% endif %}
             </div>
             <div class="flex flex-wrap lg:flex-nowrap items-center justify-end gap-2">
-                <!-- Journal Dictionary Selection -->
-                <div class="form-control w-full">
-                    <label class="select select-sm outline-none cursor-pointer w-full lg:w-md">
-                        <span class="label min-w-auto">仕訳辞書</span>
-                        <select id="dict-pattern-select"
-                                class="tomselect"
-                                data-placeholder="仕訳辞書 (パターン選択)"
-                                data-no-parse="false">
-                            <option value="">パターンなし</option>
-                            {% for pattern in dictionary_patterns %}
-                                <option value="{{ pattern.id }}">
-                                    {% if pattern.shortcut_code %}[{{ pattern.shortcut_code }}]{% endif %}
-                                    {{ pattern.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </label>
-                </div>
-                <button type="button"
-                        hx-get="{% url 'journal:add-form-row' %}?form_type=shiwake"
-                        hx-vals="js:{index: getNextRowIndex(), dict_id: document.getElementById('dict-pattern-select')?.value}"
-                        hx-target="#grid-rows"
-                        hx-swap="beforeend"
-                        class="btn-add-row">
-                    <i class="fa-solid fa-plus"></i>行を追加
-                </button>
-                <a href="{% url 'journal:furikae-create' %}" class="btn-submit">
-                    <i class="fa-solid fa-toggle-on"></i>伝票へ切替
-                </a>
+                {% if not is_edit %}
+                    <!-- Journal Dictionary Selection -->
+                    <div class="form-control w-full">
+                        <label class="select select-sm outline-none cursor-pointer w-full lg:w-md">
+                            <span class="label min-w-auto">仕訳辞書</span>
+                            <select id="dict-pattern-select"
+                                    class="tomselect"
+                                    data-placeholder="仕訳辞書 (パターン選択)"
+                                    data-no-parse="false">
+                                <option value="">パターンなし</option>
+                                {% for pattern in dictionary_patterns %}
+                                    <option value="{{ pattern.id }}">
+                                        {% if pattern.shortcut_code %}[{{ pattern.shortcut_code }}]{% endif %}
+                                        {{ pattern.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                    </div>
+                    <button type="button"
+                            hx-get="{% url 'journal:add-form-row' %}?form_type=shiwake"
+                            hx-vals="js:{index: getNextRowIndex(), dict_id: document.getElementById('dict-pattern-select')?.value}"
+                            hx-target="#grid-rows"
+                            hx-swap="beforeend"
+                            class="btn-add-row">
+                        <i class="fa-solid fa-plus"></i>行を追加
+                    </button>
+                    <a href="{% url 'journal:furikae-create' %}" class="btn-submit">
+                        <i class="fa-solid fa-toggle-on"></i>伝票へ切替
+                    </a>
+                {% endif %}
             </div>
         </div>
         <!-- Error Alerts for All Rows -->
@@ -76,44 +83,46 @@
                     </thead>
                     <tbody id="grid-rows">
                         {% for form in rows %}
-                            {% include "journal/partials/shiwake_form_meisai.html" with form=form only %}
+                            {% include "journal/partials/shiwake_form_meisai.html" with form=form save_url=save_url %}
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
         <!-- Recent History (Peek) -->
-        <div class="card bg-base-100 shadow-sm border border-base-300">
-            <div class="card-body p-0">
-                <div class="p-4 pb-2 flex items-center justify-between">
-                    <h3 class="card-title text-sm font-bold tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left"></i>最近の登録内容
-                    </h3>
-                    <span class="text-neutral/60 text-xs">最新10件を表示</span>
-                </div>
-                <div class="table-wrapper">
-                    <table class="table-accounting">
-                        <thead>
-                            <tr>
-                                <th class="min-w-24 lg:w-10">日付</th>
-                                <th class="min-w-32 lg:w-16">伝票No</th>
-                                <th class="min-w-52 lg:w-24 group-header">借方</th>
-                                <th class="min-w-32 lg:w-16 group-header">借方金額</th>
-                                <th class="min-w-52 lg:w-24 group-header credit">貸方</th>
-                                <th class="min-w-32 lg:w-16 group-header credit">貸方金額</th>
-                                <th class="min-w-52 lg:w-24">摘要</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recent-entries-tbody"
-                               hx-get="{% url 'journal:shiwake-recent-entries' %}"
-                               hx-trigger="refreshRecentEntries from:body"
-                               hx-swap="innerHTML">
-                            {% include "journal/partials/shiwake_form_recent.html" %}
-                        </tbody>
-                    </table>
+        {% if not is_edit %}
+            <div class="card bg-base-100 shadow-sm border border-base-300">
+                <div class="card-body p-0">
+                    <div class="p-4 pb-2 flex items-center justify-between">
+                        <h3 class="card-title text-sm font-bold tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left"></i>最近の登録内容
+                        </h3>
+                        <span class="text-neutral/60 text-xs">最新10件を表示</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="table-accounting">
+                            <thead>
+                                <tr>
+                                    <th class="min-w-24 lg:w-10">日付</th>
+                                    <th class="min-w-32 lg:w-16">伝票No</th>
+                                    <th class="min-w-52 lg:w-24 group-header">借方</th>
+                                    <th class="min-w-32 lg:w-16 group-header">借方金額</th>
+                                    <th class="min-w-52 lg:w-24 group-header credit">貸方</th>
+                                    <th class="min-w-32 lg:w-16 group-header credit">貸方金額</th>
+                                    <th class="min-w-52 lg:w-24">摘要</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-entries-tbody"
+                                   hx-get="{% url 'journal:shiwake-recent-entries' %}"
+                                   hx-trigger="refreshRecentEntries from:body"
+                                   hx-swap="innerHTML">
+                                {% include "journal/partials/shiwake_form_recent.html" %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
     </div>
     {% block extra_scripts %}
         {% include "journal/partials/shiwake_scripts.html" %}

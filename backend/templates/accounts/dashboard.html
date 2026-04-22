@@ -179,9 +179,11 @@
                                                     <i class="fa-solid fa-lock-open text-error text-xs"></i>
                                                 </div>
                                             {% endif %}
-                                            <a href="{{ v.get_edit_url }}" class="btn-ico-square btn-xs">
-                                                <i class="fa-solid fa-eye"></i>
-                                            </a>
+                                            {% if is_accountant %}
+                                                <a href="{{ v.get_edit_url }}" class="btn-ico-square btn-xs">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </a>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>

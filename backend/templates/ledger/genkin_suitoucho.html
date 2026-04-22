@@ -72,7 +72,11 @@
                                 <tr>
                                     <td class="date-col">{{ row.meisai.denpyo.date|date:"Y/m/d" }}</td>
                                     <td class="denp-no">
-                                        <a href="{{ row.meisai.denpyo.get_edit_url }}" class="hover:text-accent">{{ row.meisai.denpyo.denpyo_no }}</a>
+                                        {% if is_accountant %}
+                                            <a href="{{ row.meisai.denpyo.get_edit_url }}" class="hover:text-accent">{{ row.meisai.denpyo.denpyo_no }}</a>
+                                        {% else %}
+                                            {{ row.meisai.denpyo.denpyo_no }}
+                                        {% endif %}
                                     </td>
                                     <td class="whitespace-normal">
                                         <div class="text-col">{{ row.meisai.tekyou }}</div>

@@ -231,6 +231,128 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
         return self.get(request)
 
 
+class ShiwakeNikkiUpdateView(AccountantRequiredMixin, View):
+    """Edit an existing 1:1 shiwake voucher using the same grid row UI."""
+
+    template_name = "journal/shiwake_form.html"
+    success_url = reverse_lazy("journal:shiwake-list")
+
+    def _get_object(self, pk):
+        return (
+            ShiwakeDenpyo.objects.prefetch_related("meisai")
+            .filter(pk=pk, denpyo_type="SHIWAKE")
+            .first()
+        )
+
+    def _build_initial_from_denpyo(self, denpyo):
+        meisai_by_side = {m.kari_kashi: m for m in denpyo.meisai.all()}
+        kari = meisai_by_side.get("KA")
+        kashi = meisai_by_side.get("SHI")
+        return {
+            "date": denpyo.date,
+            "kari_kamoku": getattr(kari, "kamoku", None),
+            "kari_hojo": getattr(kari, "hojo", None),
+            "kari_zei": getattr(kari, "zei_kubun", None),
+            "kari_kingaku": getattr(kari, "kingaku", None),
+            "kashi_kamoku": getattr(kashi, "kamoku", None),
+            "kashi_hojo": getattr(kashi, "hojo", None),
+            "kashi_zei": getattr(kashi, "zei_kubun", None),
+            "kashi_kingaku": getattr(kashi, "kingaku", None),
+            "tekiyou": getattr(kari, "tekyou", "") or getattr(kashi, "tekyou", "") or denpyo.memo,
+            "bumon": getattr(kari, "bumon", None) or getattr(kashi, "bumon", None),
+            "torihikisaki": getattr(kari, "torihikisaki", None) or getattr(kashi, "torihikisaki", None),
+        }
+
+    def _render(self, request, form, denpyo):
+        dictionary_patterns = ShiwakeDictionary.objects.filter(is_active=True).order_by("shortcut_code", "name")
+        recent_shiwake = ShiwakeDenpyo.objects.filter(denpyo_type="SHIWAKE").order_by("-id")[:10]
+        return render(
+            request,
+            self.template_name,
+            {
+                "title": f"仕訳伝票 編集: {denpyo.denpyo_no}",
+                "rows": [form],
+                "recent_shiwake": recent_shiwake,
+                "dictionary_patterns": dictionary_patterns,
+                "is_new": False,
+                "is_edit": True,
+                "denpyo": denpyo,
+                "save_url": reverse_lazy("journal:shiwake-update", args=[denpyo.pk]),
+            },
+        )
+
+    def get(self, request, pk):
+        denpyo = self._get_object(pk)
+        if not denpyo:
+            messages.error(request, "対象の仕訳伝票が見つかりません。")
+            return redirect(self.success_url)
+        if denpyo.is_locked:
+            messages.error(request, "この伝票はロックされており編集できません。")
+            return redirect(self.success_url)
+
+        form = ShiwakeMeisaiForm(prefix="row-0", initial=self._build_initial_from_denpyo(denpyo))
+        return self._render(request, form, denpyo)
+
+    def post(self, request, pk):
+        denpyo = self._get_object(pk)
+        if not denpyo:
+            messages.error(request, "対象の仕訳伝票が見つかりません。")
+            return redirect(self.success_url)
+        if denpyo.is_locked:
+            messages.error(request, "ロックされた伝票は編集できません。")
+            return redirect(self.success_url)
+
+        form = ShiwakeMeisaiForm(request.POST, prefix="row-0")
+        if form.is_valid():
+            with transaction.atomic():
+                d = form.cleaned_data
+                denpyo.date = d["date"]
+                denpyo.memo = d["tekiyou"] or ""
+                denpyo.save(update_fields=["date", "memo"])
+                denpyo.meisai.all().delete()
+
+                ShiwakeMeisai.objects.create(
+                    denpyo=denpyo,
+                    row_no=0,
+                    kari_kashi="KA",
+                    kamoku=d["kari_kamoku"],
+                    hojo=d.get("kari_hojo"),
+                    kingaku=d["kari_kingaku"],
+                    zei_kubun=d.get("kari_zei"),
+                    tekyou=d["tekiyou"],
+                    bumon=d.get("bumon"),
+                    torihikisaki=d.get("torihikisaki"),
+                )
+                ShiwakeMeisai.objects.create(
+                    denpyo=denpyo,
+                    row_no=1,
+                    kari_kashi="SHI",
+                    kamoku=d["kashi_kamoku"],
+                    hojo=d.get("kashi_hojo"),
+                    kingaku=d["kashi_kingaku"],
+                    zei_kubun=d.get("kashi_zei"),
+                    tekyou=d["tekiyou"],
+                    bumon=d.get("bumon"),
+                    torihikisaki=d.get("torihikisaki"),
+                )
+
+            messages.success(request, f"仕訳伝票「{denpyo.denpyo_no}」を更新しました。")
+            if request.htmx:
+                return HttpResponse("", status=200, headers={"HX-Redirect": str(self.success_url)})
+            return redirect(self.success_url)
+
+        if request.htmx:
+            return render(
+                request,
+                "journal/partials/shiwake_form_meisai.html",
+                {
+                    "form": form,
+                    "save_url": reverse_lazy("journal:shiwake-update", args=[denpyo.pk]),
+                },
+            )
+        return self._render(request, form, denpyo)
+
+
 # =========================================================
 # Furikae Denpyo — Professional Multi-line Entry (振替伝票)
 # =========================================================
