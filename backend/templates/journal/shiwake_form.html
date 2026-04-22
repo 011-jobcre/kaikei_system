@@ -55,10 +55,10 @@
         </div>
         <!-- Error Alerts for All Rows -->
         <div x-show="Object.keys(rowErrors).length > 0" x-cloak class="space-y-2">
-            <template x-for="(error, rowIdx) in rowErrors" :key="rowIdx">
+            <template x-for="rowError in getOrderedRowErrors()" :key="rowError.rowIdx">
                 <div class="alert alert-error text-sm shadow-sm">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span><strong>行 <span x-text="parseInt(rowIdx) + 1"></span>: </strong> <span x-text="error"></span></span>
+                    <span><strong>行 <span x-text="rowError.displayNumber"></span>: </strong> <span x-text="rowError.error"></span></span>
                 </div>
             </template>
         </div>

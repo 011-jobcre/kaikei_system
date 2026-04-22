@@ -5,6 +5,7 @@
 from django import forms
 
 from master.models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, TorihikiSakiMaster, ZeiMaster
+
 from .models import ShiwakeDenpyo, ShiwakeMeisai
 from django.forms import BaseInlineFormSet, inlineformset_factory
 from common.forms_widgets import INPUT_CLASS, SELECT_CLASS
@@ -158,6 +159,12 @@ class FurikaeMeisaiForm(forms.ModelForm):
                 if field_name in self.errors:
                     existing_classes = field.widget.attrs.get("class", "")
                     field.widget.attrs["class"] = f"{existing_classes} border-error text-error".strip()
+
+    def clean_kingaku(self):
+        kingaku = self.cleaned_data.get("kingaku")
+        if kingaku is not None and kingaku < 0:
+            raise forms.ValidationError("金額にマイナス値は入力できません。")
+        return kingaku
 
 
 class BaseMeisaiFormSet(BaseInlineFormSet):

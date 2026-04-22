@@ -63,6 +63,22 @@ function shiwakeGrid() {
             });
         },
 
+        getRowDisplayNumber(rowIdx) {
+            const rows = Array.from(document.querySelectorAll('#grid-rows > tr[id^="row-"]'));
+            const currentIndex = rows.findIndex((row) => row.id === `row-${rowIdx}`);
+            return currentIndex >= 0 ? currentIndex + 1 : parseInt(rowIdx, 10) + 1;
+        },
+
+        getOrderedRowErrors() {
+            return Object.entries(this.rowErrors)
+                .map(([rowIdx, error]) => ({
+                    rowIdx,
+                    error,
+                    displayNumber: this.getRowDisplayNumber(rowIdx),
+                }))
+                .sort((a, b) => a.displayNumber - b.displayNumber);
+        },
+
         rowHasAnyInput(row) {
             if (!row) return false;
             const selectors = [
@@ -140,6 +156,9 @@ function shiwakeGrid() {
             if (row) {
                 row.remove();
                 delete this.rowErrors[rowIdx];
+                this.rowErrors = { ...this.rowErrors };
+                this.revalidateAllRows();
+                this.validationTick++;
             }
         },
 
