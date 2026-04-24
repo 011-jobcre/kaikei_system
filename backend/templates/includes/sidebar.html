@@ -118,12 +118,11 @@
                             <i class="fa-solid fa-address-book"></i>補助元帳
                         </a>
                     </li>
-                    <li>
-                        <a href="{% url 'ledger:genkin' %}"
-                           class="sidebar-link {% if request.resolver_match.url_name == 'genkin' %}active{% endif %}">
+                    {% comment %} <li>
+                        <a href="{% url 'ledger:genkin' %}" class="sidebar-link {% if request.resolver_match.url_name == 'genkin' %}active{% endif %}">
                             <i class="fa-solid fa-coins"></i>現金出納帳
                         </a>
-                    </li>
+                    </li> {% endcomment %}
                     <li>
                         <a href="{% url 'ledger:zandaka' %}"
                            class="sidebar-link {% if request.resolver_match.url_name == 'zandaka' %}active{% endif %}">
