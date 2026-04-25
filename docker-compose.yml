@@ -25,7 +25,7 @@ services:
   web:
     build:
       context: .                   # Thư mục gốc để tìm code
-      dockerfile: docker/Dockerfile # Đường dẫn file Dockerfile đã sửa ở trên
+      dockerfile: Dockerfile # Đường dẫn file Dockerfile đã sửa ở trên
     
     # Quan trọng: Ở Dev ta dùng runserver để có Hot-reload
     # Lệnh này sẽ ghi đè (override) lệnh CMD/ENTRYPOINT nếu cần
@@ -40,7 +40,7 @@ services:
       - /app/backend/node_modules
     
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       # Chuyển biến môi trường từ .env vào container
       - DEBUG=${DEBUG}

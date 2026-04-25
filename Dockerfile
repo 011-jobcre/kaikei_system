@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm install tailwindcss @tailwindcss/cli daisyui@latest @tailwindcss/typography
 
 # Copy source files for Tailwind build
-COPY backend/css_src/ ./backend/css_src/
+COPY css_src/ ./backend/css_src/
 COPY backend/templates ./backend/templates/
 
 # Build CSS (Tailwind will find daisyui in node_modules)
@@ -49,7 +49,7 @@ COPY . .
 # 5. Set up User and Permissions
 WORKDIR /app/backend
 RUN useradd -m appuser && chown -R appuser /app
-COPY --chown=appuser:appuser docker/entrypoint.sh /entrypoint.sh
+COPY --chown=appuser:appuser /entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 USER appuser
