@@ -1,172 +1,132 @@
 <script>
 function shiwakeGrid() {
     return {
-        // State
         validationTick: 0,
-        rowErrors: {}, 
+        rowErrors: {},
+        _currentRowIdx: null,
 
         init() {
-            if (typeof initTomSelects === 'function') initTomSelects();
             this.revalidateAllRows();
 
-
-            // HTMX afterSwap handler
             document.body.addEventListener('htmx:afterSwap', (evt) => {
-                if (typeof initTomSelects === 'function') {
-                    initTomSelects();
-                }
-
-                // Clear error for successfully saved row
                 const target = evt.detail?.target;
                 if (target && target.id && target.id.startsWith('row-')) {
                     const rowIdx = target.id.replace('row-', '');
                     delete this.rowErrors[rowIdx];
-
-                    // Check for server errors in the returned HTML
-                    const serverErr = target.querySelector('.server-row-error')?.textContent?.trim();
-                    if (serverErr) {
-                        this.rowErrors[rowIdx] = serverErr;
-                    }
                 }
                 this.revalidateAllRows();
                 this.validationTick++;
             });
 
-            // Input change handlers for real-time validation
-            document.body.addEventListener('input', () => {
-                this.validationTick++;
-                this.revalidateAllRows();
+            // Native input changes only revalidate; saving happens on blur/row exit.
+            document.body.addEventListener('change', (e) => {
+                if (e.target.closest('tr[id^="row-"]')) {
+                    this.handleGlobalChange(e);
+                }
             });
 
-            document.body.addEventListener('change', () => {
-                this.validationTick++;
-                this.revalidateAllRows();
+            document.body.addEventListener('input', (e) => {
+                if (e.target.closest('tr[id^="row-"]')) {
+                    this.handleGlobalChange(e);
+                }
             });
 
-            // Handle specific refresh event from server
-            document.body.addEventListener('refreshHistory', () => {
-                htmx.trigger('#recent-entries-tbody', 'refreshRecentEntries');
+            document.addEventListener('focusin', (e) => {
+                const tr = e.target.closest('tr');
+                if (tr && tr.id.startsWith('row-')) {
+                    const newRowIdx = this.getRowIndex(e.target);
+                    if (this._currentRowIdx !== null && this._currentRowIdx !== newRowIdx) {
+                        this.triggerSaveIfValid(this._currentRowIdx);
+                    }
+                    this._currentRowIdx = newRowIdx;
+                }
+            });
+
+            document.addEventListener('focusout', (e) => {
+                const tr = e.target.closest('tr');
+                if (!tr || !tr.id.startsWith('row-')) return;
+
+                const rowIdx = this.getRowIndex(e.target);
+                setTimeout(() => {
+                    const active = document.activeElement;
+                    if (active && tr.contains(active)) return;
+                    if (this.hasOpenTomSelect(tr)) return;
+                    this.triggerSaveIfValid(rowIdx);
+                }, 0);
             });
         },
 
-        // Validation
+        handleGlobalChange(e) {
+            this.validationTick++;
+            this.revalidateAllRows();
+        },
+
+        triggerSaveIfValid(rowIdx) {
+            const row = document.getElementById(`row-${rowIdx}`);
+            if (!row || row.classList.contains('htmx-request')) return;
+            
+            const error = this.getRowError(rowIdx, true);
+            if (!error) {
+                if (!this.rowHasAnyInput(row)) return;
+                htmx.trigger(row, 'row-save');
+            }
+        },
+
         revalidateAllRows() {
             const rows = document.querySelectorAll('#grid-rows > tr[id^="row-"]');
             rows.forEach(row => {
                 const rowIdx = row.id.replace('row-', '');
                 const error = this.getRowError(rowIdx);
-                if (error) {
-                    this.rowErrors[rowIdx] = error;
-                } else {
-                    delete this.rowErrors[rowIdx];
-                }
+                if (error) this.rowErrors[rowIdx] = error;
+                else delete this.rowErrors[rowIdx];
             });
-        },
-
-        getRowDisplayNumber(rowIdx) {
-            const rows = Array.from(document.querySelectorAll('#grid-rows > tr[id^="row-"]'));
-            const currentIndex = rows.findIndex((row) => row.id === `row-${rowIdx}`);
-            return currentIndex >= 0 ? currentIndex + 1 : parseInt(rowIdx, 10) + 1;
-        },
-
-        getOrderedRowErrors() {
-            return Object.entries(this.rowErrors)
-                .map(([rowIdx, error]) => ({
-                    rowIdx,
-                    error,
-                    displayNumber: this.getRowDisplayNumber(rowIdx),
-                }))
-                .sort((a, b) => a.displayNumber - b.displayNumber);
+            this.rowErrors = { ...this.rowErrors };
         },
 
         rowHasAnyInput(row) {
             if (!row) return false;
-            const selectors = [
-                'select[name$="-kari_kamoku"]',
-                'select[name$="-kashi_kamoku"]',
-                'input[name$="-kari_kingaku"]',
-                'input[name$="-kashi_kingaku"]',
-                'input[name$="-tekiyou"]'
-            ];
-            return selectors.some((selector) => {
-                const el = row.querySelector(selector);
-                return el && `${el.value || ''}`.trim() !== '';
+            const inputs = row.querySelectorAll('input:not([type="hidden"]), select');
+            return Array.from(inputs).some(el => {
+                if (el.closest('.ts-wrapper') && el.tagName !== 'SELECT') return false;
+                return el.value && el.value.trim() !== '';
             });
+        },
+
+        hasOpenTomSelect(row) {
+            if (!row) return false;
+            return !!row.querySelector('.ts-wrapper.dropdown-active');
         },
 
         getRowError(rowIdx, enforceRequired = false) {
             const row = document.getElementById(`row-${rowIdx}`);
             if (!row) return "";
-            if (!enforceRequired && !this.rowHasAnyInput(row)) return "";
             
-            // Get field values
-            const date = row.querySelector(`input[name="row-${rowIdx}-date"]`)?.value;
-            const kariKamoku = row.querySelector(`select[name="row-${rowIdx}-kari_kamoku"]`)?.value;
-            const kashiKamoku = row.querySelector(`select[name="row-${rowIdx}-kashi_kamoku"]`)?.value;
-            const kariRaw = row.querySelector(`input[name="row-${rowIdx}-kari_kingaku"]`)?.value;
-            const kashiRaw = row.querySelector(`input[name="row-${rowIdx}-kashi_kingaku"]`)?.value;
+            const prefix = `row-${rowIdx}`;
+            const date = row.querySelector(`input[name="${prefix}-date"]`)?.value;
+            const kariRaw = row.querySelector(`input[name="${prefix}-kari_kingaku"]`)?.value;
+            const kashiRaw = row.querySelector(`input[name="${prefix}-kashi_kingaku"]`)?.value;
+            
             const kari = parseFloat(kariRaw || "0");
             const kashi = parseFloat(kashiRaw || "0");
 
-            // Check required fields specifically
-            const missingFields = [];
-            if (!date) missingFields.push("日付");
-            if (!kariKamoku) missingFields.push("借方科目");
-            if (!kashiKamoku) missingFields.push("貸方科目");
-            if (missingFields.length > 0) {
-                return `必須項目を入力してください（${missingFields.join(", ")}）`;
+            if (!enforceRequired && !date && !kariRaw && !kashiRaw) return "";
+
+            if (kariRaw || kashiRaw) {
+                if (Math.abs(kari - kashi) > 0.01) {
+                    return `貸借不一致 (${Math.abs(kari - kashi).toLocaleString()}円)`;
+                }
             }
             
-            if (!kariRaw || !kashiRaw || kari <= 0 || kashi <= 0) {
-                return `借方金額・貸方金額は0より大きい値が必要です。`;
-            }
-            
-            if (kari !== kashi) {
-                const diff = Math.abs(kari - kashi);
-                return `借方金額と貸方金額が一致していません。（借方: ${kari.toLocaleString()}円、貸方: ${kashi.toLocaleString()}円、差額: ${diff.toLocaleString()}円）`;
-            }
             return "";
         },
-
         rowHasError(rowIdx) {
             return !!this.rowErrors[rowIdx];
-        },
-
-        // Save Handler
-        saveRow(e) {
-            const rowIdx = this.getRowIndex(e.currentTarget);
-            // Clear previous error for this row
-            delete this.rowErrors[rowIdx];
-
-            const error = this.getRowError(rowIdx, true);
-            if (error) {
-                this.rowErrors[rowIdx] = error;
-                // Prevent HTMX from submitting by stopping propagation
-                e.stopPropagation();
-                e.preventDefault();
-                return false;
-            }
-            // Allow HTMX to proceed - don't stop the event
-            return true;
-        },
-
-        // Row Management
-        deleteRow(rowIdx) {
-            const row = document.getElementById(`row-${rowIdx}`);
-            if (row) {
-                row.remove();
-                delete this.rowErrors[rowIdx];
-                this.rowErrors = { ...this.rowErrors };
-                this.revalidateAllRows();
-                this.validationTick++;
-            }
         },
 
         getRowIndex(el) {
             const tr = el.closest('tr');
             if (!tr) return 0;
-            const id = tr.id;
-            const match = id.match(/row-(\d+)/);
+            const match = tr.id.match(/row-(\d+)/);
             return match ? parseInt(match[1]) : 0;
         },
 
@@ -181,92 +141,52 @@ function shiwakeGrid() {
         handleKey(e, rowIdx, colIdx) {
             const colCount = 10;
             const target = e.target;
-            // Find TomSelect instance if it exists for this target
-            const ts = target.parentElement?.querySelector('select')?.tomselect || target.tomselect;
 
-            // 1. Handle Navigation Keys (Enter/Tab)
             if (e.key === 'Enter' && target.tagName !== 'BUTTON') {
-                if (ts && ts.isOpen) return; // Let TomSelect select the item
-
                 e.preventDefault(); 
-                if (colIdx === colCount - 1) {
-                    this.focusCell(rowIdx + 1, 0);
-                } else {
-                    this.focusCell(rowIdx, colIdx + 1);
-                }
+                if (colIdx === colCount - 1) this.focusCell(rowIdx + 1, 0);
+                else this.focusCell(rowIdx, colIdx + 1);
             } else if (e.key === 'Tab') {
-                e.preventDefault();
-                e.stopPropagation(); // Prevent TomSelect internal tab logic
-
-                // If moving away from an open TomSelect, close it first
-                if (ts && ts.isOpen) {
-                    ts.close();
-                }
-
+                // Let browser handle Tab nav if possible, or manual focus
                 if (e.shiftKey) {
-                    if (colIdx === 0 && rowIdx > 0) {
-                        this.focusCell(rowIdx - 1, colCount - 1);
-                    } else if (colIdx > 0) {
-                        this.focusCell(rowIdx, colIdx - 1);
-                    }
+                    if (colIdx === 0 && rowIdx > 0) { e.preventDefault(); this.focusCell(rowIdx - 1, colCount - 1); }
                 } else {
-                    if (colIdx === colCount - 1) {
-                        this.focusCell(rowIdx + 1, 0);
-                    } else {
-                        this.focusCell(rowIdx, colIdx + 1);
-                    }
+                    if (colIdx === colCount - 1) { e.preventDefault(); this.focusCell(rowIdx + 1, 0); }
                 }
             } 
-            // 2. Handle Arrow Keys
-            else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                if (ts && ts.isOpen) return;
-
-                if (e.key === 'ArrowRight' && target.tagName !== 'SELECT') {
-                    if (target.selectionEnd === target.value.length) {
-                        e.preventDefault();
-                        this.focusCell(rowIdx, colIdx + 1);
-                    }
-                } else if (e.key === 'ArrowLeft' && target.tagName !== 'SELECT') {
-                    if (target.selectionStart === 0) {
-                        e.preventDefault();
-                        this.focusCell(rowIdx, colIdx - 1);
-                    }
-                } else if (e.key === 'ArrowDown' && target.tagName !== 'SELECT') {
-                    e.preventDefault();
-                    this.focusCell(rowIdx + 1, colIdx);
-                } else if (e.key === 'ArrowUp' && target.tagName !== 'SELECT') {
-                    e.preventDefault();
-                    this.focusCell(rowIdx - 1, colIdx);
-                }
+            else if (['ArrowUp', 'ArrowDown'].includes(e.key) && target.tagName !== 'SELECT') {
+                e.preventDefault();
+                this.focusCell(e.key === 'ArrowDown' ? rowIdx + 1 : rowIdx - 1, colIdx);
             }
         },
 
-        focusCell(row, col) {
-            const el = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        focusCell(rowIdx, colIdx) {
+            const targetRow = document.getElementById(`row-${rowIdx}`);
+            if (!targetRow) return;
+            const el = targetRow.querySelector(`[data-col="${colIdx}"]`);
             if (!el) return;
+            setTimeout(() => {
+                if (el.tomselect) {
+                    el.tomselect.focus();
+                    return;
+                }
+                el.focus();
+                if (el.select && el.tagName === 'INPUT' && el.type === 'number') el.select();
+            }, 10);
+        },
 
-            // requestAnimationFrame + setTimeout is the most robust way to handle 
-            // focus transitions in Chrome/Edge to prevent address bar jumps.
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    if (el.tomselect) {
-                        el.tomselect.focus();
-                        // Optional: if you want it to open immediately on tab
-                        // el.tomselect.open(); 
-                    } else {
-                        el.focus();
-                        if (el.select && el.tagName === 'INPUT' && el.type === 'number') {
-                            el.select();
-                        }
-                    }
-                }, 10);
-            });
+        deleteRow(rowIdx) {
+            const row = document.getElementById(`row-${rowIdx}`);
+            if (row && confirm('削除しますか？')) {
+                row.remove();
+                delete this.rowErrors[rowIdx];
+                this.revalidateAllRows();
+            }
         }
     }
 }
 
 function getNextRowIndex() {
-    // Find max index to avoid collisions
     const rows = document.querySelectorAll('#grid-rows > tr[id^="row-"]');
     let maxIdx = -1;
     rows.forEach(r => {

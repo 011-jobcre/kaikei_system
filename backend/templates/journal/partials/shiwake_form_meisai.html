@@ -1,9 +1,20 @@
 <tr id="{{ form.prefix }}"
-    :class="{ 'group-detail credit ring-1 ring-inset ring-error/40': rowHasError(getRowIndex($el)) }"
-    @keydown="handleGridKey($event)">
-    <td>
+    class="relative"
+    :class="{ 'bg-error/10': rowHasError(getRowIndex($el)) }"
+    @keydown="handleGridKey($event)"
+    hx-post="{% url 'journal:shiwake-create' %}"
+    hx-trigger="row-save"
+    hx-target="this"
+    hx-swap="outerHTML"
+    hx-include="this"
+    hx-indicator="find .row-status-indicator">
+    <td class="relative">
         {% csrf_token %}
+        {{ form.denpyo_id }}
         <input type="hidden" name="_row_prefix" value="{{ form.prefix }}" />
+        <div x-show="rowHasError(getRowIndex($el))"
+             class="absolute inset-0 z-60 tooltip tooltip-error tooltip-open tooltip-right pointer-events-none"
+             :data-tip="rowErrors[getRowIndex($el)]"></div>
         <input type="date"
                name="{{ form.prefix }}-date"
                value="{{ form.date.value|date:'Y-m-d' }}"
@@ -12,108 +23,34 @@
                data-col="0"
                x-init="if (!$el.value) $el.value = new Date().toISOString().split('T')[0]" />
     </td>
-    <td class="group-detail">
-        <select name="{{ form.prefix }}-kari_kamoku"
-                class="select select-sm tomselect w-full"
-                :class="{ 'input-invalid': validationTick && !($el.value) }"
-                data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="1">
-            {% for choice in form.kari_kamoku.field.choices %}
-                <option value="{{ choice.0 }}"
-                        {% if form.kari_kamoku.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
-                    {{ choice.1 }}
-                </option>
-            {% endfor %}
-        </select>
-    </td>
-    <td class="group-detail">
-        <select name="{{ form.prefix }}-kari_hojo"
-                class="select select-sm tomselect w-full"
-                data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="2">
-            {% for choice in form.kari_hojo.field.choices %}
-                <option value="{{ choice.0 }}"
-                        {% if form.kari_hojo.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
-                    {{ choice.1 }}
-                </option>
-            {% endfor %}
-        </select>
-    </td>
+    <td class="group-detail">{{ form.kari_kamoku }}</td>
+    <td class="group-detail">{{ form.kari_hojo }}</td>
     <td class="group-detail">
         <input type="number"
                name="{{ form.prefix }}-kari_kingaku"
                value="{{ form.kari_kingaku.value|default:'' }}"
-               class="input input-sm outline-none w-full text-right"
+               class="input input-sm outline-none w-full text-right font-mono"
                min="0"
                step="1"
-               :class="{ 'input-invalid': validationTick && (!$el.value || parseFloat($el.value) <= 0) }"
+               placeholder="0"
                data-row="{{ form.prefix|cut:"row-" }}"
                data-col="3" />
     </td>
-    <td class="group-detail">
-        <select name="{{ form.prefix }}-kari_zei"
-                class="select select-sm tomselect w-full"
-                data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="4">
-            {% for choice in form.kari_zei.field.choices %}
-                <option value="{{ choice.0 }}"
-                        {% if form.kari_zei.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
-                    {{ choice.1 }}
-                </option>
-            {% endfor %}
-        </select>
-    </td>
-    <td class="group-detail credit">
-        <select name="{{ form.prefix }}-kashi_kamoku"
-                class="select select-sm tomselect w-full"
-                :class="{ 'input-invalid': validationTick && !($el.value) }"
-                data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="5">
-            {% for choice in form.kashi_kamoku.field.choices %}
-                <option value="{{ choice.0 }}"
-                        {% if form.kashi_kamoku.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
-                    {{ choice.1 }}
-                </option>
-            {% endfor %}
-        </select>
-    </td>
-    <td class="group-detail credit">
-        <select name="{{ form.prefix }}-kashi_hojo"
-                class="select select-sm tomselect w-full"
-                data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="6">
-            {% for choice in form.kashi_hojo.field.choices %}
-                <option value="{{ choice.0 }}"
-                        {% if form.kashi_hojo.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
-                    {{ choice.1 }}
-                </option>
-            {% endfor %}
-        </select>
-    </td>
+    <td class="group-detail">{{ form.kari_zei }}</td>
+    <td class="group-detail credit">{{ form.kashi_kamoku }}</td>
+    <td class="group-detail credit">{{ form.kashi_hojo }}</td>
     <td class="group-detail credit">
         <input type="number"
                name="{{ form.prefix }}-kashi_kingaku"
                value="{{ form.kashi_kingaku.value|default:'' }}"
-               class="input input-sm outline-none w-full text-right"
+               class="input input-sm outline-none w-full text-right font-mono"
                min="0"
                step="1"
-               :class="{ 'input-invalid': validationTick && (!$el.value || parseFloat($el.value) <= 0) }"
+               placeholder="0"
                data-row="{{ form.prefix|cut:"row-" }}"
                data-col="7" />
     </td>
-    <td class="group-detail credit">
-        <select name="{{ form.prefix }}-kashi_zei"
-                class="select select-sm tomselect w-full"
-                data-row="{{ form.prefix|cut:"row-" }}"
-                data-col="8">
-            {% for choice in form.kashi_zei.field.choices %}
-                <option value="{{ choice.0 }}"
-                        {% if form.kashi_zei.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
-                    {{ choice.1 }}
-                </option>
-            {% endfor %}
-        </select>
-    </td>
+    <td class="group-detail credit">{{ form.kashi_zei }}</td>
     <td class="p-0 border-base-300">
         <input type="text"
                name="{{ form.prefix }}-tekiyou"
@@ -122,28 +59,17 @@
                data-row="{{ form.prefix|cut:"row-" }}"
                data-col="9" />
     </td>
-    {% if not standalone_edit %}
-        <td class="text-center p-0 relative">
-            <div class="flex items-center justify-center gap-1 h-full py-1">
-                <button type="button"
-                        class="btn-edit-square"
-                        hx-post="{% url 'journal:shiwake-create' %}?row_index={{ form.prefix|cut:"row-" }}"
-                        hx-target="closest tr"
-                        hx-swap="outerHTML"
-                        hx-include="closest tr"
-                        hx-indicator="closest tr"
-                        :class="{ 'opacity-60 cursor-not-allowed': rowHasError({{ form.prefix|cut:"row-" }}) }"
-                        @click="saveRow($event)"
-                        title="保存">
-                    <i class="fa-solid fa-save"></i>
-                </button>
-                <button type="button"
-                        class="btn-delete-square"
-                        @click="deleteRow(getRowIndex($el))"
-                        title="行削除">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
+    <td class="text-center p-0 relative">
+        <div class="flex items-center justify-center gap-1 h-full py-1">
+            <div class="row-status-indicator htmx-indicator">
+                <span class="loading loading-spinner loading-xs text-primary"></span>
             </div>
-        </td>
-    {% endif %}
+            <button type="button"
+                    class="btn-delete-square"
+                    @click="deleteRow(getRowIndex($el))"
+                    title="削除">
+                <i class="fa-solid fa-trash-can scale-90"></i>
+            </button>
+        </div>
+    </td>
 </tr>

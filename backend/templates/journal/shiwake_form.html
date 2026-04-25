@@ -3,6 +3,36 @@
 {% block title %}
     仕訳日記帳 | 会計システム
 {% endblock title %}
+{% block extra_head %}
+    {{ formset.media.css }}
+    <style>
+    /* Styling for the persistent grid */
+    .table-accounting input:focus, .table-accounting select:focus {
+        background-color: hsl(var(--p) / 0.05);
+        outline: 2px solid hsl(var(--p));
+    }
+    
+    /* Error indicator animation */
+    .error-row {
+        background-color: hsl(var(--er) / 0.05) !important;
+    }
+    
+    /* Custom Tooltip that won't be clipped */
+    .fixed-error-popup {
+        position: fixed;
+        z-index: 9999;
+        pointer-events: none;
+        background: hsl(var(--er));
+        color: hsl(var(--erc));
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: bold;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        display: none;
+    }
+    </style>
+{% endblock extra_head %}
 {% block page_header %}
     {{ title }}
 {% endblock page_header %}
@@ -13,10 +43,10 @@
             <div class="flex items-center gap-2 w-full">
                 {% if is_edit %}
                     <i class="fa-solid fa-pen-to-square text-warning"></i>
-                    <span class="text-neutral text-xs">仕訳伝票の1:1明細を編集しています。編集画面では単一伝票のみ保存できます。</span>
+                    <span class="text-neutral text-xs">仕訳伝票の1:1明細を編集しています。</span>
                 {% else %}
                     <i class="fa-solid fa-lightbulb text-warning"></i>
-                    <span class="text-neutral text-xs">パターンを選択して「行を追加」を押すと、自動入力された行が追加されます。</span>
+                    <span class="text-neutral text-xs">Excelのように行を直接入力・編集できます。空の行に入力すると自動で新規保存され、既存の行を書き換えると自動で更新されます。</span>
                 {% endif %}
             </div>
             <div class="flex flex-wrap lg:flex-nowrap items-center justify-end gap-2">
@@ -26,9 +56,8 @@
                         <label class="select select-sm outline-none cursor-pointer w-full lg:w-md">
                             <span class="label min-w-auto">仕訳辞書</span>
                             <select id="dict-pattern-select"
-                                    class="tomselect"
-                                    data-placeholder="仕訳辞書 (パターン選択)"
-                                    data-no-parse="false">
+                                    class="select select-sm outline-none cursor-pointer w-full lg:w-md"
+                                    data-placeholder="仕訳辞書 (パターン選択)">
                                 <option value="">パターンなし</option>
                                 {% for pattern in dictionary_patterns %}
                                     <option value="{{ pattern.id }}">
@@ -45,22 +74,13 @@
                             hx-target="#grid-rows"
                             hx-swap="beforeend"
                             class="btn-add-row">
-                        <i class="fa-solid fa-plus"></i>行を追加
+                        <i class="fa-solid fa-plus"></i>空行を追加
                     </button>
                     <a href="{% url 'journal:furikae-create' %}" class="btn-submit">
                         <i class="fa-solid fa-toggle-on"></i>伝票へ切替
                     </a>
                 {% endif %}
             </div>
-        </div>
-        <!-- Error Alerts for All Rows -->
-        <div x-show="Object.keys(rowErrors).length > 0" x-cloak class="space-y-2">
-            <template x-for="rowError in getOrderedRowErrors()" :key="rowError.rowIdx">
-                <div class="alert alert-error text-sm shadow-sm">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span><strong>行 <span x-text="rowError.displayNumber"></span>: </strong> <span x-text="rowError.error"></span></span>
-                </div>
-            </template>
         </div>
         <!-- The Grid -->
         <div class="bg-base-100 rounded-box shadow-sm border border-base-300 overflow-hidden">
@@ -83,50 +103,19 @@
                     </thead>
                     <tbody id="grid-rows">
                         {% for form in rows %}
-                            {% include "journal/partials/shiwake_form_meisai.html" with form=form save_url=save_url %}
+                            {% include "journal/partials/shiwake_form_meisai.html" with form=form %}
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-        <!-- Recent History (Peek) -->
-        {% if not is_edit %}
-            <div class="card bg-base-100 shadow-sm border border-base-300">
-                <div class="card-body p-0">
-                    <div class="p-4 pb-2 flex items-center justify-between">
-                        <h3 class="card-title text-sm font-bold tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-clock-rotate-left"></i>最近の登録内容
-                        </h3>
-                        <span class="text-neutral/60 text-xs">最新10件を表示</span>
-                    </div>
-                    <div class="table-wrapper">
-                        <table class="table-accounting">
-                            <thead>
-                                <tr>
-                                    <th class="min-w-24 lg:w-10">日付</th>
-                                    <th class="min-w-32 lg:w-16">伝票No</th>
-                                    <th class="min-w-24 lg:w-12">種別</th>
-                                    <th class="min-w-52 lg:w-24 group-header">借方</th>
-                                    <th class="min-w-32 lg:w-16 group-header">借方金額</th>
-                                    <th class="min-w-44 lg:w-24 group-header">借方税区分</th>
-                                    <th class="min-w-52 lg:w-24 group-header credit">貸方</th>
-                                    <th class="min-w-32 lg:w-16 group-header credit">貸方金額</th>
-                                    <th class="min-w-44 lg:w-24 group-header credit">貸方税区分</th>
-                                    <th class="min-w-52 lg:w-24">摘要</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recent-entries-tbody"
-                                   hx-get="{% url 'journal:shiwake-recent-entries' %}"
-                                   hx-trigger="refreshRecentEntries from:body"
-                                   hx-swap="innerHTML">
-                                {% include "journal/partials/shiwake_form_recent.html" %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
+        <!-- Global Floating Error Tooltip (Teleported to body) -->
+        <div id="global-error-tooltip" class="fixed-error-popup">
+            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+            <span id="global-error-text"></span>
+        </div>
     </div>
+    {{ formset.media.js }}
     {% block extra_scripts %}
         {% include "journal/partials/shiwake_scripts.html" %}
     {% endblock extra_scripts %}

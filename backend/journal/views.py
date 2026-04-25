@@ -133,6 +133,26 @@ class ShiwakeListView(LoginRequiredMixin, HtmxListMixin, ListView):
 # =========================================================
 
 
+
+def build_shiwake_initial(denpyo):
+    meisai_by_side = {m.kari_kashi: m for m in denpyo.meisai.all()}
+    kari = meisai_by_side.get("KA")
+    kashi = meisai_by_side.get("SHI")
+    return {
+        "date": denpyo.date,
+        "kari_kamoku": getattr(kari, "kamoku", None),
+        "kari_hojo": getattr(kari, "hojo", None),
+        "kari_zei": getattr(kari, "zei_kubun", None),
+        "kari_kingaku": getattr(kari, "kingaku", None),
+        "kashi_kamoku": getattr(kashi, "kamoku", None),
+        "kashi_hojo": getattr(kashi, "hojo", None),
+        "kashi_zei": getattr(kashi, "zei_kubun", None),
+        "kashi_kingaku": getattr(kashi, "kingaku", None),
+        "tekiyou": getattr(kari, "tekyou", "") or getattr(kashi, "tekyou", "") or denpyo.memo,
+        "bumon": getattr(kari, "bumon", None) or getattr(kashi, "bumon", None),
+        "torihikisaki": getattr(kari, "torihikisaki", None) or getattr(kashi, "torihikisaki", None),
+    }
+
 class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
     """仕訳日記帳: Create a general single-line for direct (1:1) journal entry.
 
@@ -144,23 +164,26 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
     success_url = reverse_lazy("journal:shiwake-list")
 
     def get(self, request):
-        # We'll provide 5 empty rows initially
         today = timezone.localdate()
-        rows = [ShiwakeMeisaiForm(prefix=f"row-{i}", initial={"date": today}) for i in range(3)]
+        recent_denpyo = ShiwakeDenpyo.objects.filter(denpyo_type="SHIWAKE").prefetch_related("meisai").order_by("-id")[:10]
+        
 
-        # Also get recent entries for display below the input grid
-        recent_shiwake = ShiwakeDenpyo.objects.filter(denpyo_type="SHIWAKE").order_by("-id")[:10]
+        
+        rows = []
+        for i, d in enumerate(reversed(recent_denpyo)):
+            initial = build_shiwake_initial(d)
+            initial['denpyo_id'] = d.id
+            rows.append(ShiwakeMeisaiForm(prefix=f"row-{i}", initial=initial))
+        rows.append(ShiwakeMeisaiForm(prefix=f"row-{len(rows)}", initial={"date": today}))
 
-        # Get active journal patterns for the dictionary selection dropdown
         dictionary_patterns = ShiwakeDictionary.objects.filter(is_active=True).order_by("shortcut_code", "name")
 
         return render(
             request,
             self.template_name,
             {
-                "title": "仕訳日記帳 新規作成",
+                "title": "仕訳日記帳 (グリッド入力)",
                 "rows": rows,
-                "recent_shiwake": recent_shiwake,
                 "dictionary_patterns": dictionary_patterns,
                 "is_new": True,
             },
@@ -173,62 +196,74 @@ class ShiwakeNikkiCreateView(AccountantRequiredMixin, View):
         if form.is_valid():
             with transaction.atomic():
                 d = form.cleaned_data
-                denpyo = ShiwakeDenpyo.objects.create(
-                    date=d["date"],
-                    denpyo_type="SHIWAKE",
-                    memo=d["tekiyou"] or "",
-                    created_by=request.user,
-                )
-                # Debit Side
-                ShiwakeMeisai.objects.create(
-                    denpyo=denpyo,
-                    row_no=0,
-                    kari_kashi="KA",
-                    kamoku=d["kari_kamoku"],
-                    hojo=d.get("kari_hojo"),
-                    kingaku=d["kari_kingaku"],
-                    zei_kubun=d.get("kari_zei"),
-                    tekyou=d["tekiyou"],
-                    bumon=d.get("bumon"),
-                    torihikisaki=d.get("torihikisaki"),
-                )
-                # Credit Side
-                ShiwakeMeisai.objects.create(
-                    denpyo=denpyo,
-                    row_no=1,
-                    kari_kashi="SHI",
-                    kamoku=d["kashi_kamoku"],
-                    hojo=d.get("kashi_hojo"),
-                    kingaku=d["kashi_kingaku"],
-                    zei_kubun=d.get("kashi_zei"),
-                    tekyou=d["tekiyou"],
-                    bumon=d.get("bumon"),
-                    torihikisaki=d.get("torihikisaki"),
-                )
+                denpyo_id = d.get("denpyo_id")
+                is_update = False
+                
+                if denpyo_id:
+                    try:
+                        denpyo = ShiwakeDenpyo.objects.get(pk=denpyo_id)
+                        denpyo.date = d["date"]
+                        denpyo.memo = d["tekiyou"] or ""
+                        denpyo.save(update_fields=["date", "memo"])
+                        denpyo.meisai.all().delete()
+                        is_update = True
+                    except ShiwakeDenpyo.DoesNotExist:
+                        denpyo_id = None
+
+                if not denpyo_id:
+                    denpyo = ShiwakeDenpyo.objects.create(
+                        date=d["date"],
+                        denpyo_type="SHIWAKE",
+                        memo=d["tekiyou"] or "",
+                        created_by=request.user,
+                    )
+
+                for side, kashi_kari in [("KA", "kari"), ("SHI", "kashi")]:
+                    ShiwakeMeisai.objects.create(
+                        denpyo=denpyo,
+                        row_no=0 if side == "KA" else 1,
+                        kari_kashi=side,
+                        kamoku=d[f"{kashi_kari}_kamoku"],
+                        hojo=d.get(f"{kashi_kari}_hojo"),
+                        kingaku=d[f"{kashi_kari}_kingaku"],
+                        zei_kubun=d.get(f"{kashi_kari}_zei"),
+                        tekyou=d["tekiyou"],
+                        bumon=d.get("bumon"),
+                        torihikisaki=d.get("torihikisaki"),
+                    )
+
 
             if request.htmx:
-                new_form = ShiwakeMeisaiForm(prefix=prefix, initial={"date": timezone.localdate()})
-                row_index = prefix.split("-")[1] if prefix and "-" in prefix else 0
-                response = render(
+                saved_initial = build_shiwake_initial(denpyo)
+                saved_initial['denpyo_id'] = denpyo.id
+                saved_form = ShiwakeMeisaiForm(prefix=prefix, initial=saved_initial)
+                response_html = render(
                     request,
                     "journal/partials/shiwake_form_meisai.html",
-                    {
-                        "form": new_form,
-                        "row_index": row_index,
-                    },
-                )
-                response["HX-Trigger"] = "refreshRecentEntries"
-                return response
+                    {"form": saved_form}
+                ).content.decode("utf-8")
+                
+                if not is_update:
+                    next_idx = int(prefix.replace("row-", "")) + 1
+                    new_blank_form = ShiwakeMeisaiForm(prefix=f"row-{next_idx}", initial={"date": timezone.localdate()})
+                    blank_row_html = render(
+                        request,
+                        "journal/partials/shiwake_form_meisai.html",
+                        {"form": new_blank_form}
+                    ).content.decode("utf-8")
+                    response_html += f'<tbody id="grid-rows" hx-swap-oob="beforeend">{blank_row_html}</tbody>'
+                
+                return HttpResponse(response_html)
 
-            messages.success(request, f"伝票 {denpyo.denpyo_no} を登録しました")
+            messages.success(request, f"伝票 {denpyo.denpyo_no} を保存しました")
             return redirect(self.success_url)
 
         if request.htmx:
-            # Return form with errors
-            row_index = prefix.split("-")[1] if prefix and "-" in prefix else 0
-            return render(request, "journal/partials/shiwake_form_meisai.html", {"form": form, "row_index": row_index})
+            print("FORM VALIDATION FAILED. Errors:", form.errors)
+            return render(request, "journal/partials/shiwake_form_meisai.html", {"form": form})
 
         return self.get(request)
+
 
 
 class ShiwakeNikkiUpdateView(AccountantRequiredMixin, View):

@@ -81,39 +81,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Initial load call
     initTomSelects();
 });
 
-// --- TomSelect Searchable Dropdowns ---
-
-/**
- * Initializes TomSelect for all <select> elements with class .tomselect.
- * @param {HTMLElement} container - Optional scope to search for select elements.
- */
 function initTomSelects(container) {
     const root = container || document;
-    const selects = root.querySelectorAll("select.tomselect:not(.tomselected)");
-
-    if (selects.length > 0) {
-        console.debug(`[TomSelect] Initializing ${selects.length} elements in`, root);
-    }
+    const selects = root.querySelectorAll("select.tomselect");
 
     selects.forEach((el) => {
-        // Guard: Skip if inside hidden formset templates or dynamic __prefix__ elements
         if (el.closest(".empty-form") || (el.id && el.id.includes("__prefix__"))) return;
+        if (el.tomselect) return;
+        if (el.classList.contains("tomselected")) return;
 
-        // Determine placeholder text
-        let placeholder = el.dataset.placeholder;
-        if (!placeholder) {
-            const emptyOpt = el.querySelector('option[value=""]');
-            if (emptyOpt && emptyOpt.textContent.trim()) {
-                placeholder = emptyOpt.textContent.trim();
-            }
-        }
-        placeholder = placeholder || "選択...";
+        const placeholder = el.dataset.placeholder || "選択...";
 
-        // Initialize TomSelect instance
         const instance = new TomSelect(el, {
             create: false,
             maxItems: 1,
@@ -126,45 +107,51 @@ function initTomSelects(container) {
             dropdownClass: "ts-dropdown",
             optionClass: "option",
             dropdownParent: "body",
-            plugins: ["dropdown_input"],
+            plugins: ["dropdown_input", "clear_button"],
             render: {
                 option: (data, escape) => {
+                    if (!data.value) {
+                        return `<div class="hidden" aria-hidden="true"></div>`;
+                    }
                     const text = el.dataset.noParse === "true" ? data.text : parseAccountLabel(data.text);
                     return `<div class="px-2 py-1">${escape(text)}</div>`;
                 },
                 item: (data, escape) => {
+                    if (!data.value) {
+                        return `<div></div>`;
+                    }
                     const text = el.dataset.noParse === "true" ? data.text : parseAccountLabel(data.text);
                     return `<div>${escape(text)}</div>`;
                 },
             },
         });
 
-        // Event: Sync TomSelect changes back to original <select> for HTMX/Forms
-        instance.on("change", () => {
+        instance.on("change", (val) => {
+            el.value = val;
             el.dispatchEvent(new Event("change", { bubbles: true }));
         });
 
-        // Mark as initialized
         el.classList.add("tomselected");
-
-        // Styling: Sync error borders level from Select to TomSelect control
+        el.classList.remove("select");
         if (el.classList.contains("border-error") && instance.control) {
             instance.control.classList.add("border-error");
         }
-
-        // Styling: Guard against DaisyUI base classes leaking into TomSelect components
-        el.classList.remove("select");
         if (instance.wrapper) instance.wrapper.classList.remove("select");
         if (instance.control) instance.control.classList.remove("select");
+        if (instance.control_input) {
+            if (el.dataset.row !== undefined) instance.control_input.dataset.row = el.dataset.row;
+            if (el.dataset.col !== undefined) instance.control_input.dataset.col = el.dataset.col;
+        }
 
-        // UI: Dynamic Dropdown Positioning (Fixes overflow issues in modals/tables)
         const syncDropdownPosition = () => {
             if (!instance.dropdown || !instance.control) return;
             const controlRect = instance.control.getBoundingClientRect();
+            if (controlRect.width === 0) return;
+
             Object.assign(instance.dropdown.style, {
                 position: "fixed",
                 left: `${controlRect.left}px`,
-                top: `${controlRect.bottom + 4}px`,
+                top: `${controlRect.bottom + 2}px`,
                 width: `${controlRect.width}px`,
                 minWidth: `${controlRect.width}px`,
                 zIndex: "9999",
@@ -175,28 +162,27 @@ function initTomSelects(container) {
         window.addEventListener("resize", syncDropdownPosition);
         window.addEventListener("scroll", syncDropdownPosition, true);
 
-        // UI: Ensure single-click open behavior
-        instance.control.addEventListener("click", () => {
-            if (!instance.isOpen) instance.open();
-        });
+        if (instance.control) {
+            instance.control.addEventListener("click", () => {
+                if (!instance.isOpen) instance.open();
+            });
+        }
 
-        // UI: Placeholder Management (Fixes CSS squishing in some themes)
         const updatePlaceholder = () => {
             if (!instance.control_input) return;
             if (instance.items.length > 0) {
                 instance.control_input.removeAttribute("placeholder");
             } else {
-                instance.control_input.setAttribute("placeholder", placeholder);
+                instance.control_input.setAttribute("placeholder", el.dataset.placeholder || placeholder);
             }
         };
 
         instance.on("item_add", updatePlaceholder);
         instance.on("item_remove", updatePlaceholder);
-        updatePlaceholder(); // Trigger initial state
+        updatePlaceholder();
     });
 }
 
-// Global exposure for specific manual triggers (rarely needed with htmx:onLoad)
 window.initTomSelectsInModal = (container) => initTomSelects(container);
 
 // --- Alpine.js Date Range Picker Component ---
@@ -211,11 +197,7 @@ document.addEventListener("alpine:init", () => {
         init() {
             // Generate year list (Current year + 1 down to 15 years ago)
             const currentYear = new Date().getFullYear();
-            for (let i = currentYear; i >= currentYear - 15; i--) {
-                this.years.push(i);
-            }
-
-            // Determine initial fiscal year from dateFrom or current date
+            for (let i = currentYear; i >= currentYear - 15; i--) this.years.push(i);
             const d = this.dateFrom ? new Date(this.dateFrom) : new Date();
             const year = d.getFullYear();
             const month = d.getMonth() + 1;

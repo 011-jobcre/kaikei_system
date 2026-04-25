@@ -43,13 +43,13 @@ def get_active_zei_queryset():
 
 class KanjoKamokuChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        # Include furigana in brackets so TomSelect can search it
-        # Pattern: "CODE NAME [FURIGANA]"
+        # Include code and furigana for search in native select
         return f"{obj.code} {obj.name} [{obj.furigana or ''}]"
 
 
 class HojoKamokuChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
+        # Include code and furigana for search in datalist
         return f"{obj.code} {obj.name} [{obj.furigana or ''}]"
 
 
@@ -226,26 +226,28 @@ class ShiwakeMeisaiForm(forms.Form):
     A single 1:1 row in the Spreadsheet Grid (仕訳日記帳).
     Maps to two ShiwakeMeisai records under one ShiwakeDenpyo.
     """
-
+    denpyo_id = forms.IntegerField(required=False, widget=forms.HiddenInput())
     date = forms.DateField(label="日付", widget=forms.DateInput(attrs={"type": "date", "class": INPUT_CLASS}))
 
     # --- Debit Side (借方) ---
     kari_kamoku = KanjoKamokuChoiceField(
         queryset=get_active_level4_kamoku_queryset(),
         label="借方科目",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
+        widget=forms.Select(attrs={"class": SELECT_CLASS, "data-placeholder": "科目を検索..."}),
     )
     kari_hojo = HojoKamokuChoiceField(
         queryset=get_active_hojo_queryset(),
         required=False,
         label="借方補助",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
+        widget=forms.Select(attrs={"class": SELECT_CLASS, "data-placeholder": "補助科目を検索..."}),
     )
     kari_zei = forms.ModelChoiceField(
         queryset=get_active_zei_queryset(),
         required=False,
         label="借方税区分",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
+        widget=forms.Select(
+            attrs={"class": SELECT_CLASS, "data-placeholder": "税区分を検索...", "data-no-parse": "true"}
+        ),
     )
 
     # --- Amounts (金額) ---
@@ -270,19 +272,21 @@ class ShiwakeMeisaiForm(forms.Form):
     kashi_kamoku = KanjoKamokuChoiceField(
         queryset=get_active_level4_kamoku_queryset(),
         label="貸方科目",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
+        widget=forms.Select(attrs={"class": SELECT_CLASS, "data-placeholder": "科目を検索..."}),
     )
     kashi_hojo = HojoKamokuChoiceField(
         queryset=get_active_hojo_queryset(),
         required=False,
         label="貸方補助",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
+        widget=forms.Select(attrs={"class": SELECT_CLASS, "data-placeholder": "補助科目を検索..."}),
     )
     kashi_zei = forms.ModelChoiceField(
         queryset=get_active_zei_queryset(),
         required=False,
         label="貸方税区分",
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
+        widget=forms.Select(
+            attrs={"class": SELECT_CLASS, "data-placeholder": "税区分を検索...", "data-no-parse": "true"}
+        ),
     )
 
     # --- Memo (摘要) ---
@@ -308,6 +312,17 @@ class ShiwakeMeisaiForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        row_idx = (self.prefix or "row-0").replace("row-", "")
+        field_positions = {
+            "kari_kamoku": 1,
+            "kari_hojo": 2,
+            "kari_zei": 4,
+            "kashi_kamoku": 5,
+            "kashi_hojo": 6,
+            "kashi_zei": 8,
+        }
+        for field_name, col_idx in field_positions.items():
+            self.fields[field_name].widget.attrs.update({"data-row": row_idx, "data-col": str(col_idx)})
         if self.errors:
             for field_name, field in self.fields.items():
                 if field_name in self.errors:
