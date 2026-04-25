@@ -37,7 +37,7 @@ services:
       # Dòng dưới đây RẤT QUAN TRỌNG:
       # Ta "giấu" node_modules của máy thật đi để nó không đè lên node_modules 
       # sạch trong stage 1 của Docker khi build
-      - /app/backend/node_modules
+      - /app/node_modules
     
     ports:
       - "8001:8000"
