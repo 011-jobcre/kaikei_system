@@ -58,7 +58,7 @@
                             <select id="dict-pattern-select"
                                     class="select select-sm outline-none cursor-pointer w-full lg:w-md"
                                     data-placeholder="仕訳辞書 (パターン選択)">
-                                <option value="">パターンなし</option>
+                                <option value="">---------</option>
                                 {% for pattern in dictionary_patterns %}
                                     <option value="{{ pattern.id }}">
                                         {% if pattern.shortcut_code %}[{{ pattern.shortcut_code }}]{% endif %}

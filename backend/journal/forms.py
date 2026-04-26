@@ -5,10 +5,12 @@
 from django import forms
 
 from master.models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, TorihikiSakiMaster, ZeiMaster
-
 from .models import ShiwakeDenpyo, ShiwakeMeisai
 from django.forms import BaseInlineFormSet, inlineformset_factory
 from common.forms_widgets import INPUT_CLASS, SELECT_CLASS
+
+EMPTY_CHOICE_LABEL = "---------"
+SEARCH_META_SEPARATOR = "|||"
 
 
 # =========================================================
@@ -41,59 +43,62 @@ def get_active_zei_queryset():
     return ZeiMaster.objects.filter(is_active=True).order_by("order_no")
 
 
+def build_searchable_label(display_text, *search_parts):
+    search_text = " ".join(str(part).strip() for part in search_parts if str(part).strip())
+    return f"{display_text} {SEARCH_META_SEPARATOR} {search_text}" if search_text else display_text
+
+
 class KanjoKamokuChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        # Include code and furigana for search in native select
-        return f"{obj.code} {obj.name} [{obj.furigana or ''}]"
+        return build_searchable_label(obj.name, obj.code, obj.name, obj.furigana or "")
 
 
 class HojoKamokuChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        # Include code and furigana for search in datalist
-        return f"{obj.code} {obj.name} [{obj.furigana or ''}]"
+        return build_searchable_label(obj.name, obj.code, obj.name, obj.furigana or "")
 
 
 class BumonChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        return f"{obj.code} {obj.name}"
+        return build_searchable_label(obj.name, obj.code, obj.name)
 
 
 class TorihikiSakiChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        return f"{obj.code} {obj.name}"
+        return build_searchable_label(obj.name, obj.code, obj.name)
 
 
 def setup_master_fields(form):
     """Configure common master data field querysets and empty labels."""
     form.fields["kamoku"] = KanjoKamokuChoiceField(
         queryset=get_active_level4_kamoku_queryset(),
-        empty_label="勘定科目（必須）",
+        empty_label=EMPTY_CHOICE_LABEL,
         required=True,
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
     form.fields["hojo"] = HojoKamokuChoiceField(
         queryset=get_active_hojo_queryset(),
-        empty_label="補助科目（任意）",
+        empty_label=EMPTY_CHOICE_LABEL,
         required=False,
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
 
     form.fields["bumon"] = BumonChoiceField(
         queryset=get_active_bumon_queryset(),
-        empty_label="部門（任意）",
+        empty_label=EMPTY_CHOICE_LABEL,
         required=False,
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
 
     form.fields["torihikisaki"] = TorihikiSakiChoiceField(
         queryset=get_active_torihiki_queryset(),
-        empty_label="取引先（任意）",
+        empty_label=EMPTY_CHOICE_LABEL,
         required=False,
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
     )
 
     form.fields["zei_kubun"].queryset = get_active_zei_queryset()
-    form.fields["zei_kubun"].empty_label = "税区分（任意）"
+    form.fields["zei_kubun"].empty_label = EMPTY_CHOICE_LABEL
 
 
 # =========================================================
@@ -226,6 +231,7 @@ class ShiwakeMeisaiForm(forms.Form):
     A single 1:1 row in the Spreadsheet Grid (仕訳日記帳).
     Maps to two ShiwakeMeisai records under one ShiwakeDenpyo.
     """
+
     denpyo_id = forms.IntegerField(required=False, widget=forms.HiddenInput())
     date = forms.DateField(label="日付", widget=forms.DateInput(attrs={"type": "date", "class": INPUT_CLASS}))
 
@@ -246,7 +252,11 @@ class ShiwakeMeisaiForm(forms.Form):
         required=False,
         label="借方税区分",
         widget=forms.Select(
-            attrs={"class": SELECT_CLASS, "data-placeholder": "税区分を検索...", "data-no-parse": "true"}
+            attrs={
+                "class": SELECT_CLASS,
+                "data-placeholder": "税区分を検索...",
+                "data-no-parse": "true",
+            }
         ),
     )
 
@@ -285,7 +295,11 @@ class ShiwakeMeisaiForm(forms.Form):
         required=False,
         label="貸方税区分",
         widget=forms.Select(
-            attrs={"class": SELECT_CLASS, "data-placeholder": "税区分を検索...", "data-no-parse": "true"}
+            attrs={
+                "class": SELECT_CLASS,
+                "data-placeholder": "税区分を検索...",
+                "data-no-parse": "true",
+            }
         ),
     )
 

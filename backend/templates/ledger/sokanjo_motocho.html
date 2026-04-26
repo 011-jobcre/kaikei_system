@@ -19,7 +19,7 @@
                     <label class="select select-sm outline-none cursor-pointer w-full lg:w-1/3">
                         <span class="label min-w-auto">勘定科目 <span class="text-error ml-1">*</span></span>
                         <select name="kamoku_id" class="tomselect" required>
-                            <option value="">科目を選択...</option>
+                            <option value="">---------</option>
                             {% for k in kamoku_list %}
                                 <option value="{{ k.pk }}"
                                         {% if selected_kamoku_id == k.pk|stringformat:"s" %}selected{% endif %}>

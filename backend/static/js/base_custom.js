@@ -7,6 +7,7 @@
 // --- Global Constants & Helpers ---
 
 const ACCOUNT_LABEL_REGEX = /^(\S+)\s+(.*?)(\s+\[.*\]|$)/;
+const SEARCH_META_SEPARATOR = "|||";
 
 /**
  * Parses a standard account label "CODE NAME [FURIGANA]" or "CODE NAME"
@@ -15,6 +16,9 @@ const ACCOUNT_LABEL_REGEX = /^(\S+)\s+(.*?)(\s+\[.*\]|$)/;
 function parseAccountLabel(text) {
     if (!text) return "";
     const trimmed = text.trim();
+    if (trimmed.includes(SEARCH_META_SEPARATOR)) {
+        return trimmed.split(SEARCH_META_SEPARATOR)[0].trim();
+    }
     const match = trimmed.match(ACCOUNT_LABEL_REGEX);
     return match ? match[2].trim() : trimmed;
 }
@@ -93,7 +97,8 @@ function initTomSelects(container) {
         if (el.tomselect) return;
         if (el.classList.contains("tomselected")) return;
 
-        const placeholder = el.dataset.placeholder || "選択...";
+        const emptyOptionText = el.querySelector('option[value=""]')?.textContent?.trim() || "";
+        const placeholder = el.dataset.placeholder || emptyOptionText || "---------";
 
         const instance = new TomSelect(el, {
             create: false,
@@ -179,6 +184,9 @@ function initTomSelects(container) {
 
         instance.on("item_add", updatePlaceholder);
         instance.on("item_remove", updatePlaceholder);
+        if (!el.value) {
+            instance.clear(true);
+        }
         updatePlaceholder();
     });
 }

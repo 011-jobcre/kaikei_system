@@ -6,6 +6,14 @@ from django import forms
 from .models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, ZeiMaster, TorihikiSakiMaster, ShiwakeDictionary
 from common.forms_widgets import INPUT_CLASS, SELECT_CLASS, TEXTAREA_CLASS, CHECKBOX_CLASS
 
+EMPTY_CHOICE_LABEL = "---------"
+SEARCH_META_SEPARATOR = "|||"
+
+
+def build_searchable_label(display_text, *search_parts):
+    search_text = " ".join(str(part).strip() for part in search_parts if str(part).strip())
+    return f"{display_text} {SEARCH_META_SEPARATOR} {search_text}" if search_text else display_text
+
 
 class BaseMasterForm(forms.ModelForm):
     """Base form with common validation for master data."""
@@ -61,8 +69,42 @@ class KanjoKamokuForm(BaseMasterForm):
         # Restrict parent choices to levels 1–3 so leaf accounts (level 4)
         # cannot become parents, which would break the 4-level hierarchy.
         self.fields["parent"].queryset = KanjoKamokuMaster.objects.filter(level__lt=4).order_by("code")
-        self.fields["parent"].label_from_instance = lambda obj: f"{obj.code} {obj.name} [{obj.furigana or ''}]"
-        self.fields["parent"].empty_label = "指定なし"
+        self.fields["parent"].label_from_instance = lambda obj: build_searchable_label(
+            f"{obj.level} {'-'} {'　' * max((obj.level or 1) - 1, 0)}{obj.get_taisha_kubun_display() or '-'} {'-'} {obj.name}",
+            obj.code,
+            obj.name,
+            obj.furigana or "",
+        )
+        self.fields["parent"].empty_label = EMPTY_CHOICE_LABEL
+
+
+class HojoKamokuForm(forms.ModelForm):
+    """Form for creating / editing a Sub-account (補助科目) record.
+
+    Sub-accounts are tied to a single Level-4 main account (kamoku).
+    The code must be unique within the same parent account.
+    """
+
+    class Meta:
+        model = HojoKamokuMaster
+        fields = ["code", "name", "furigana", "kamoku", "is_active"]
+        widgets = {
+            "code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: H100"}),
+            "name": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: みずほ銀行"}),
+            "furigana": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: mizuho ginkou"}),
+            "kamoku": forms.Select(attrs={"class": SELECT_CLASS}),
+            "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
+        }
+        error_messages = {"__all__": {"unique_together": "この科目コードの組み合わせは既に存在しています。"}}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only Level-4 (detail/leaf) active accounts can have sub-accounts
+        self.fields["kamoku"].queryset = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
+        self.fields["kamoku"].label_from_instance = lambda obj: build_searchable_label(
+            obj.name, obj.code, obj.name, obj.furigana or ""
+        )
+        self.fields["kamoku"].empty_label = EMPTY_CHOICE_LABEL
 
 
 class BumonForm(BaseMasterForm):
@@ -143,33 +185,6 @@ class TorihikiSakiForm(BaseMasterForm):
         return phone
 
 
-class HojoKamokuForm(forms.ModelForm):
-    """Form for creating / editing a Sub-account (補助科目) record.
-
-    Sub-accounts are tied to a single Level-4 main account (kamoku).
-    The code must be unique within the same parent account.
-    """
-
-    class Meta:
-        model = HojoKamokuMaster
-        fields = ["code", "name", "furigana", "kamoku", "is_active"]
-        widgets = {
-            "code": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: H100"}),
-            "name": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: みずほ銀行"}),
-            "furigana": forms.TextInput(attrs={"class": INPUT_CLASS, "placeholder": "例: mizuho ginkou"}),
-            "kamoku": forms.Select(attrs={"class": SELECT_CLASS}),
-            "is_active": forms.CheckboxInput(attrs={"class": CHECKBOX_CLASS}),
-        }
-        error_messages = {"__all__": {"unique_together": "この科目コードの組み合わせは既に存在しています。"}}
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Only Level-4 (detail/leaf) active accounts can have sub-accounts
-        self.fields["kamoku"].queryset = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
-        self.fields["kamoku"].label_from_instance = lambda obj: f"{obj.code} {obj.name} [{obj.furigana or ''}]"
-        self.fields["kamoku"].empty_label = "勘定科目を選択"
-
-
 class ShiwakeDictionaryForm(forms.ModelForm):
     """Form for creating / editing a Journal Dictionary pattern (仕訳辞書)."""
 
@@ -206,8 +221,7 @@ class ShiwakeDictionaryForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Helper to format account labels consistently (Code Name [Furigana])
-        account_label_fn = lambda obj: f"{obj.code} {obj.name} [{obj.furigana or ''}]"
+        account_label_fn = lambda obj: build_searchable_label(obj.name, obj.code, obj.name, obj.furigana or "")
 
         # Apply constraints and formatting to choice fields
         active_kamoku = KanjoKamokuMaster.objects.filter(level=4, is_active=True).order_by("code")
@@ -219,15 +233,25 @@ class ShiwakeDictionaryForm(forms.ModelForm):
         # Kari side
         self.fields["kari_kamoku"].queryset = active_kamoku
         self.fields["kari_kamoku"].label_from_instance = account_label_fn
+        self.fields["kari_kamoku"].empty_label = EMPTY_CHOICE_LABEL
         self.fields["kari_hojo"].queryset = active_hojo
+        self.fields["kari_hojo"].label_from_instance = account_label_fn
+        self.fields["kari_hojo"].empty_label = EMPTY_CHOICE_LABEL
         self.fields["kari_zei"].queryset = active_zei
+        self.fields["kari_zei"].empty_label = EMPTY_CHOICE_LABEL
 
         # Kashi side
         self.fields["kashi_kamoku"].queryset = active_kamoku
         self.fields["kashi_kamoku"].label_from_instance = account_label_fn
+        self.fields["kashi_kamoku"].empty_label = EMPTY_CHOICE_LABEL
         self.fields["kashi_hojo"].queryset = active_hojo
+        self.fields["kashi_hojo"].label_from_instance = account_label_fn
+        self.fields["kashi_hojo"].empty_label = EMPTY_CHOICE_LABEL
         self.fields["kashi_zei"].queryset = active_zei
+        self.fields["kashi_zei"].empty_label = EMPTY_CHOICE_LABEL
 
         # Metadata
         self.fields["bumon"].queryset = active_bumon
+        self.fields["bumon"].empty_label = EMPTY_CHOICE_LABEL
         self.fields["torihikisaki"].queryset = active_torihiki
+        self.fields["torihikisaki"].empty_label = EMPTY_CHOICE_LABEL
