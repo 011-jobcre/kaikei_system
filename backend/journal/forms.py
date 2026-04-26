@@ -3,6 +3,7 @@
 # =========================================================
 
 from django import forms
+from django.urls import reverse_lazy
 
 from master.models import KanjoKamokuMaster, HojoKamokuMaster, BumonMaster, TorihikiSakiMaster, ZeiMaster
 from .models import ShiwakeDenpyo, ShiwakeMeisai
@@ -74,10 +75,32 @@ def setup_master_fields(form):
         queryset=get_active_level4_kamoku_queryset(),
         empty_label=EMPTY_CHOICE_LABEL,
         required=True,
-        widget=forms.Select(attrs={"class": SELECT_CLASS}),
+        widget=forms.Select(
+            attrs={
+                "class": SELECT_CLASS,
+                "hx-get": reverse_lazy("journal:load-hojo"),
+                "hx-target": f"#id_{form.add_prefix('hojo')}",
+                "hx-trigger": "change",
+                "hx-swap": "innerHTML",
+            }
+        ),
     )
+    # Filter hojo queryset if kamoku is selected
+    kamoku_id = None
+    if form.is_bound:
+        kamoku_id = form.data.get(form.add_prefix("kamoku"))
+    elif form.instance and form.instance.pk:
+        kamoku_id = form.instance.kamoku_id
+
+    hojo_qs = get_active_hojo_queryset()
+    if kamoku_id:
+        try:
+            hojo_qs = hojo_qs.filter(kamoku_id=kamoku_id)
+        except (ValueError, TypeError):
+            pass
+
     form.fields["hojo"] = HojoKamokuChoiceField(
-        queryset=get_active_hojo_queryset(),
+        queryset=hojo_qs,
         empty_label=EMPTY_CHOICE_LABEL,
         required=False,
         widget=forms.Select(attrs={"class": SELECT_CLASS}),
@@ -239,7 +262,15 @@ class ShiwakeMeisaiForm(forms.Form):
     kari_kamoku = KanjoKamokuChoiceField(
         queryset=get_active_level4_kamoku_queryset(),
         label="借方科目",
-        widget=forms.Select(attrs={"class": SELECT_CLASS, "data-placeholder": "科目を検索..."}),
+        widget=forms.Select(
+            attrs={
+                "class": SELECT_CLASS,
+                "data-placeholder": "科目を検索...",
+                "hx-get": reverse_lazy("journal:load-hojo"),
+                "hx-trigger": "change",
+                "hx-swap": "innerHTML",
+            }
+        ),
     )
     kari_hojo = HojoKamokuChoiceField(
         queryset=get_active_hojo_queryset(),
@@ -282,7 +313,15 @@ class ShiwakeMeisaiForm(forms.Form):
     kashi_kamoku = KanjoKamokuChoiceField(
         queryset=get_active_level4_kamoku_queryset(),
         label="貸方科目",
-        widget=forms.Select(attrs={"class": SELECT_CLASS, "data-placeholder": "科目を検索..."}),
+        widget=forms.Select(
+            attrs={
+                "class": SELECT_CLASS,
+                "data-placeholder": "科目を検索...",
+                "hx-get": reverse_lazy("journal:load-hojo"),
+                "hx-trigger": "change",
+                "hx-swap": "innerHTML",
+            }
+        ),
     )
     kashi_hojo = HojoKamokuChoiceField(
         queryset=get_active_hojo_queryset(),
@@ -337,6 +376,29 @@ class ShiwakeMeisaiForm(forms.Form):
         }
         for field_name, col_idx in field_positions.items():
             self.fields[field_name].widget.attrs.update({"data-row": row_idx, "data-col": str(col_idx)})
+
+        # Set specific HTMX targets for dependent dropdowns
+        self.fields["kari_kamoku"].widget.attrs["hx-target"] = f"#id_{self.add_prefix('kari_hojo')}"
+        self.fields["kashi_kamoku"].widget.attrs["hx-target"] = f"#id_{self.add_prefix('kashi_hojo')}"
+
+        # Filter hojo querysets if kamoku is selected
+        for side in ["kari", "kashi"]:
+            kamoku_field = f"{side}_kamoku"
+            hojo_field = f"{side}_hojo"
+            kamoku_id = None
+            if self.is_bound:
+                kamoku_id = self.data.get(self.add_prefix(kamoku_field))
+            else:
+                kamoku_id = self.initial.get(kamoku_field)
+                if hasattr(kamoku_id, "id"):
+                    kamoku_id = kamoku_id.id
+
+            if kamoku_id:
+                try:
+                    self.fields[hojo_field].queryset = get_active_hojo_queryset().filter(kamoku_id=kamoku_id)
+                except (ValueError, TypeError):
+                    pass
+
         if self.errors:
             for field_name, field in self.fields.items():
                 if field_name in self.errors:

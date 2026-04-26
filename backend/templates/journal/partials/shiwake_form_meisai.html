@@ -7,7 +7,7 @@
     hx-target="this"
     hx-swap="outerHTML"
     hx-include="this"
-    hx-indicator="find .row-status-indicator">
+    hx-indicator="#indicator-{{ form.prefix }}">
     <td>
         {{ form.denpyo_id }}
         <input type="hidden" name="_row_prefix" value="{{ form.prefix }}" />
@@ -61,7 +61,8 @@
     </td>
     <td class="text-center p-0 relative">
         <div class="flex items-center justify-center gap-1 h-full py-1">
-            <div class="row-status-indicator htmx-indicator">
+            <div id="indicator-{{ form.prefix }}"
+                 class="row-status-indicator htmx-indicator">
                 <span class="loading loading-spinner loading-xs text-primary"></span>
             </div>
             <button type="button"

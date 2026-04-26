@@ -25,4 +25,5 @@ urlpatterns = [
     # HTMX Endpoints
     path("htmx/add-form-row/", views.add_form_row, name="add-form-row"),
     path("htmx/balance-check/", views.balance_check, name="balance-check"),
+    path("htmx/load-hojo/", views.load_hojo_options, name="load-hojo"),
 ]

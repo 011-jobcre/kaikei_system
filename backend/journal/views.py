@@ -460,6 +460,33 @@ def add_form_row(request):
     return render(request, template, context)
 
 
+def load_hojo_options(request):
+    """HTMX endpoint — return <option> tags for hojo kamoku based on selected kamoku."""
+    kamoku_id = request.GET.get("kamoku_id")
+
+    # If kamoku_id is not directly provided, check if it's sent via a form field name
+    # (HTMX sends the value of the changing element with its name as the key)
+    if not kamoku_id:
+        for key in request.GET.keys():
+            if "kamoku" in key:
+                kamoku_id = request.GET.get(key)
+                break
+
+    from .forms import EMPTY_CHOICE_LABEL
+    from master.models import HojoKamokuMaster
+
+    options = [f'<option value="">{EMPTY_CHOICE_LABEL}</option>']
+    if kamoku_id:
+        try:
+            hojos = HojoKamokuMaster.objects.filter(kamoku_id=kamoku_id, is_active=True).order_by("code")
+            for hojo in hojos:
+                options.append(f'<option value="{hojo.id}">[{hojo.code}] {hojo.name}</option>')
+        except (ValueError, TypeError):
+            pass
+
+    return HttpResponse("".join(options))
+
+
 def balance_check(request):
     """HTMX endpoint — return current debit/credit balance indicator."""
     try:

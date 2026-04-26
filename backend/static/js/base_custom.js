@@ -86,6 +86,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     initTomSelects();
+
+    // 5. Sync TomSelect on HTMX Swaps
+    // If HTMX updates the content of a select (e.g., dependent dropdowns),
+    // we must tell TomSelect to refresh its internal option list.
+    document.addEventListener("htmx:afterSwap", (event) => {
+        const target = event.detail.target;
+        // Check if the target itself is a select or contains selects
+        const selects = target.tagName === "SELECT" ? [target] : target.querySelectorAll("select.tomselected");
+
+        selects.forEach((select) => {
+            if (select.tomselect) {
+                const instance = select.tomselect;
+                const currentValue = select.value;
+                instance.clearOptions();
+                instance.sync(); // Reads new <option> tags from the real select
+                if (currentValue) {
+                    instance.setValue(currentValue, true);
+                }
+                // Preserve data-row and data-col for grid navigation
+                if (instance.control_input) {
+                    if (select.dataset.row !== undefined) instance.control_input.dataset.row = select.dataset.row;
+                    if (select.dataset.col !== undefined) instance.control_input.dataset.col = select.dataset.col;
+                }
+            }
+        });
+    });
 });
 
 function initTomSelects(container) {
