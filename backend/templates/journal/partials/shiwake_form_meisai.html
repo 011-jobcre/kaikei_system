@@ -8,13 +8,9 @@
     hx-swap="outerHTML"
     hx-include="this"
     hx-indicator="find .row-status-indicator">
-    <td class="relative">
-        {% csrf_token %}
+    <td>
         {{ form.denpyo_id }}
         <input type="hidden" name="_row_prefix" value="{{ form.prefix }}" />
-        <div x-show="rowHasError(getRowIndex($el))"
-             class="absolute inset-0 z-60 tooltip tooltip-error tooltip-open tooltip-right pointer-events-none"
-             :data-tip="rowErrors[getRowIndex($el)]"></div>
         <input type="date"
                name="{{ form.prefix }}-date"
                value="{{ form.date.value|date:'Y-m-d' }}"
@@ -25,7 +21,11 @@
     </td>
     <td class="group-detail">{{ form.kari_kamoku }}</td>
     <td class="group-detail">{{ form.kari_hojo }}</td>
-    <td class="group-detail">
+    <td class="group-detail relative">
+        {% csrf_token %}
+        <div x-show="rowHasError(getRowIndex($el))"
+             class="absolute inset-0 z-60 tooltip tooltip-error tooltip-open pointer-events-none"
+             :data-tip="rowErrors[getRowIndex($el)]"></div>
         <input type="number"
                name="{{ form.prefix }}-kari_kingaku"
                value="{{ form.kari_kingaku.value|default:'' }}"
@@ -68,7 +68,7 @@
                     class="btn-delete-square"
                     @click="deleteRow(getRowIndex($el))"
                     title="削除">
-                <i class="fa-solid fa-trash-can scale-90"></i>
+                <i class="fa-solid fa-trash-can"></i>
             </button>
         </div>
     </td>

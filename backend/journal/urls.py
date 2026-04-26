@@ -12,7 +12,6 @@ urlpatterns = [
     path("", views.ShiwakeListView.as_view(), name="shiwake-list"),
     # 仕訳日記帳 (Shiwake Nikki — Spreadsheet Grid View)
     path("shiwake/grid/", views.ShiwakeNikkiCreateView.as_view(), name="shiwake-create"),
-    path("shiwake/<int:pk>/edit/", views.ShiwakeNikkiUpdateView.as_view(), name="shiwake-update"),
     # 振替伝票 (Furikae Denpyo — Complex N:N Entry)
     path("furikae/new/", views.FurikaeDenpyoCreateView.as_view(), name="furikae-create"),
     path("furikae/<int:pk>/edit/", views.FurikaeDenpyoUpdateView.as_view(), name="furikae-update"),
@@ -25,6 +24,5 @@ urlpatterns = [
     path("closing/", views.NenjiKessanView.as_view(), name="nenji-kessan"),
     # HTMX Endpoints
     path("htmx/add-form-row/", views.add_form_row, name="add-form-row"),
-    path("htmx/shiwake-recent-entries/", views.recent_shiwake_entries, name="shiwake-recent-entries"),
     path("htmx/balance-check/", views.balance_check, name="balance-check"),
 ]

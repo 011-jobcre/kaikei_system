@@ -3,36 +3,6 @@
 {% block title %}
     仕訳日記帳 | 会計システム
 {% endblock title %}
-{% block extra_head %}
-    {{ formset.media.css }}
-    <style>
-    /* Styling for the persistent grid */
-    .table-accounting input:focus, .table-accounting select:focus {
-        background-color: hsl(var(--p) / 0.05);
-        outline: 2px solid hsl(var(--p));
-    }
-    
-    /* Error indicator animation */
-    .error-row {
-        background-color: hsl(var(--er) / 0.05) !important;
-    }
-    
-    /* Custom Tooltip that won't be clipped */
-    .fixed-error-popup {
-        position: fixed;
-        z-index: 9999;
-        pointer-events: none;
-        background: hsl(var(--er));
-        color: hsl(var(--erc));
-        padding: 4px 12px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: bold;
-        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-        display: none;
-    }
-    </style>
-{% endblock extra_head %}
 {% block page_header %}
     {{ title }}
 {% endblock page_header %}
@@ -108,11 +78,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-        <!-- Global Floating Error Tooltip (Teleported to body) -->
-        <div id="global-error-tooltip" class="fixed-error-popup">
-            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-            <span id="global-error-text"></span>
         </div>
     </div>
     {{ formset.media.js }}

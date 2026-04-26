@@ -4,9 +4,17 @@ function shiwakeGrid() {
         validationTick: 0,
         rowErrors: {},
         _currentRowIdx: null,
+        activeRowIdx: {{ edit_row_index|default:'null' }},
 
         init() {
             this.revalidateAllRows();
+            
+            // Focus on kari_kamoku field if editing
+            if (this.activeRowIdx !== null) {
+                this.$nextTick(() => {
+                    this.focusCell(this.activeRowIdx, 1); // col 1 = kari_kamoku
+                });
+            }
 
             document.body.addEventListener('htmx:afterSwap', (evt) => {
                 const target = evt.detail?.target;
@@ -177,7 +185,7 @@ function shiwakeGrid() {
 
         deleteRow(rowIdx) {
             const row = document.getElementById(`row-${rowIdx}`);
-            if (row && confirm('削除しますか？')) {
+            if (row) {
                 row.remove();
                 delete this.rowErrors[rowIdx];
                 this.revalidateAllRows();

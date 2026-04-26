@@ -92,7 +92,7 @@ class ShiwakeDenpyo(BaseModel):
         """Return the appropriate editor URL for the voucher type."""
         if self.denpyo_type == "FURIKAE":
             return reverse("journal:furikae-update", args=[self.pk])
-        return reverse("journal:shiwake-update", args=[self.pk])
+        return f"{reverse('journal:shiwake-create')}?edit_id={self.pk}"
 
 
 # =========================================================
